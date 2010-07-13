@@ -257,7 +257,8 @@ typedef struct  {
 
 /* EMAC Wrapper Registers Structure */
 typedef struct  {
-#if defined(CONFIG_SOC_DM646x) || defined(CONFIG_SOC_DM365) || (CONFIG_OMAP3_AM3517EVM)
+#if (defined(CONFIG_SOC_DM646x) || defined(CONFIG_SOC_DM365) || \
+     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_CRANEBOARD))
 	dv_reg		IDVER;
 	dv_reg		SOFTRST;
 	dv_reg		EMCTRL;
