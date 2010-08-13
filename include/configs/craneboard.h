@@ -105,7 +105,7 @@
  */
 #define CONFIG_USB_AM3517		1
 #define CONFIG_MUSB_HCD			1
-/*#define CONFIG_MUSB_UDC		1*/
+#define CONFIG_MUSB_UDC			1
 
 #ifdef CONFIG_USB_AM3517
 
