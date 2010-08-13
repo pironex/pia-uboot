@@ -331,11 +331,9 @@ const omap3_sysinfo sysinfo = {
 	/* JTAG */ \
 	MUX_VAL(CP(JTAG_nTRST),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TCK),		(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(JTAG_RTCK),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TMS),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TDI),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TDO),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_EMU0),		(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(JTAG_EMU1),		(IEN  | PTD | DIS | M0))
 
 #endif /* _CRANEBOARD_H_ */
