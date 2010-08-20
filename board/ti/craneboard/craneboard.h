@@ -102,7 +102,7 @@ const omap3_sysinfo sysinfo = {
 	/* GPIO_40 MMC1_WP */ \
 	MUX_VAL(CP(GPMC_A7),		(IDIS | PTU | EN  | M4)) \
 	/* GPIO_41 MMC1_CD */ \
-	MUX_VAL(CP(GPMC_A8),		(IDIS | PTU | EN  | M4)) \
+	MUX_VAL(CP(GPMC_A8),		(IEN  | PTU | EN  | M4)) \
 	MUX_VAL(CP(GPMC_A9),		(M7))  /* NC */\
 	MUX_VAL(CP(GPMC_A10),		(M7))  /* NC */\
 	MUX_VAL(CP(GPMC_D0),		(IEN  | PTU | EN  | M0)) \
