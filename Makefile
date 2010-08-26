@@ -3144,9 +3144,6 @@ SMN42_config	:	unconfig
 #########################################################################
 ## ARM CORTEX Systems
 #########################################################################
-craneboard_config :	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 craneboard ti omap3
-
 devkit8000_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 devkit8000 timll omap3
 
@@ -3158,6 +3155,9 @@ omap3_overo_config :	unconfig
 
 omap3_evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 evm ti omap3
+
+am3517_crane_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517crane ti omap3
 
 am3517_evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517evm ti omap3

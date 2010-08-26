@@ -1,5 +1,5 @@
 /*
- * craneboard.c - board file for AM3517/05 Craneboard.
+ * am3517crane.c - board file for AM3517/05 Craneboard.
  *
  * Author: Srinath.R <srinath@mistralsolutions.com>
  *
@@ -32,13 +32,18 @@
 #include <asm/arch/gpio.h>
 #include <i2c.h>
 #include <asm/mach-types.h>
-#include "craneboard.h"
+#include "am3517crane.h"
 
 
+#if defined(CONFIG_DRIVER_TI_EMAC)
 #define AM3517_IP_SW_RESET	0x48002598
 #define CPGMACSS_SW_RST		(1 << 1)
-#define ETHERNET_NRST	34
+#define ETHERNET_NRST		34
+#define EMACID_ADDR_LSB 	0x48002380
+#define EMACID_ADDR_MSB 	0x48002384
+#endif
 
+DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Routine: board_init
@@ -46,8 +51,6 @@
  */
 int board_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
 	/* board id for Linux */
 	gd->bd->bi_arch_number = MACH_TYPE_CRANEBOARD;
@@ -66,16 +69,11 @@ int misc_init_r(void)
 	volatile unsigned int ctr;
 	u32 reset;
 
-
 #ifdef CONFIG_DRIVER_OMAP34XX_I2C
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
-
 	dieid_num_r();
-
-
 #if defined(CONFIG_DRIVER_TI_EMAC)
-
 	omap_request_gpio(ETHERNET_NRST);
 	omap_set_gpio_direction(ETHERNET_NRST, 0);
 	omap_set_gpio_dataout(ETHERNET_NRST, 0);
@@ -96,13 +94,9 @@ int misc_init_r(void)
 	reset = readl(AM3517_IP_SW_RESET);
 	reset &= (~CPGMACSS_SW_RST);
 	writel(reset, AM3517_IP_SW_RESET);
-
 #endif
-
-
 	return 0;
 }
-
 
 /*
  * Initializes on-chip ethernet controllers.
@@ -111,12 +105,34 @@ int misc_init_r(void)
 int cpu_eth_init(bd_t *bis)
 {
 #if defined(CONFIG_DRIVER_TI_EMAC)
+	char mac_buf_lsb[8];
+	char mac_buf_msb[16];
+	char mac_id[24];
+	const unsigned char separator = ':';
+
 	printf("davinci_emac_initialize\n");
 	davinci_emac_initialize();
-#endif
-	return 0;
- }
 
+	memset(mac_buf_lsb,'\0',sizeof(mac_buf_lsb));
+	memset(mac_buf_msb,'\0',sizeof(mac_buf_msb));
+	memset(mac_id,'\0',sizeof(mac_id));
+
+	sprintf(mac_buf_msb,"%x",readl(EMACID_ADDR_MSB));
+	sprintf(mac_buf_lsb,"%x",readl(EMACID_ADDR_LSB));
+	strcat(mac_buf_msb,mac_buf_lsb);
+	sprintf(mac_id, "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
+			mac_buf_msb[0], mac_buf_msb[1], separator,
+			mac_buf_msb[2], mac_buf_msb[3], separator,
+			mac_buf_msb[4], mac_buf_msb[5], separator,
+			mac_buf_msb[6], mac_buf_msb[7], separator,
+			mac_buf_msb[8], mac_buf_msb[9], separator,
+			mac_buf_msb[10],mac_buf_msb[11]);
+
+	printf("EMAC ID %s\n",mac_id);
+	setenv("ethaddr",mac_id);
+#endif
+        return 0;
+}
 
 /*
  * Routine: set_muxconf_regs
@@ -126,5 +142,5 @@ int cpu_eth_init(bd_t *bis)
  */
 void set_muxconf_regs(void)
 {
-	MUX_CRANEBOARD();
+	MUX_AM3517CRANE();
 }

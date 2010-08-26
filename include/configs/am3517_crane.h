@@ -1,5 +1,5 @@
 /*
- * craneboard.h - Default configuration for AM3517/05 Craneboard.
+ * am3517_crane.h - Default configuration for AM3517/05 Craneboard.
  *
  * Author: Srinath.R <srinath@mistralsolutions.com>
  *
@@ -31,9 +31,11 @@
 #define CONFIG_ARMCORTEXA8	1	/* This is an ARM V7 CPU core */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_CRANEBOARD	1	/* working with AM3517/05 Craneboard */
-
 #define CONFIG_EMIF4		1	/* The chip has EMIF4 controller */
+
+/* working with AM3517/05 Craneboard */
+#define CONFIG_OMAP3_AM3517CRANE	1
+
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap3.h>
@@ -105,7 +107,7 @@
  */
 #define CONFIG_USB_AM3517		1
 #define CONFIG_MUSB_HCD			1
-#define CONFIG_MUSB_UDC			1
+/*#define CONFIG_MUSB_UDC		1*/
 
 #ifdef CONFIG_USB_AM3517
 
@@ -193,10 +195,10 @@
 	"console=ttyS2,115200n8\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"root=/dev/mmcblk0p2 rw " \
-		"rootfstype=ext3 rootwait\0" \
+		"rootfstype=ext3 rootwait eth=${ethaddr} ip=dhcp\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2\0" \
+		"rootfstype=jffs2 eth=${ethaddr} ip=dhcp\0" \
 	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source ${loadaddr}\0" \
@@ -225,7 +227,7 @@
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT			"CRANEBOARD # "
+#define V_PROMPT			"AM3517_CRANE # "
 
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
