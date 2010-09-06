@@ -36,7 +36,7 @@
 #define EMAC_MACID_ADDR_LSB 0x48002380
 #define EMAC_MACID_ADDR_MSB 0x48002384
 
-int read_mac_id(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int read_mac_id(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	run_command("print ethaddr",0);
 

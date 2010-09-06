@@ -90,7 +90,7 @@
  */
 #define CONFIG_CONS_INDEX		3
 #define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
-#define CONFIG_SERIAL3			3	/* UART3 on AM3517 EVM */
+#define CONFIG_SERIAL3			3	/* UART3 on AM3517 CRANE */
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -134,7 +134,7 @@
 #define CONFIG_USBD_VENDORID		0x0451
 #define CONFIG_USBD_PRODUCTID		0x5678
 #define CONFIG_USBD_MANUFACTURER	"Texas Instruments"
-#define CONFIG_USBD_PRODUCT_NAME	"EVM"
+#define CONFIG_USBD_PRODUCT_NAME	"CRANE"
 #endif /* CONFIG_MUSB_UDC */
 
 #endif /* CONFIG_USB_AM3517 */

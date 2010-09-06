@@ -113,25 +113,25 @@ int cpu_eth_init(bd_t *bis)
 	printf("davinci_emac_initialize\n");
 	davinci_emac_initialize();
 
-	memset(mac_buf_lsb,'\0',sizeof(mac_buf_lsb));
-	memset(mac_buf_msb,'\0',sizeof(mac_buf_msb));
-	memset(mac_id,'\0',sizeof(mac_id));
+	memset(mac_buf_lsb, '\0', sizeof(mac_buf_lsb));
+	memset(mac_buf_msb, '\0', sizeof(mac_buf_msb));
+	memset(mac_id, '\0', sizeof(mac_id));
 
-	sprintf(mac_buf_msb,"%x",readl(EMACID_ADDR_MSB));
-	sprintf(mac_buf_lsb,"%x",readl(EMACID_ADDR_LSB));
-	strcat(mac_buf_msb,mac_buf_lsb);
+	sprintf(mac_buf_msb, "%x", readl(EMACID_ADDR_MSB));
+	sprintf(mac_buf_lsb, "%x", readl(EMACID_ADDR_LSB));
+	strcat(mac_buf_msb, mac_buf_lsb);
 	sprintf(mac_id, "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
 			mac_buf_msb[0], mac_buf_msb[1], separator,
 			mac_buf_msb[2], mac_buf_msb[3], separator,
 			mac_buf_msb[4], mac_buf_msb[5], separator,
 			mac_buf_msb[6], mac_buf_msb[7], separator,
 			mac_buf_msb[8], mac_buf_msb[9], separator,
-			mac_buf_msb[10],mac_buf_msb[11]);
+			mac_buf_msb[10], mac_buf_msb[11]);
 
-	printf("EMAC ID %s\n",mac_id);
-	setenv("ethaddr",mac_id);
+	printf("EMAC ID %s\n", mac_id);
+	setenv("ethaddr", mac_id);
 #endif
-        return 0;
+	return 0;
 }
 
 /*
