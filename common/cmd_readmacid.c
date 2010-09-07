@@ -38,7 +38,7 @@
 
 int read_mac_id(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	run_command("print ethaddr",0);
+	run_command("print ethaddr", 0);
 
 return 0;
 }
