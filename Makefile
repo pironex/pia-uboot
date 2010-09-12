@@ -250,6 +250,7 @@ LIBS += common/libcommon.a
 LIBS += libfdt/libfdt.a
 LIBS += api/libapi.a
 LIBS += post/libpost.a
+LIBS += ../itbok/libitbok.a
 
 LIBS := $(addprefix $(obj),$(LIBS))
 .PHONY : $(LIBS) $(TIMESTAMP_FILE) $(VERSION_FILE)
@@ -3144,7 +3145,6 @@ SMN42_config	:	unconfig
 #########################################################################
 ## ARM CORTEX Systems
 #########################################################################
-
 devkit8000_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 devkit8000 timll omap3
 
@@ -3156,6 +3156,9 @@ omap3_overo_config :	unconfig
 
 omap3_evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 evm ti omap3
+
+am3517_crane_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517crane ti omap3
 
 am3517_evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517evm ti omap3
