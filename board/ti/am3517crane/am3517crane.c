@@ -66,7 +66,7 @@ int board_init(void)
  */
 int misc_init_r(void)
 {
-	volatile unsigned int ctr;
+	u32 ctr;
 	u32 reset;
 
 #ifdef CONFIG_DRIVER_OMAP34XX_I2C

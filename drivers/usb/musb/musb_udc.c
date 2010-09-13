@@ -62,6 +62,7 @@
 #elif defined(CONFIG_USB_DAVINCI)
 #include "davinci.h"
 #endif
+#include "omap3.h"
 
 /* Define MUSB_DEBUG for debugging */
 /* #define MUSB_DEBUG */
