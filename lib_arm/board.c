@@ -65,7 +65,6 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 ulong monitor_flash_len;
-extern void register_diagnostics(void);
 
 #ifdef CONFIG_HAS_DATAFLASH
 extern int  AT91F_DataflashInit(void);

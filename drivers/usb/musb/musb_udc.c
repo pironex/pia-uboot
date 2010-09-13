@@ -95,8 +95,6 @@ do {									\
 	}								\
 } while (0)
 
-extern int musb_platform_init(void);
-
 /* static implies these initialized to 0 or NULL */
 static int debug_setup;
 static int debug_level;
