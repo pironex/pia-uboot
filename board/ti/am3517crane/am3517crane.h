@@ -317,7 +317,7 @@ const omap3_sysinfo sysinfo = {
 	/* GPIO_1 TPS_SLEEP */ \
 	MUX_VAL(CP(SYS_CLKREQ),		(IEN  | PTD | DIS | M4)) \
 	/* GPIO_30 TO Exp */ \
-	MUX_VAL(CP(SYS_NRESWARM),     	(IDIS | PTU | DIS | M4)) \
+	MUX_VAL(CP(SYS_NRESWARM),     	(IEN  | PTU | EN  | M0)) \
 	MUX_VAL(CP(SYS_BOOT1),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(SYS_BOOT2),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(SYS_BOOT3),		(IEN  | PTD | DIS | M0)) \
