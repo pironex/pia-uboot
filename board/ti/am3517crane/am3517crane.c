@@ -42,9 +42,6 @@
 #define EMACID_ADDR_LSB 	0x48002380
 #define EMACID_ADDR_MSB 	0x48002384
 #endif
-#define TPS65930_I2C_ADDR	0x2D
-#define INT_STS			0x50
-#define INT_STS2		0x52
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -71,7 +68,6 @@ int misc_init_r(void)
 {
 	u32 ctr;
 	u32 reset;
-	unsigned char data = 0;
 
 #ifdef CONFIG_DRIVER_OMAP34XX_I2C
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
@@ -99,13 +95,6 @@ int misc_init_r(void)
 	reset &= (~CPGMACSS_SW_RST);
 	writel(reset, AM3517_IP_SW_RESET);
 #endif
-	/* clearing interrupts in tps65930 int sts regs*/
-	i2c_read (TPS65930_I2C_ADDR, INT_STS, 0, &data, 1);
-	i2c_write(TPS65930_I2C_ADDR, INT_STS, 0, &data, 1);
-
-	i2c_read (TPS65930_I2C_ADDR, INT_STS2, 0, &data, 1);
-	i2c_write(TPS65930_I2C_ADDR, INT_STS2, 0, &data, 1);
-
 	return 0;
 }
 
