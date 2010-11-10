@@ -61,7 +61,6 @@
 #include "../drivers/net/lan91c96.h"
 #endif
 
-#include "../../itbok/common/inc/omap3530evm.h"
 DECLARE_GLOBAL_DATA_PTR;
 
 ulong monitor_flash_len;
