@@ -91,7 +91,7 @@ const omap3_sysinfo sysinfo = {
 	/* GPIO_34 ETHERNET_nRST */ \
 	MUX_VAL(CP(GPMC_A1),		(IDIS | PTU | EN  | M4)) \
 	/* GPIO_35 USB1_HOST_EN */ \
-	MUX_VAL(CP(GPMC_A2),		(IDIS | PTU | EN  | M4)) \
+	MUX_VAL(CP(GPMC_A2),		(IDIS | PTU | DIS | M4)) \
 	/* GPIO_36 USB0_OVER_CURRENT*/ \
 	MUX_VAL(CP(GPMC_A3),		(IDIS | PTU | EN  | M4)) \
 	/* GPIO_37 USB1_OVER_CURRENT */ \
