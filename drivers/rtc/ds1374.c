@@ -69,7 +69,7 @@
 #define RTC_WD_ALM_CNT_BYTE2_ADDR	0x06
 
 #define RTC_CTL_ADDR			0x07 /* RTC-CoNTrol-register */
-#define RTC_SR_ADDR			0x08 /* RTC-StatusRegister */
+#define RTC_SR_ADDR				0x08 /* RTC-StatusRegister */
 #define RTC_TCS_DS_ADDR			0x09 /* RTC-TrickleChargeSelect DiodeSelect-register */
 
 #define RTC_CTL_BIT_AIE			(1<<0) /* Bit 0 - Alarm Interrupt enable */
@@ -80,6 +80,15 @@
 #define RTC_CTL_BIT_WD_ALM		(1<<5) /* Bit 5 - Watchdoc/Alarm Counter Select */
 #define RTC_CTL_BIT_WACE		(1<<6) /* Bit 6 - Watchdog/Alarm Counter Enable WACE*/
 #define RTC_CTL_BIT_EN_OSC		(1<<7) /* Bit 7 - Enable Oscilator */
+
+#define RTC_TCS_BIT_ROUT0		(1<<0) /* Bit 0 - Resistor select */
+#define RTC_TCS_BIT_ROUT1		(1<<1) /* Bit 1 - Resistor select */
+#define RTC_TCS_BIT_DS0			(1<<2) /* Bit 2 - Diode Select  */
+#define RTC_TCS_BIT_DS1			(1<<3) /* Bit 3 - Diode Select  */
+#define RTC_TCS_BIT_TCS0		(1<<4) /* Bit 4 - Trickle-charge select bit 4 */
+#define RTC_TCS_BIT_TCS1		(1<<5) /* Bit 5 - Trickle-charge select bit 5 */
+#define RTC_TCS_BIT_TCS2		(1<<6) /* Bit 6 - Trickle-charge select bit 6 */
+#define RTC_TCS_BIT_TCS3		(1<<7) /* Bit 7 - Trickle-charge select bit 7 */
 
 #define RTC_SR_BIT_AF			0x01 /* Bit 0 = Alarm Flag */
 #define RTC_SR_BIT_OSF			0x80 /* Bit 7 - Osc Stop Flag */
@@ -93,6 +102,10 @@ typedef unsigned char boolean_t;
 #define FALSE (!TRUE)
 #endif
 
+#define TC_ON
+//#define WATCHDOG
+//#define DEBUG_ON
+
 const char RtcTodAddr[] = {
 	RTC_TOD_CNT_BYTE0_ADDR,
 	RTC_TOD_CNT_BYTE1_ADDR,
@@ -103,6 +116,84 @@ const char RtcTodAddr[] = {
 static uchar rtc_read (uchar reg);
 static void rtc_write (uchar reg, uchar val, boolean_t set);
 static void rtc_write_raw (uchar reg, uchar val);
+
+void rtc_init()
+{
+	printf("Starting RTC Initialization...\n");
+
+	uchar res;
+
+	// Read Trickle Charger config register
+	res = rtc_read(RTC_TCS_DS_ADDR);
+	//printf("TCS: %x\n",res);
+
+#ifdef WATCHDOG
+	// Read Watchdog/Alarm Counter
+	uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
+	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
+	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
+	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
+	printf("WD/ALARM Counter (Power-up): %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+
+	// Periodic Alarm
+	//rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_AIE),TRUE);
+
+	// Write to Watchdog/Alarm Counter Register
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE0_ADDR, 0x00);
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE1_ADDR, 0xA0);
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE2_ADDR, 0x0F);
+	
+	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
+	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
+	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
+	printf("Set WD/ALARM Counter to: %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+
+	//Enable Watchdog Interrupt
+	rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),TRUE);
+	res = rtc_read(RTC_CTL_ADDR);
+	if((res & 0x60) == 0x60)
+		printf("Watchdog enabled!\n");
+#else 
+	//Disable Watchdog Interrupt
+	rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),FALSE);
+	res = rtc_read(RTC_CTL_ADDR);
+	if(!(res & 0x60))
+		printf("Watchdog disabled!\n");
+#endif
+
+#ifdef TC_ON
+	//Enable trickle charger (Imax = 0,65mA, bei U=3,3V)
+	rtc_write(RTC_TCS_DS_ADDR,(	RTC_TCS_BIT_TCS3	| RTC_TCS_BIT_TCS1 | 		/* Enable Trickle-Charge*/
+								RTC_TCS_BIT_DS1		| 							/* One diode */
+								RTC_TCS_BIT_ROUT1	| RTC_TCS_BIT_ROUT0 )		/* 4kOhm */
+								,TRUE);
+
+	//check if write was successfull
+	res = rtc_read(RTC_TCS_DS_ADDR);
+	if((res & 0xa0) == 0xa0){
+		printf("Trickle Charger enabled...\n NOTE: System power supply must be at 3.3V! (If not, the battery charging can damage the entire system!\n");
+		switch(res){
+			case 0xa5:	printf(" (Imax = 13,2mA @ U=3,3V)) \n");
+						break;
+			case 0xa9:	printf(" (Imax = 10,4mA @ U=3,3V)) \n"); 
+						break;
+			case 0xa6:	printf(" (Imax = 1,65mA @ U=3,3V)) \n");
+						break;
+			case 0xaa:	printf(" (Imax = 1,3mA @ U=3,3V)) \n");
+						break;
+			case 0xab:	printf(" (Imax = 0,65mA @ U=3,3V) \n");
+						break;
+			case 0xa7:	printf(" (Imax = 0,825mA @ U=3,3V)) \n"); 		 		
+						break;
+			default: 	printf("Warning: Maximum charging current undefined!\n");
+		}	
+	}
+#else ifndef TC_ON
+	printf("Trickle Charge disabled\n");
+#endif
+
+	printf("RTC Initialization done!\n");
+}
 
 /*
  * Get the current time from the RTC
@@ -153,6 +244,16 @@ int rtc_get (struct rtc_time *tm){
 	DEBUGR ("Get DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
 		tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_wday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+#ifdef DEBUG_ON
+	/* DEBUGGING */
+	uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
+	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
+	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
+	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
+	printf("WD/ALARM Counter (Get date): %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+	/* DEBUGGING end */
+#endif
 
 	return rel;
 }
@@ -229,7 +330,7 @@ void rtc_reset (void){
 		tmp.tm_year, tmp.tm_mon, tmp.tm_mday,
 		tmp.tm_hour, tmp.tm_min, tmp.tm_sec);
 
-	rtc_write(RTC_WD_ALM_CNT_BYTE2_ADDR,0xAC, TRUE);
+	rtc_write(RTC_WD_ALM_CNT_BYTE0_ADDR,0xAC, TRUE);
 	rtc_write(RTC_WD_ALM_CNT_BYTE1_ADDR,0xDE, TRUE);
 	rtc_write(RTC_WD_ALM_CNT_BYTE2_ADDR,0xAD, TRUE);
 }
