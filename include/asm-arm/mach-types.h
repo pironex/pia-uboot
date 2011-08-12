@@ -2533,6 +2533,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_ESYX                 2551
 #define MACH_TYPE_BULLDOG              2553
 #define MACH_TYPE_CRANEBOARD           2932
+#define MACH_TYPE_PIA_AM35X            3671
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -32819,6 +32820,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_craneboard() (machine_arch_type == MACH_TYPE_CRANEBOARD)
 #else
 # define machine_is_craneboard()	(0)
+#endif
+
+#ifdef CONFIG_MACH_PIA_AM35X
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_PIA_AM35X
+# endif
+# define machine_is_pia_am35x() (machine_arch_type == MACH_TYPE_PIA_AM35X)
+#else
+# define machine_is_pia_am35x()	(0)
 #endif
 
 /*

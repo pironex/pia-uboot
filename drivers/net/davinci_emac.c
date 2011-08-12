@@ -302,7 +302,8 @@ static int davinci_eth_open(struct eth_device *dev, bd_t *bis)
 	while (adap_emac->SOFTRESET != 0) {;}
 
 #if (defined(CONFIG_SOC_DM646x) || defined(CONFIG_SOC_DM365) || \
-     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE))
+     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE) || \
+     defined(CONFIG_OMAP3_AM35XPIA))
 
 	adap_ewrap->SOFTRST = 1;
 	while (adap_ewrap->SOFTRST != 0) {;}
@@ -327,7 +328,8 @@ static int davinci_eth_open(struct eth_device *dev, bd_t *bis)
 		(davinci_eth_mac_addr[1] << 8)  |
 		(davinci_eth_mac_addr[0]);
 #if (defined(CONFIG_SOC_DM646x) || defined(CONFIG_SOC_DM365) || \
-     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE))
+     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE) || \
+     defined(CONFIG_OMAP3_AM35XPIA))
 	adap_emac->MACADDRLO =
 		(davinci_eth_mac_addr[5] << 8) |
 		(davinci_eth_mac_addr[4]| (1 << 19) | (1 << 20));
@@ -481,7 +483,8 @@ static void davinci_eth_close(struct eth_device *dev)
 	adap_emac->SOFTRESET = 1;
 
 #if (defined(CONFIG_SOC_DM646x) || defined(CONFIG_SOC_DM365) ||  \
-     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE))
+     defined(CONFIG_OMAP3_AM3517EVM) || defined(CONFIG_OMAP3_AM3517CRANE) || \
+     defined(CONFIG_OMAP3_AM35XPIA))
 	adap_ewrap->SOFTRST = 1;
 #else
 	adap_ewrap->EWCTL = 0;

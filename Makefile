@@ -250,7 +250,7 @@ LIBS += common/libcommon.a
 LIBS += libfdt/libfdt.a
 LIBS += api/libapi.a
 LIBS += post/libpost.a
-LIBS += ../itbok/libitbok.a
+LIBS += ../uboot-itbok/libitbok.a
 
 LIBS := $(addprefix $(obj),$(LIBS))
 .PHONY : $(LIBS) $(TIMESTAMP_FILE) $(VERSION_FILE)
@@ -3159,6 +3159,9 @@ omap3_evm_config :	unconfig
 
 am3517_crane_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517crane ti omap3
+
+am35x_pia_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am35xpia ti omap3
 
 am3517_evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517evm ti omap3
