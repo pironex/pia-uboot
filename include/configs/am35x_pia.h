@@ -186,7 +186,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"console=ttyO2,115200n8\0" \
-	"mmcargs=setenv bootargs console=${console} earlyprintk" \
+	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait eth=${ethaddr} ip=dhcp\0" \
 	"nandargs=setenv bootargs console=${console} " \
