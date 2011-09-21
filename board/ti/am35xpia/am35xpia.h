@@ -318,4 +318,20 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(JTAG_EMU1),		(IEN  | PTD | DIS | M0)) /* jtag_emu1 */\
 	MUX_VAL(CP(JTAG_TMS),		(IEN  | PTD | DIS | M0)) /* jtag_tms_tmsc */\
 
+/* Expansion Board */
+#define MUX_PIA_WIFI() \
+	//define mux here
+
+#define MUX_PIA_LCD() \
+	//define mux here
+
+#define MUX_PIA_MC() \
+	//define mux here
+
+#define MUX_PIA_CC() \
+	//define mux here
+
+#define MUX_PIA_IO() \
+	//define mux here
+
 #endif /* _AM3517CRANE_H_ */
