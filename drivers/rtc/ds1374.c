@@ -117,7 +117,7 @@ static uchar rtc_read (uchar reg);
 static void rtc_write (uchar reg, uchar val, boolean_t set);
 static void rtc_write_raw (uchar reg, uchar val);
 
-void rtc_init()
+void rtc_init(void)
 {
 	printf("Starting RTC/Watchdog (DS1374) Initialization...\n");
 
@@ -162,14 +162,15 @@ void rtc_init()
 
 #ifdef TC_ON
 	//Enable trickle charger (Imax = 0,65mA, bei U=3,3V)
-	rtc_write(RTC_TCS_DS_ADDR,(	RTC_TCS_BIT_TCS3	| RTC_TCS_BIT_TCS1 | 		/* Enable Trickle-Charge*/
+	rtc_write(RTC_TCS_DS_ADDR,(	RTC_TCS_BIT_TCS3	| RTC_TCS_BIT_TCS1 | 		/* Enable Trickle-Charge */
 								RTC_TCS_BIT_DS1		| 							/* One diode */
 								RTC_TCS_BIT_ROUT1	| RTC_TCS_BIT_ROUT0 )		/* 4kOhm */
 								,TRUE);
 
-	//check if write was successfully
+	//check if Triple Charge is enabled
 	res = rtc_read(RTC_TCS_DS_ADDR);
-	if((res | 0xa0) == 0xa0){
+	//printf("res: %2X\n",res);
+	if((res & 0xF0) == 0xA0){
 #ifdef DEBUG_ON
 		printf("Trickle Charger enabled...\n NOTE: System power supply must be at 3.3V! (If not, the battery charging can damage the entire system!\n");
 		switch(res){
@@ -189,7 +190,7 @@ void rtc_init()
 						break;
 		}
 #else
-		printf("Battery charging enabled.");
+		printf("Battery charging enabled.\n");
 #endif	//DEBUG_ON
 	}
 
