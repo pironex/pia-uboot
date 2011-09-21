@@ -42,7 +42,45 @@
 #define EMACID_ADDR_MSB     0x48002384
 #endif
 
+#define EXPANSION_EEPROM_I2C_BUS	1
+#define EXPANSION_EEPROM_I2C_ADDRESS	0x50
+
+#define PIA_WIFI				0x00010001	//Wireless Board
+#define PIA_LCD				0x00010002	//LCD Board
+#define PIA_MC					0x00010003	//MotorControl
+#define PIA_CC					0x00010004	//ChargeControl
+#define PIA_IO					0x00010005	//IO-Board
+#define PIA_NEW_EEPROM				0xffffffff
+#define PIA_NO_EEPROM				0x00000000
+
 DECLARE_GLOBAL_DATA_PTR;
+
+#define AS(x) (sizeof(x)/sizeof(x[0]))
+
+static struct {
+	unsigned int device_vendor;
+	unsigned char revision;
+	unsigned char crc;
+	//unsigned char content;
+	//char fab_revision[8];
+	//char env_var[16];
+	//char env_setting[64];
+} expansion_config;
+
+int sum_of_digits(__u8 *data, int len)
+{
+	int sum = 0;
+	int i;
+
+	for(i = 0; i < len; i++) {
+		while (data[i] > 0) {
+		sum += data[i] % 10;
+		data[i] /= 10;
+		}
+	}
+
+	return sum;
+}
 
 /*
  * Routine: board_init
@@ -57,6 +95,48 @@ int board_init(void)
 	gd->bd->bi_boot_params = (OMAP34XX_SDRC_CS0 + 0x100);
 
 	return 0;
+}
+
+/*
+ * Routine: get_expansion_id
+ * Description: This function checks for expansion board by checking I2C
+ *		bus 2 for the availability of an AT24C01B serial EEPROM.
+ *		returns the device_vendor field from the EEPROM
+ */
+unsigned int get_expansion_id(void)
+{
+	int i;
+	__u8 data[5] = {0};
+	__u8 *p_data = (__u8 *)&expansion_config;
+
+	/* save current i2c bus number */
+	unsigned int old_bus = i2c_get_bus_num();
+
+	/* switch to expansion_eeprom i2c bus */
+	i2c_set_bus_num(EXPANSION_EEPROM_I2C_BUS);
+
+	/* return PIA_NO_EEPROM if eeprom doesn't respond */
+	if (i2c_probe(EXPANSION_EEPROM_I2C_ADDRESS) == 1) {
+		/* restore previous i2c bus number */
+		i2c_set_bus_num(old_bus);
+		return PIA_NO_EEPROM;
+	}
+
+	/* read configuration data */
+	i2c_read(EXPANSION_EEPROM_I2C_ADDRESS, 0, 1, (u8 *)&expansion_config,
+		 sizeof(expansion_config));
+
+	/* Check sum of digits */
+	for(i = 0; i < AS(data); i++)
+		data[i] = *p_data++;
+
+	if(sum_of_digits(data, AS(data)) != expansion_config.crc)
+		printf("Warning: eeprom data not valid!\n");
+
+	/* restore previous i2c bus number */
+	i2c_set_bus_num(old_bus);
+
+	return expansion_config.device_vendor;
 }
 
 /*
@@ -130,6 +210,43 @@ int cpu_eth_init(bd_t *bis)
 	printf("EMAC ID %s\n", mac_id);
 	setenv("ethaddr", mac_id);
 #endif
+
+	switch (get_expansion_id()) {
+	case PIA_WIFI:
+		printf("Recognized piA_plus_Wireless board (rev %d )\n", expansion_config.revision);
+		MUX_PIA_WIFI();
+		setenv("buddy", "pia_wifi");
+		break;
+	case PIA_LCD:
+		printf("Recognized piA_plus_LCD board (rev %d )\n", expansion_config.revision);
+		MUX_PIA_LCD();
+		setenv("buddy", "pia_lcd");
+		break;
+	case PIA_MC:
+		printf("Recognized piA_plus_MotorControl board (rev %d )\n", expansion_config.revision);
+		MUX_PIA_MC();
+		setenv("buddy", "pia_motorcontrol");
+		break;
+	case PIA_CC:
+		printf("Recognized piA_plus_ChargeControl board (rev %d )\n", expansion_config.revision);
+		MUX_PIA_CC();
+		setenv("buddy", "pia_chargecontrol");
+		break;
+	case PIA_IO:
+		printf("Recognized piA_plus_IO board (rev %d )\n", expansion_config.revision);
+		MUX_PIA_IO();
+		setenv("buddy", "pia_io");
+		break;
+	case PIA_NEW_EEPROM:
+		printf("Unrecognized expansion board %x\n", expansion_config.device_vendor);
+		setenv("buddy", "unknown");
+		break;
+	default:
+		printf("No expansion board connected\n");
+		setenv("buddy", "none");
+		break;
+	}
+
 	return 0;
 }
 
