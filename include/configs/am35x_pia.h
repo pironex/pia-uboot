@@ -131,7 +131,7 @@
 #define CONFIG_USBD_VENDORID            0x0451
 #define CONFIG_USBD_PRODUCTID           0x5678
 #define CONFIG_USBD_MANUFACTURER        "pironex"
-#define CONFIG_USBD_PRODUCT_NAME        "piA_AM35x"
+#define CONFIG_USBD_PRODUCT_NAME        "piA-AM35x"
 #endif /* CONFIG_MUSB_UDC */
 
 #endif /* CONFIG_USB_AM3517 */
@@ -153,7 +153,7 @@
 
 #undef CONFIG_CMD_FLASH     /* flinfo, erase, protect */
 #undef CONFIG_CMD_FPGA      /* FPGA configuration Support */
-#undef CONFIG_CMD_IMI       /* iminfo */
+#undef CONFIG_CMD_IMI       /* iminfo */	
 #undef CONFIG_CMD_IMLS      /* List all found images */
 
 #define CONFIG_SYS_NO_FLASH
@@ -163,6 +163,10 @@
 #define CONFIG_SYS_I2C_BUS          0
 #define CONFIG_SYS_I2C_BUS_SELECT   1
 #define CONFIG_DRIVER_OMAP34XX_I2C  1
+#define CONFIG_I2C_MULTI_BUS		1
+
+/* Probe all devices */
+#define CONFIG_SYS_I2C_NOPROBES                {0x0, 0x0}
 
 #define CONFIG_CMD_NET
 /*
@@ -188,10 +192,11 @@
 	"console=ttyO2,115200n8\0" \
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
-		"rootfstype=ext3 rootwait eth=${ethaddr} ip=dhcp\0" \
+		"rootfstype=ext3 rootwait " \
+		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2 eth=${ethaddr} ip=dhcp\0" \
+		"rootfstype=jffs2\0" \
 	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source ${loadaddr}\0" \
@@ -220,7 +225,7 @@
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT              "PIA_AM35X # "
+#define V_PROMPT              "PIA-AM35X # "
 
 #define CONFIG_SYS_LONGHELP    /* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER /* use "hush" command parser */
