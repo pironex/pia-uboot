@@ -450,4 +450,4 @@ unsigned int i2c_get_bus_num(void)
 #endif
 	else
 		return 0xFFFFFFFF;
-}
+} 

@@ -46,12 +46,12 @@
 #define EXPANSION_EEPROM_I2C_ADDRESS	0x50
 
 #define PIA_WIFI				0x00010001	//Wireless Board
-#define PIA_LCD				0x00010002	//LCD Board
+#define PIA_LCD					0x00010002	//LCD Board
 #define PIA_MC					0x00010003	//MotorControl
 #define PIA_CC					0x00010004	//ChargeControl
 #define PIA_IO					0x00010005	//IO-Board
-#define PIA_NEW_EEPROM				0xffffffff
-#define PIA_NO_EEPROM				0x00000000
+#define PIA_NEW_EEPROM			0xffffffff
+#define PIA_NO_EEPROM			0x00000000
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -111,14 +111,14 @@ unsigned int get_expansion_id(void)
 
 	/* save current i2c bus number */
 	unsigned int old_bus = i2c_get_bus_num();
-
+	
 	/* switch to expansion_eeprom i2c bus */
 	i2c_set_bus_num(EXPANSION_EEPROM_I2C_BUS);
 
 	/* return PIA_NO_EEPROM if eeprom doesn't respond */
 	if (i2c_probe(EXPANSION_EEPROM_I2C_ADDRESS) == 1) {
 		/* restore previous i2c bus number */
-		i2c_set_bus_num(old_bus);
+		i2c_set_bus_num(old_bus);	
 		return PIA_NO_EEPROM;
 	}
 
