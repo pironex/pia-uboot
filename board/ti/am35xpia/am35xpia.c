@@ -31,6 +31,7 @@
 #include <asm/arch/emac_defs.h>
 #include <asm/arch/gpio.h>
 #include <i2c.h>
+#include <rtc.h>
 #include <asm/mach-types.h>
 #include "am35xpia.h"
 
@@ -174,6 +175,12 @@ int misc_init_r(void)
 	reset &= (~CPGMACSS_SW_RST);
 	writel(reset, AM3517_IP_SW_RESET);
 #endif
+
+	/* RTC Initialization */
+#ifdef CONFIG_CMD_DATE
+	rtc_init();
+#endif
+
 	return 0;
 }
 
