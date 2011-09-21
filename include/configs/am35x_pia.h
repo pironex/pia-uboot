@@ -192,10 +192,11 @@
 	"console=ttyO2,115200n8\0" \
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
-		"rootfstype=ext3 rootwait eth=${ethaddr} ip=dhcp\0" \
+		"rootfstype=ext3 rootwait " \
+		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2 eth=${ethaddr} ip=dhcp\0" \
+		"rootfstype=jffs2\0" \
 	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source ${loadaddr}\0" \
