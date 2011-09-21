@@ -131,7 +131,7 @@
 #define CONFIG_USBD_VENDORID            0x0451
 #define CONFIG_USBD_PRODUCTID           0x5678
 #define CONFIG_USBD_MANUFACTURER        "pironex"
-#define CONFIG_USBD_PRODUCT_NAME        "piA_AM35x"
+#define CONFIG_USBD_PRODUCT_NAME        "piA-AM35x"
 #endif /* CONFIG_MUSB_UDC */
 
 #endif /* CONFIG_USB_AM3517 */
@@ -225,7 +225,7 @@
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT              "PIA_AM35X # "
+#define V_PROMPT              "PIA-AM35X # "
 
 #define CONFIG_SYS_LONGHELP    /* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER /* use "hush" command parser */
