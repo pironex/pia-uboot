@@ -107,7 +107,7 @@ static struct
 	uchar	bus;
 	uchar	addr;
 } i2c_no_probes[] = CONFIG_SYS_I2C_NOPROBES;
-#define GET_BUS_NUM	i2c_get_bus_num()
+#define GET_BUS_NUM			i2c_get_bus_num()
 #define COMPARE_BUS(b,i)	(i2c_no_probes[(i)].bus == (b))
 #define COMPARE_ADDR(a,i)	(i2c_no_probes[(i)].addr == (a))
 #define NO_PROBE_ADDR(i)	i2c_no_probes[(i)].addr

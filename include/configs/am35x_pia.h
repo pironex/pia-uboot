@@ -153,7 +153,7 @@
 
 #undef CONFIG_CMD_FLASH     /* flinfo, erase, protect */
 #undef CONFIG_CMD_FPGA      /* FPGA configuration Support */
-#undef CONFIG_CMD_IMI       /* iminfo */
+#undef CONFIG_CMD_IMI       /* iminfo */	
 #undef CONFIG_CMD_IMLS      /* List all found images */
 
 #define CONFIG_SYS_NO_FLASH
