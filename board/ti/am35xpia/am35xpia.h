@@ -205,14 +205,14 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(MMC1_DAT6),		(IDIS | PTD | EN  | M4)) /* UART2.485/#232   gpio_128 */\
 	MUX_VAL(CP(MMC1_DAT7),		(IDIS | PTD | EN  | M4)) /* UART2.SLEW       gpio_129 */\
 /* MMC2 / WIFI */\
-	MUX_VAL(CP(MMC2_CLK),		(IEN  | PTD | EN  | M0)) /* mmc2_clk            H1-02 */\
-	MUX_VAL(CP(MMC2_CMD),		(IEN  | PTD | DIS | M0)) /* mmc2_cmd            H1-04 */\
-	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTD | DIS | M0)) /* mmc2_dat0           H1-06 */\
-	MUX_VAL(CP(MMC2_DAT1),		(IEN  | PTD | DIS | M0)) /* mmc2_dat1           H1-08 */\
-	MUX_VAL(CP(MMC2_DAT2),		(IEN  | PTD | DIS | M0)) /* mmc2_dat2           H1-10 */\
-	MUX_VAL(CP(MMC2_DAT3),		(IEN  | PTD | DIS | M0)) /* mmc2_dat3           H1-12 */\
-	MUX_VAL(CP(MMC2_DAT4),		(IEN  | PTD | DIS | M4)) /* BT_PCM.WU  gpio_136 H1-14 */\
-	MUX_VAL(CP(MMC2_DAT5),		(IEN  | PTD | DIS | M4)) /* WLAN.IRQ   gpio_137 H1-16 */\
+	MUX_VAL(CP(MMC2_CLK),		(IEN  | PTU | EN  | M0)) /* mmc2_clk            H1-02 */\
+	MUX_VAL(CP(MMC2_CMD),		(IEN  | PTU | DIS | M0)) /* mmc2_cmd            H1-04 */\
+	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTU | DIS | M0)) /* mmc2_dat0           H1-06 */\
+	MUX_VAL(CP(MMC2_DAT1),		(IEN  | PTU | DIS | M0)) /* mmc2_dat1           H1-08 */\
+	MUX_VAL(CP(MMC2_DAT2),		(IEN  | PTU | DIS | M0)) /* mmc2_dat2           H1-10 */\
+	MUX_VAL(CP(MMC2_DAT3),		(IEN  | PTU | DIS | M0)) /* mmc2_dat3           H1-12 */\
+	MUX_VAL(CP(MMC2_DAT4),		(IEN  | PTD | EN  | M4)) /* BT_PCM.WU  gpio_136 H1-14 */\
+	MUX_VAL(CP(MMC2_DAT5),		(IEN  | PTD | EN  | M4)) /* WLAN.IRQ   gpio_137 H1-16 */\
 	MUX_VAL(CP(MMC2_DAT6),		(IDIS | PTD | EN  | M4)) /* BT_HCI.EN  gpio_138 H1-18 */\
 	MUX_VAL(CP(MMC2_DAT7),		(IDIS | PTD | EN  | M4)) /* WLAN.EN    gpio_139 H1-20 */\
 /* MCBSP3 */\
