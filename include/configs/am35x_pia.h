@@ -193,6 +193,8 @@
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait " \
+		"omapdss.def_disp=${display}" \
+		"buddy_lcd=${buddy_lcd}" \
 		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
