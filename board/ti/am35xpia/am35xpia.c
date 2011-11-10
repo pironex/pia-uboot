@@ -257,37 +257,36 @@ int cpu_eth_init(bd_t *bis)
 
 	switch (get_expansion_id()) {
 	case PIA_WIFI:
-		printf("Recognized piA-Wireless board (rev %d )\n", expansion_config.revision);
+		printf("Expansion Board: piA-Wireless (rev %d)\n", expansion_config.revision);
 		MUX_PIA_WIFI();
 		setenv("buddy", "pia_wifi");
 		break;
 	case PIA_MC:
-		printf("Recognized piA-Motor board (rev %d )\n", expansion_config.revision);
+		printf("Expansion Board: piA-Motor (rev %d)\n", expansion_config.revision);
 		MUX_PIA_MC();
 		setenv("buddy", "pia_motorcontrol");
 		break;
 	case PIA_CC:
-		printf("Recognized piA-ChargeControl board (rev %d )\n", expansion_config.revision);
+		printf("Expansion Board: piA-ChargeControl (rev %d)\n", expansion_config.revision);
 		MUX_PIA_CC();
 		setenv("buddy", "pia_chargecontrol");
 		break;
 	case PIA_IO:
-		printf("Recognized piA-IO board (rev %d )\n", expansion_config.revision);
+		printf("Expansion Board: piA-IO (rev %d)\n", expansion_config.revision);
 		MUX_PIA_IO();
 		setenv("buddy", "pia_io");
 		break;
 	case PIA_NEW_EEPROM:
-		printf("Unrecognized expansion board %x\n", expansion_config.device_vendor);
+		printf("Expansion Board: unknown board %x\n", expansion_config.device_vendor);
 		setenv("buddy", "unknown");
 		break;
 	default:
-		printf("No expansion board connected\n");
 		setenv("buddy", "none");
 		break;
 	}
 
 	if(lcd_probe() == PIA_LCD) {
-		printf("Recognized piA-LCD board (rev %d )\n", expansion_config.revision);
+		printf("Expansion Board: piA-LCD (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD();
 		setenv("buddy_lcd", "pia_lcd");
 		/* Overwrite default display variable if lcd is connected */
