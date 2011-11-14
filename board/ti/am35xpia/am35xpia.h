@@ -309,7 +309,7 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(SYS_BOOT6),		(IEN  | PTD | DIS | M0)) /* sys_boot6 */\
 	MUX_VAL(CP(SYS_BOOT7),		(IEN  | PTD | DIS | M0)) /* sys_boot7 */\
 	MUX_VAL(CP(SYS_BOOT8),		(IEN  | PTD | DIS | M0)) /* sys_boot8 */\
-	MUX_VAL(CP(SYS_CLKOUT1),	(IEN  | PTD | DIS | M4)) /* gpio_10 sys_clkout1  H1-17*/\
+	MUX_VAL(CP(SYS_CLKOUT1),	(IEN  | PTD | DIS | M0)) /* gpio_10 sys_clkout1  H1-17*/\
 /* JTAG */\
 	MUX_VAL(CP(JTAG_nTRST),		(IEN  | PTD | DIS | M0)) /* jtag_ntrst */\
 	MUX_VAL(CP(JTAG_TCK),		(IEN  | PTD | DIS | M0)) /* jtag_tck */\
