@@ -149,36 +149,6 @@ unsigned int get_expansion_id(int i2c_bus, int i2c_addr)
 	return expansion_config.device_vendor;
 }
 
-#if 0
-/*
- * Routine: lcd_probe
- * Description: This function checks for expansion board piA-LCD by checking I2C
- *		bus 2 for the availability of an AT24C01B serial EEPROM.
- *		Returns positive value if expansion board is connected, otherwise 0.
- */
-static int lcd_probe(void)
-{
-	/* save current i2c bus number */
-	unsigned int old_bus = i2c_get_bus_num();
-
-	/* switch to lcd_expansion_eeprom i2c bus */
-	i2c_set_bus_num(LCD_EXPANSION_EEPROM_I2C_BUS);
-
-	/* return PIA_NO_EEPROM if eeprom doesn't respond */
-	if (i2c_probe(LCD_EXPANSION_EEPROM_I2C_ADDRESS)) {
-		/* restore previous i2c bus number */
-		i2c_set_bus_num(old_bus);
-		return PIA_NO_EEPROM;
-	}
-
-	/* read configuration data */
-	i2c_read(LCD_EXPANSION_EEPROM_I2C_ADDRESS, 0, 1, (u8 *)&expansion_config,
-		 sizeof(expansion_config));
-
-	return PIA_LCD;
-}
-#endif
-
 /*
  * Routine: misc_init_r
  * Description: Init ethernet (done here so udelay works)
@@ -252,14 +222,14 @@ int misc_init_r(void)
 
 	switch(get_expansion_id(LCD_EXPANSION_EEPROM_I2C_BUS, LCD_EXPANSION_EEPROM_I2C_ADDRESS)){
 	case PIA_LCD:
-		printf("Expansion Board: piA-LCD (rev %d)\n", expansion_config.revision);
+		printf("LCD: piA-LCD (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD();
 		setenv("buddy_lcd", "pia_lcd");
 		/* Overwrite default display variable if lcd is connected */
 		setenv("display","lcd");
 		break;
 	case PIA_NEW_EEPROM:
-		printf("Expansion Board: unknown LCD board (vendor-id: %x)\n", expansion_config.device_vendor);
+		printf("LCD: unknown LCD board (vendor-id: %x)\n", expansion_config.device_vendor);
 		setenv("buddy_lcd", "unknown");
 		break;
 	default:
