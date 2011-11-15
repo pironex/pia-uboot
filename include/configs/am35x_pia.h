@@ -189,12 +189,12 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
-	"console=ttyO2,115200n8\0" \
+	"console=ttyS2,115200n8 console=tty1\0" \
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait " \
-		"omapdss.def_disp=${display}" \
-		"buddy_lcd=${buddy_lcd}" \
+		"omapdss.def_disp=${display} " \
+		"buddy_lcd=${buddy_lcd} " \
 		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
