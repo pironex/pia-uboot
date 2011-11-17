@@ -141,7 +141,7 @@ unsigned int get_expansion_id(int i2c_bus, int i2c_addr)
 		data[i] = *p_data++;
 
 	if(sum_of_digits(data, AS(data)) != expansion_config.crc)
-		printf("Warning: eeprom data not valid!\n");
+		printf("Warning: EEPROM data on i2c-%d at address 0x%X not valid!\n",i2c_bus, i2c_addr);
 
 	/* restore previous i2c bus number */
 	i2c_set_bus_num(old_bus);
