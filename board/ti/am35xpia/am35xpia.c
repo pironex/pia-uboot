@@ -113,7 +113,7 @@ int board_init(void)
  *		bus 1 for the availability of an AT24C01B serial EEPROM.
  *		returns the device_vendor field from the EEPROM
  */
-unsigned int get_expansion_id(void)
+unsigned int get_expansion_id(int i2c_bus, int i2c_addr)
 {
 	int i;
 	__u8 data[5] = {0};				/* 5 bytes: 2*Dev-ID,2*Vend-ID,1*Rev */
@@ -123,17 +123,17 @@ unsigned int get_expansion_id(void)
 	unsigned int old_bus = i2c_get_bus_num();
 	
 	/* switch to expansion_eeprom i2c bus */
-	i2c_set_bus_num(EXPANSION_EEPROM_I2C_BUS);
+	i2c_set_bus_num(i2c_bus);
 
 	/* return PIA_NO_EEPROM if eeprom doesn't respond */
-	if (i2c_probe(EXPANSION_EEPROM_I2C_ADDRESS)) {
+	if (i2c_probe(i2c_addr)) {
 		/* restore previous i2c bus number */
 		i2c_set_bus_num(old_bus);	
 		return PIA_NO_EEPROM;
 	}
 
 	/* read configuration data */
-	i2c_read(EXPANSION_EEPROM_I2C_ADDRESS, 0, 1, (u8 *)&expansion_config,
+	i2c_read(i2c_addr, 0, 1, (u8 *)&expansion_config,
 		 sizeof(expansion_config));
 
 	/* Check sum of digits */
@@ -141,40 +141,12 @@ unsigned int get_expansion_id(void)
 		data[i] = *p_data++;
 
 	if(sum_of_digits(data, AS(data)) != expansion_config.crc)
-		printf("Warning: eeprom data not valid!\n");
+		printf("Warning: EEPROM data on i2c-%d at address 0x%X not valid!\n",i2c_bus, i2c_addr);
 
 	/* restore previous i2c bus number */
 	i2c_set_bus_num(old_bus);
 
 	return expansion_config.device_vendor;
-}
-
-/*
- * Routine: lcd_probe
- * Description: This function checks for expansion board piA-LCD by checking I2C
- *		bus 2 for the availability of an AT24C01B serial EEPROM.
- *		Returns positiv value if expansion board is connected, otherwise 0.
- */
-static int lcd_probe(void)
-{
-	/* save current i2c bus number */
-	unsigned int old_bus = i2c_get_bus_num();
-
-	/* switch to lcd_expansion_eeprom i2c bus */
-	i2c_set_bus_num(LCD_EXPANSION_EEPROM_I2C_BUS);
-
-	/* return PIA_NO_EEPROM if eeprom doesn't respond */
-	if (i2c_probe(LCD_EXPANSION_EEPROM_I2C_ADDRESS)) {
-		/* restore previous i2c bus number */
-		i2c_set_bus_num(old_bus);
-		return PIA_NO_EEPROM;
-	}
-
-	/* read configuration data */
-	i2c_read(LCD_EXPANSION_EEPROM_I2C_ADDRESS, 0, 1, (u8 *)&expansion_config,
-		 sizeof(expansion_config));
-
-	return PIA_LCD;
 }
 
 /*
@@ -218,6 +190,55 @@ int misc_init_r(void)
 	rtc_init();
 #endif
 
+	switch (get_expansion_id(EXPANSION_EEPROM_I2C_BUS, EXPANSION_EEPROM_I2C_ADDRESS)) {
+	case PIA_WIFI:
+		printf("Expansion Board: piA-Wireless (rev %d)\n", expansion_config.revision);
+		MUX_PIA_WIFI();
+		setenv("buddy", "pia_wifi");
+		break;
+	case PIA_MC:
+		printf("Expansion Board: piA-Motor (rev %d)\n", expansion_config.revision);
+		MUX_PIA_MC();
+		setenv("buddy", "pia_motorcontrol");
+		break;
+	case PIA_CC:
+		printf("Expansion Board: piA-ChargeControl (rev %d)\n", expansion_config.revision);
+		MUX_PIA_CC();
+		setenv("buddy", "pia_chargecontrol");
+		break;
+	case PIA_IO:
+		printf("Expansion Board: piA-IO (rev %d)\n", expansion_config.revision);
+		MUX_PIA_IO();
+		setenv("buddy", "pia_io");
+		break;
+	case PIA_NEW_EEPROM:
+		printf("Expansion Board: unknown expansion board (vendor-id: %x)\n", expansion_config.device_vendor);
+		setenv("buddy", "unknown");
+		break;
+	default:
+		setenv("buddy", "none");
+		break;
+	}
+
+	switch(get_expansion_id(LCD_EXPANSION_EEPROM_I2C_BUS, LCD_EXPANSION_EEPROM_I2C_ADDRESS)){
+	case PIA_LCD:
+		printf("LCD: piA-LCD (rev %d)\n", expansion_config.revision);
+		MUX_PIA_LCD();
+		setenv("buddy_lcd", "pia_lcd");
+		/* Overwrite default display variable if lcd is connected */
+		setenv("display","lcd");
+		break;
+	case PIA_NEW_EEPROM:
+		printf("LCD: unknown LCD board (vendor-id: %x)\n", expansion_config.device_vendor);
+		setenv("buddy_lcd", "unknown");
+		break;
+	default:
+		setenv("buddy_lcd", "no_lcd");
+		/* Set default display kernel parameter */
+		setenv("display","dvi");
+		break;
+	}
+
 	return 0;
 }
 
@@ -254,49 +275,6 @@ int cpu_eth_init(bd_t *bis)
 	printf("EMAC ID %s\n", mac_id);
 	setenv("ethaddr", mac_id);
 #endif
-
-	switch (get_expansion_id()) {
-	case PIA_WIFI:
-		printf("Expansion Board: piA-Wireless (rev %d)\n", expansion_config.revision);
-		MUX_PIA_WIFI();
-		setenv("buddy", "pia_wifi");
-		break;
-	case PIA_MC:
-		printf("Expansion Board: piA-Motor (rev %d)\n", expansion_config.revision);
-		MUX_PIA_MC();
-		setenv("buddy", "pia_motorcontrol");
-		break;
-	case PIA_CC:
-		printf("Expansion Board: piA-ChargeControl (rev %d)\n", expansion_config.revision);
-		MUX_PIA_CC();
-		setenv("buddy", "pia_chargecontrol");
-		break;
-	case PIA_IO:
-		printf("Expansion Board: piA-IO (rev %d)\n", expansion_config.revision);
-		MUX_PIA_IO();
-		setenv("buddy", "pia_io");
-		break;
-	case PIA_NEW_EEPROM:
-		printf("Expansion Board: unknown board %x\n", expansion_config.device_vendor);
-		setenv("buddy", "unknown");
-		break;
-	default:
-		setenv("buddy", "none");
-		break;
-	}
-
-	if(lcd_probe() == PIA_LCD) {
-		printf("Expansion Board: piA-LCD (rev %d)\n", expansion_config.revision);
-		MUX_PIA_LCD();
-		setenv("buddy_lcd", "pia_lcd");
-		/* Overwrite default display variable if lcd is connected */
-		setenv("display","lcd");
-	} else {
-		setenv("buddy_lcd", "no_lcd");
-		/* Set default display kernel parameter */
-		setenv("display","dvi");
-	}
-
 
 	return 0;
 }
