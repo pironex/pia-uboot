@@ -190,16 +190,23 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"console=ttyO2,115200n8 console=tty1\0" \
+	"nandroot=ubi0:pia-am35x-rootfs ubi.mtd=4\0" \
+	"nandrootfs=ubifs\0" \
+	"displaymode=dvi:1024x768MR-24@60\0" \
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait " \
 		"omapdss.def_disp=${display} " \
-		"omapfb.mode=dvi:1024x768MR-24@60 " \
+		"omapfb.mode=${displaymode} " \
 		"buddy_lcd=${buddy_lcd} " \
 		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
-		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2\0" \
+		"root=${nandroot} rw " \
+		"rootfstype=${nandrootfs} " \
+		"omapdss.def_disp=${display} " \
+		"omapfb.mode=${displaymode} " \
+		"buddy_lcd=${buddy_lcd} " \
+		"buddy=${buddy}\0" \
 	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source ${loadaddr}\0" \
