@@ -55,6 +55,7 @@
  * --------------------------------------------
  * Usage| Dev-ID | Vendor-ID | Revision | CRC |
  */
+//                        3 2 1 0   Bytes
 #define PIA_WIFI       0x00010001	//Wireless Board
 #define PIA_MC         0x00010002	//MotorControl
 #define PIA_CC         0x00010003	//ChargeControl
