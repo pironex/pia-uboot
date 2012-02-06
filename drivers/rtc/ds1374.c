@@ -162,10 +162,10 @@ void rtc_init(void)
 
 #ifdef TC_ON
 	//Enable trickle charger (Imax = 0,65mA, bei U=3,3V)
-	rtc_write(RTC_TCS_DS_ADDR,(	RTC_TCS_BIT_TCS3	| RTC_TCS_BIT_TCS1 | 		/* Enable Trickle-Charge */
-								RTC_TCS_BIT_DS1		| 							/* One diode */
-								RTC_TCS_BIT_ROUT1	| RTC_TCS_BIT_ROUT0 )		/* 4kOhm */
-								,TRUE);
+	rtc_write_raw(RTC_TCS_DS_ADDR,
+			(RTC_TCS_BIT_TCS3 | RTC_TCS_BIT_TCS1 | /* Enable Trickle-Charge */
+			 RTC_TCS_BIT_DS0  |                    /* No diode */
+			 RTC_TCS_BIT_ROUT1 ));                 /* 2 kOhm */
 
 	//check if Triple Charge is enabled
 	res = rtc_read(RTC_TCS_DS_ADDR);
