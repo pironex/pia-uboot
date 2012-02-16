@@ -190,9 +190,9 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"console=ttyO2,115200n8 console=tty1\0" \
-	"nandroot=ubi0:pia-am35x-rootfs ubi.mtd=4\0" \
-	"nandrootfs=ubifs\0" \
-	"displaymode=dvi:1024x768MR-24@60\0" \
+	"nandroot=/dev/mtdblock4\0" \
+	"nandrootfs=jffs2\0" \
+	"displaymode=dvi:1024x768MR-24@60 vram=8M omapfb.vram=0:8M\0" \
 	"mmcargs=setenv bootargs console=${console} earlyprintk " \
 		"root=/dev/mmcblk0p2 rw " \
 		"rootfstype=ext3 rootwait " \
