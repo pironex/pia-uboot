@@ -183,13 +183,13 @@
                                               /* 256MB - OFFSET */
 
 /* Environment information */
-#define CONFIG_BOOTDELAY            3
+#define CONFIG_BOOTDELAY            1
 
 #define CONFIG_BOOTFILE             uImage
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
-	"console=ttyO2,115200n8 console=tty1\0" \
+	"console=ttyO2,115200n8\0" \
 	"nandroot=/dev/mtdblock4\0" \
 	"nandrootfs=jffs2\0" \
 	"displaymode=dvi:1024x768MR-24@60 vram=8M omapfb.vram=0:8M\0" \
