@@ -61,6 +61,7 @@
 #define PIA_CC         0x00010003	//ChargeControl
 #define PIA_IO         0x00010004	//IO-Board
 #define PIA_LCD        0x00010005	//LCD Board
+#define PIA_EMS_IO     0x00020001   //special EMS IO Expander
 #define PIA_NEW_EEPROM 0xffffffff
 #define PIA_NO_EEPROM  0x00000000
 
@@ -211,6 +212,11 @@ int misc_init_r(void)
 		printf("Expansion Board: piA-IO (rev %d)\n", expansion_config.revision);
 		MUX_PIA_IO();
 		setenv("buddy", "pia_io");
+		break;
+	case PIA_EMS_IO:
+		printf("Expansion Board: piA-EMS_IO (rev %d)\n", expansion_config.revision);
+		MUX_PIA_EMS_IO();
+		setenv("buddy", "pia_ems_io");
 		break;
 	case PIA_NEW_EEPROM:
 		printf("Expansion Board: unknown expansion board (vendor-id: %x)\n", expansion_config.device_vendor);
