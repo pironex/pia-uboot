@@ -346,16 +346,16 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(HDQ_SIO),		(M7))                    /* hdq_sio             H2-22 */\
 	/* MCSPI1 */ \
 	MUX_VAL(CP(MCSPI1_CLK),		(IEN  | PTU | EN  | M0)) /* mcspi1_clk  H2-12 */\
-	MUX_VAL(CP(MCSPI1_SIMO),	(IEN  | PTU | EN  | M0)) /* mcspi1_simo H2-10 */\
-	MUX_VAL(CP(MCSPI1_SOMI),	(IEN  | PTU | EN  | M0)) /* mcspi1_somi H2-08 */\
+	MUX_VAL(CP(MCSPI1_SIMO),	(IDIS | PTU | DIS | M0))/* mcspi1_simo H2-10 */\
+	MUX_VAL(CP(MCSPI1_SOMI),	(IEN  | PTU | DIS | M0)) /* mcspi1_somi H2-08 */\
 	MUX_VAL(CP(MCSPI1_CS0),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs0  H2-06 */\
 	MUX_VAL(CP(MCSPI1_CS1),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs1  H2-04 */\
 	MUX_VAL(CP(MCSPI1_CS2),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs2  H2-02 */\
 	MUX_VAL(CP(MCSPI1_CS3),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs3  H2-09 */\
 	/* MCSPI2 */\
 	MUX_VAL(CP(MCSPI2_CLK),		(IEN  | PTU | EN  | M0)) /* mcspi2_clk  H1-19 */\
-	MUX_VAL(CP(MCSPI2_SIMO),	(IEN  | PTU | EN  | M0)) /* mcspi2_simo H1-17 */\
-	MUX_VAL(CP(MCSPI2_SOMI),	(IDIS | PTU | EN  | M0)) /* mcspi2_somi H1-15 */\
+	MUX_VAL(CP(MCSPI2_SIMO),	(IEN  | PTU | DIS | M0))/* mcspi2_simo H1-17 */\
+	MUX_VAL(CP(MCSPI2_SOMI),	(IEN  | PTU | DIS | M0))/* mcspi2_somi H1-15 */\
 	MUX_VAL(CP(MCSPI2_CS0),		(IDIS | PTU | EN  | M4)) /* mcspi2_cs0 gpio_181 H1-13 */\
 	MUX_VAL(CP(MCSPI2_CS1),		(IDIS | PTU | EN  | M4)) /* mcspi2_cs1 gpio_182 H1-11 */\
 	MUX_VAL(CP(ETK_CLK_ES2),	(IDIS | PTU | EN  | M4)) /* mcspi2_cs2 gpio_12  H2-22 */\
