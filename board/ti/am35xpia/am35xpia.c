@@ -62,6 +62,7 @@
 #define PIA_IO         0x00010004	//IO-Board
 #define PIA_LCD        0x00010005	//LCD Board
 #define PIA_LCD_DEM    0x00010006	//LCD-Board with DEM 480272D display
+#define PIA_LCD_DT028  0x00010007	//LCD-Board with Displaytech DT028ATFT
 #define PIA_EMS_IO     0x00020001   //special EMS IO Expander
 #define PIA_NEW_EEPROM 0xffffffff
 #define PIA_NO_EEPROM  0x00000000
@@ -240,6 +241,12 @@ int misc_init_r(void)
 		printf("LCD: piA-LCD_DEM (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD();
 		setenv("buddy_lcd", "pia_lcd_dem");
+		setenv("display","lcd");
+		break;
+	case PIA_LCD_DT028:
+		printf("LCD: piA-LCD_DT028A (rev %d)\n", expansion_config.revision);
+		MUX_PIA_LCD_DT();
+		setenv("buddy_lcd", "pia_lcd_dt028 omapfb.vrfb=y omapfb.rotate=1");
 		setenv("display","lcd");
 		break;
 	case PIA_NEW_EEPROM:
