@@ -323,7 +323,16 @@ const omap3_sysinfo sysinfo = {
 	//define mux here
 
 #define MUX_PIA_LCD() \
-	//define mux here
+	/* nothing yet */
+
+#define MUX_PIA_LCD_DT() \
+	MUX_VAL(CP(DSS_DATA18),		(IEN  | PTU | EN  | M2 )) /* mcspi3_clk */\
+	MUX_VAL(CP(DSS_DATA19),		(IEN  | PTU | EN  | M2 )) /* mcspi3_simo */\
+	MUX_VAL(CP(DSS_DATA20),		(IEN  | PTU | EN  | M2 )) /* mcspi3_somi */\
+	MUX_VAL(CP(DSS_DATA21),		(IDIS | PTU | EN  | M2 )) /* mcspi3_cs0 */\
+	MUX_VAL(CP(DSS_DATA22),		(IDIS | PTU | EN  | M2 )) /* mcspi3_cs1 */\
+	MUX_VAL(CP(CCDC_DATA3),		(IEN  | PTU | DIS | M4)) /* gpio_102, display_reset */\
+
 
 #define MUX_PIA_MC() \
 	//define mux here
@@ -345,7 +354,7 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(MMC2_DAT7),		(M7))                    /* NC                  H1-21 */\
 	MUX_VAL(CP(HDQ_SIO),		(M7))                    /* hdq_sio             H2-22 */\
 	/* MCSPI1 */ \
-	MUX_VAL(CP(MCSPI1_CLK),		(IEN  | PTU | EN  | M0)) /* mcspi1_clk  H2-12 */\
+	MUX_VAL(CP(MCSPI1_CLK),		(IEN  | PTU | DIS | M0)) /* mcspi1_clk  H2-12 */\
 	MUX_VAL(CP(MCSPI1_SIMO),	(IDIS | PTU | DIS | M0))/* mcspi1_simo H2-10 */\
 	MUX_VAL(CP(MCSPI1_SOMI),	(IEN  | PTU | DIS | M0)) /* mcspi1_somi H2-08 */\
 	MUX_VAL(CP(MCSPI1_CS0),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs0  H2-06 */\
@@ -353,8 +362,8 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(MCSPI1_CS2),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs2  H2-02 */\
 	MUX_VAL(CP(MCSPI1_CS3),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs3  H2-09 */\
 	/* MCSPI2 */\
-	MUX_VAL(CP(MCSPI2_CLK),		(IEN  | PTU | EN  | M0)) /* mcspi2_clk  H1-19 */\
-	MUX_VAL(CP(MCSPI2_SIMO),	(IEN  | PTU | DIS | M0))/* mcspi2_simo H1-17 */\
+	MUX_VAL(CP(MCSPI2_CLK),		(IEN  | PTU | DIS | M0)) /* mcspi2_clk  H1-19 */\
+	MUX_VAL(CP(MCSPI2_SIMO),	(IDIS | PTU | DIS | M0))/* mcspi2_simo H1-17 */\
 	MUX_VAL(CP(MCSPI2_SOMI),	(IEN  | PTU | DIS | M0))/* mcspi2_somi H1-15 */\
 	MUX_VAL(CP(MCSPI2_CS0),		(IDIS | PTU | EN  | M4)) /* mcspi2_cs0 gpio_181 H1-13 */\
 	MUX_VAL(CP(MCSPI2_CS1),		(IDIS | PTU | EN  | M4)) /* mcspi2_cs1 gpio_182 H1-11 */\
