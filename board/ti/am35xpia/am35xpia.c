@@ -193,7 +193,7 @@ int misc_init_r(void)
 #ifdef CONFIG_CMD_DATE
 	rtc_init();
 #endif
-
+	memset(&expansion_config, 0, sizeof (expansion_config));
 	switch (get_expansion_id(EXPANSION_EEPROM_I2C_BUS, EXPANSION_EEPROM_I2C_ADDRESS)) {
 	case PIA_WIFI:
 		printf("Expansion Board: piA-Wireless (rev %d)\n", expansion_config.revision);
@@ -229,24 +229,34 @@ int misc_init_r(void)
 		break;
 	}
 
+	memset(&expansion_config, 0, sizeof (expansion_config));
 	switch(get_expansion_id(LCD_EXPANSION_EEPROM_I2C_BUS, LCD_EXPANSION_EEPROM_I2C_ADDRESS)){
 	case PIA_LCD:
 		printf("LCD: piA-LCD (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD();
-		setenv("buddy_lcd", "pia_lcd");
+		if (expansion_config.revision == 1)
+			setenv("buddy_lcd", "pia_lcd-1");
+		else
+			setenv("buddy_lcd", "pia_lcd");
 		/* Overwrite default display variable if lcd is connected */
 		setenv("display","lcd");
 		break;
 	case PIA_LCD_DEM:
 		printf("LCD: piA-LCD_DEM (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD();
-		setenv("buddy_lcd", "pia_lcd_dem");
+		if (expansion_config.revision == 1)
+			setenv("buddy_lcd", "pia_lcd_dem-1");
+		else
+			setenv("buddy_lcd", "pia_lcd_dem");
 		setenv("display","lcd");
 		break;
 	case PIA_LCD_DT028:
 		printf("LCD: piA-LCD_DT028A (rev %d)\n", expansion_config.revision);
 		MUX_PIA_LCD_DT();
-		setenv("buddy_lcd", "pia_lcd_dt028 omapfb.vrfb=y omapfb.rotate=1");
+		if (expansion_config.revision == 1)
+			setenv("buddy_lcd", "pia_lcd_dt028-1 omapfb.vrfb=y omapfb.rotate=1");
+		else
+			setenv("buddy_lcd", "pia_lcd_dt028 omapfb.vrfb=y omapfb.rotate=1");
 		setenv("display","lcd");
 		break;
 	case PIA_NEW_EEPROM:
