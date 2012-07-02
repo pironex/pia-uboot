@@ -218,7 +218,10 @@ int misc_init_r(void)
 	case PIA_EMS_IO:
 		printf("Expansion Board: piA-EMS_IO (rev %d)\n", expansion_config.revision);
 		MUX_PIA_EMS_IO();
-		setenv("buddy", "pia_ems_io");
+		if (expansion_config.revision == 0)
+			setenv("buddy", "pia_ems_io");
+		else
+			setenv("buddy", "pia_ems_io2");
 		break;
 	case PIA_NEW_EEPROM:
 		printf("Expansion Board: unknown expansion board (vendor-id: %x)\n", expansion_config.device_vendor);
