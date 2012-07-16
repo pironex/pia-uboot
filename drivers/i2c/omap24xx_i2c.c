@@ -470,19 +470,3 @@ int i2c_get_bus_num(void)
 {
 	return (int) current_bus;
 }
-
-unsigned int i2c_get_bus_num(void)
-{
-	if (i2c_base == (struct i2c *)I2C_BASE1)
-		   return 0;
-	else
-	if (i2c_base == (struct i2c *)I2C_BASE2)
-		   return 1;
-#if defined(CONFIG_OMAP34XX)
-	else
-	if (i2c_base == (struct i2c *)I2C_BASE3)
-		return 2;
-#endif
-	else
-		return 0xFFFFFFFF;
-} 
