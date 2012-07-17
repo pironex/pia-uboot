@@ -88,7 +88,7 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(STRBEN_DLY0),	(IEN  | PTD | EN  | M0)) /* sdrc_strben_dly0 */\
 	MUX_VAL(CP(STRBEN_DLY1),	(IEN  | PTD | EN  | M0)) /* sdrc_strben_dly1 */\
 /* GPMC */\
-	MUX_VAL(CP(GPMC_A1),		(IEN  | PTD | EN  | M4)) /* TTL.DIR_0 gpio_34 */\
+	MUX_VAL(CP(GPMC_A1),		(IEN  | PTU | EN  | M4)) /* TTL.DIR_0 gpio_34 */\
 	MUX_VAL(CP(GPMC_A2),		(IEN  | PTD | EN  | M4)) /* TTL.IO_0  gpio_35 */\
 	MUX_VAL(CP(GPMC_A3),		(IEN  | PTD | EN  | M4)) /* TTL.DIR_1 gpio_36 */\
 	MUX_VAL(CP(GPMC_A4),		(IEN  | PTD | EN  | M4)) /* TTL.IO_1  gpio_37 */\
