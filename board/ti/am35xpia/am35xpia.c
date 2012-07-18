@@ -25,6 +25,7 @@
 #include <common.h>
 #include <netdev.h>
 #include <asm/io.h>
+#include <asm/arch/mmc_host_def.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
@@ -34,6 +35,7 @@
 #include <rtc.h>
 #include <asm/mach-types.h>
 #include "am35xpia.h"
+#include <command.h>
 
 #if defined(CONFIG_DRIVER_TI_EMAC)
 #define AM3517_IP_SW_RESET  0x48002598
@@ -323,3 +325,12 @@ void set_muxconf_regs(void)
 {
 	MUX_AM35X_PIA();
 }
+
+#if defined(CONFIG_GENERIC_MMC) && !defined(CONFIG_SPL_BUILD)
+int board_mmc_init(bd_t *bis)
+{
+	omap_mmc_init(0, 0, 0);
+	return 0;
+}
+#endif
+
