@@ -326,6 +326,7 @@
                                     GENERATED_GBL_DATA_SIZE)
 
 /* Defines for SPL */
+#if 0
 #define CONFIG_SPL
 #define CONFIG_SPL_NAND_SIMPLE
 #define CONFIG_SPL_TEXT_BASE       0x40200800
@@ -350,7 +351,7 @@
 #define CONFIG_SPL_NAND_SUPPORT
 #define CONFIG_SPL_POWER_SUPPORT
 #define CONFIG_SPL_LDSCRIPT        "$(CPUDIR)/omap-common/u-boot-spl.lds"
-
+#endif /* 0 spl */
 /* NAND boot config */
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT 64
