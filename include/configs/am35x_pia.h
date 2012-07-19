@@ -187,7 +187,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
-	"console=ttyO2,115200n8\0" \
+	"console=ttyO2,115200n8 quiet\0" \
 	"mmcdev=0\0" \
 	"nandroot=/dev/mtdblock4\0" \
 	"nandrootfs=jffs2\0" \
