@@ -169,8 +169,8 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(CCDC_HD),		(IDIS | PTD | DIS | M2)) /* UART4_RTS gpio_96 H2-23 */\
 	MUX_VAL(CP(CCDC_VD),		(IEN  | PTD | DIS | M2)) /* UART4_CTS gpio_97 H2-25 */\
 	MUX_VAL(CP(CCDC_WEN),		(IEN  | PTD | DIS | M2)) /* UART4_RX  gpio_98 H2-27 */\
-	MUX_VAL(CP(CCDC_DATA0),		(IEN  | PTD | DIS | M4)) /* gpio_99 */\
-	MUX_VAL(CP(CCDC_DATA1),		(IEN  | PTD | DIS | M4)) /* gpio_100 */\
+	MUX_VAL(CP(CCDC_DATA0),		(IEN  | PTD | EN  | M4)) /* gpio_99 */\
+	MUX_VAL(CP(CCDC_DATA1),		(IEN  | PTD | EN  | M4)) /* gpio_100 */\
 	MUX_VAL(CP(CCDC_DATA2),		(IEN  | PTD | DIS | M4)) /* gpio_101 */\
 	MUX_VAL(CP(CCDC_DATA3),		(IEN  | PTD | DIS | M4)) /* gpio_102 */\
 	MUX_VAL(CP(CCDC_DATA4),		(IEN  | PTD | DIS | M4)) /* gpio_103 */\
@@ -218,7 +218,7 @@ const omap3_sysinfo sysinfo = {
 /* MCBSP3 */\
 	MUX_VAL(CP(MCBSP3_CLKX),	(M7))                    /* NC */\
 	MUX_VAL(CP(MCBSP3_DR),		(M7))                    /* NC */\
-	MUX_VAL(CP(MCBSP3_DX),		(M7))                    /* NC */\
+	MUX_VAL(CP(MCBSP3_DX),		(IEN | PTU | EN  | M4)) /* DVI.LCDPD gpio_140 */\
 	MUX_VAL(CP(MCBSP3_FSX),		(M7))                    /* NC */\
 /* UART2 */\
 	MUX_VAL(CP(UART2_CTS),		(IEN  | PTD | DIS | M4)) /* UART2.RXEN   gpio_144 */\
