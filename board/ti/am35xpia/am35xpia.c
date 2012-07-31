@@ -30,6 +30,7 @@
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/emac_defs.h>
+#include <asm/arch/dss.h>
 #include <asm/gpio.h>
 #include <i2c.h>
 #include <rtc.h>
@@ -155,6 +156,51 @@ unsigned int get_expansion_id(int i2c_bus, int i2c_addr)
 	return expansion_config.device_vendor;
 }
 
+#define GPIO_LCD_DISP		99
+#define GPIO_LCD_BACKLIGHT	101
+#define GPIO_LCDDVI_SWITCH	140 /* 1 = DVI, 0 = LCD */
+#define LCD_DEFCOLOR		0x00FF8000
+static const struct panel_config lcd_cfg_dem = {
+	.timing_h	= 0x00100229, /* Horizontal timing */
+	.timing_v	= 0x0020030A, /* Vertical timing */
+	.pol_freq	= 0x0000B000, /* Pol Freq */
+	.divisor	= 0x00010006, /* 96MHz Pixel Clock */
+	.lcd_size	= 0x010F01DF, /* 480x272 */
+	.panel_type	= 0x01, /* TFT */
+	.data_lines	= 0x03, /* 24 Bit RGB */
+	.load_mode	= 0x02, /* Frame Mode */
+	.panel_color	= LCD_DEFCOLOR /* ORANGE */
+};
+/*
+ * Configure DSS to display background color on DVID
+ * Configure VENC to display color bar on S-Video
+ */
+void pia_display_init(void)
+{
+	//omap3_dss_venc_config(&venc_config_std_tv, VENC_HEIGHT, VENC_WIDTH);
+	gpio_request(28, "");
+	gpio_direction_output(28, 0);
+	gpio_set_value(28, 1);
+	printf("LCD Power ON\n");
+	udelay(50000);
+	gpio_request(GPIO_LCDDVI_SWITCH, "");
+	gpio_direction_output(GPIO_LCDDVI_SWITCH, 0);
+	gpio_set_value(GPIO_LCDDVI_SWITCH, 1);
+	printf("LCD enabled\n");
+	//udelay(1000000);
+	gpio_request(GPIO_LCD_BACKLIGHT, "");
+	gpio_direction_output(GPIO_LCD_BACKLIGHT, 1);
+	gpio_set_value(GPIO_LCD_BACKLIGHT, 1);
+	printf("BACKLIGHT enabled\n");
+	//udelay(1000000);
+	gpio_request(GPIO_LCD_DISP, "");
+	gpio_direction_output(GPIO_LCD_DISP, 0);
+	gpio_set_value(GPIO_LCD_DISP, 0);
+	printf("DISP enabled\n");
+
+	omap3_dss_panel_config(&lcd_cfg_dem);
+}
+
 /*
  * Routine: misc_init_r
  * Description: Init ethernet (done here so udelay works)
@@ -273,6 +319,11 @@ int misc_init_r(void)
 		/* Set default display kernel parameter */
 		setenv("display","dvi");
 		break;
+	}
+
+	if (strncmp(getenv("display"), "lcd", 3) == 0) {
+		pia_display_init();
+		omap3_dss_enable();
 	}
 
 	return 0;
