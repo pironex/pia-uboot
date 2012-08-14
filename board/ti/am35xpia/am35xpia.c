@@ -313,6 +313,7 @@ int misc_init_r(void)
 	case PIA_NEW_EEPROM:
 		printf("LCD: unknown LCD board (vendor-id: %x)\n", expansion_config.device_vendor);
 		setenv("buddy_lcd", "unknown");
+		setenv("display", "dvi");
 		break;
 	default:
 		setenv("buddy_lcd", "no_lcd");
