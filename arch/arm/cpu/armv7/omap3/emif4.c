@@ -28,6 +28,7 @@
 #include <asm/arch/mem.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/emif4.h>
+#include <asm/arch/am35x_def.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 extern omap3_sysinfo sysinfo;
@@ -77,6 +78,13 @@ u32 get_sdr_cs_offset(u32 cs)
 void do_emif4_init(void)
 {
 	unsigned int regval;
+
+#ifdef CONFIG_OMAP3_AM35XPIA
+	regval = readl(&am35x_scm_general_regs->devconf3);
+	regval |= 2; // full termination
+	writel(regval, &am35x_scm_general_regs->devconf3);
+#endif
+
 	/* Set the DDR PHY parameters in PHY ctrl registers */
 	regval = (EMIF4_DDR1_READ_LAT | EMIF4_DDR1_PWRDN_DIS |
 		EMIF4_DDR1_EXT_STRB_DIS);

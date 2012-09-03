@@ -327,7 +327,7 @@
                                     GENERATED_GBL_DATA_SIZE)
 
 /* Defines for SPL */
-#if 0
+#if 1
 #define CONFIG_SPL
 #define CONFIG_SPL_NAND_SIMPLE
 #define CONFIG_SPL_TEXT_BASE       0x40200800
