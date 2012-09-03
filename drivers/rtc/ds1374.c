@@ -128,6 +128,7 @@ void rtc_init(void)
 
 #ifdef WATCHDOG
 	// Read Watchdog/Alarm Counter
+	int cnt = 0x0B4000; // 180 s * 4096
 	uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
 	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
 	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
@@ -138,14 +139,15 @@ void rtc_init(void)
 	//rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_AIE),TRUE);
 
 	// Write to Watchdog/Alarm Counter Register
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE0_ADDR, 0x00);
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE1_ADDR, 0xA0);
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE2_ADDR, 0x0F);
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE0_ADDR, (cnt & 0xff));
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE1_ADDR, ((cnt >> 8) & 0xff));
+	rtc_write_raw(RTC_WD_ALM_CNT_BYTE2_ADDR, ((cnt >> 16) & 0xff));
 	
 	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
 	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
 	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
-	printf("Set WD/ALARM Counter to: %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+	printf("Set WD/ALARM Counter to %02x %02x %02x / 4096 s\n",
+			wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
 
 	//Enable Watchdog Interrupt
 	rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),TRUE);
