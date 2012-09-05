@@ -201,6 +201,10 @@ void pia_display_init(void)
 	omap3_dss_panel_config(&lcd_cfg_dem);
 }
 
+#if defined(CONFIG_RTC_DS1374)
+extern int ds1374_wd_enable;
+#endif
+
 /*
  * Routine: misc_init_r
  * Description: Init ethernet (done here so udelay works)
@@ -238,7 +242,10 @@ int misc_init_r(void)
 #endif
 
 	/* RTC Initialization */
-#ifdef CONFIG_CMD_DATE
+#if defined(CONFIG_CMD_DATE) && defined(CONFIG_RTC_DS1374)
+	char *wd_enable = getenv("wd_enable");
+	if (wd_enable != NULL && strcmp(wd_enable, "true") == 0)
+		ds1374_wd_enable = 1;
 	rtc_init();
 #endif
 	memset(&expansion_config, 0, sizeof (expansion_config));

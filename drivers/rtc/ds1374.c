@@ -117,6 +117,7 @@ static uchar rtc_read (uchar reg);
 static void rtc_write (uchar reg, uchar val, boolean_t set);
 static void rtc_write_raw (uchar reg, uchar val);
 
+int ds1374_wd_enable = 0;
 void rtc_init(void)
 {
 	printf("Starting RTC/Watchdog (DS1374) Initialization...\n");
@@ -126,41 +127,41 @@ void rtc_init(void)
 	// Read Trickle Charger config register
 	res = rtc_read(RTC_TCS_DS_ADDR);
 
-#ifdef WATCHDOG
-	// Read Watchdog/Alarm Counter
-	int cnt = 0x0B4000; // 180 s * 4096
-	uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
-	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
-	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
-	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
-	printf("WD/ALARM Counter (Power-up): %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+	if (ds1374_wd_enable) {
+		// Read Watchdog/Alarm Counter
+		int cnt = 0x0B4000; // 180 s * 4096
+		uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
+		wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
+		wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
+		wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
+		printf("WD/ALARM Counter (Power-up): %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
 
-	// Periodic Alarm
-	//rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_AIE),TRUE);
+		// Periodic Alarm
+		//rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_AIE),TRUE);
 
-	// Write to Watchdog/Alarm Counter Register
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE0_ADDR, (cnt & 0xff));
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE1_ADDR, ((cnt >> 8) & 0xff));
-	rtc_write_raw(RTC_WD_ALM_CNT_BYTE2_ADDR, ((cnt >> 16) & 0xff));
-	
-	wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
-	wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
-	wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
-	printf("Set WD/ALARM Counter to %02x %02x %02x / 4096 s\n",
-			wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+		// Write to Watchdog/Alarm Counter Register
+		rtc_write_raw(RTC_WD_ALM_CNT_BYTE0_ADDR, (cnt & 0xff));
+		rtc_write_raw(RTC_WD_ALM_CNT_BYTE1_ADDR, ((cnt >> 8) & 0xff));
+		rtc_write_raw(RTC_WD_ALM_CNT_BYTE2_ADDR, ((cnt >> 16) & 0xff));
 
-	//Enable Watchdog Interrupt
-	rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),TRUE);
-	res = rtc_read(RTC_CTL_ADDR);
-	if((res & 0x60) == 0x60)
-		printf("Watchdog enabled!\n");
-#else 
-	//Disable Watchdog Interrupt
-	rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),FALSE);
-	res = rtc_read(RTC_CTL_ADDR);
-	if(!(res & 0x60))
-		printf("Watchdog disabled!\n");
-#endif
+		wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
+		wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
+		wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
+		printf("Set WD/ALARM Counter to %02x %02x %02x / 4096 s\n",
+				wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+
+		//Enable Watchdog Interrupt
+		rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),TRUE);
+		res = rtc_read(RTC_CTL_ADDR);
+		if((res & 0x60) == 0x60)
+			printf("Watchdog enabled!\n");
+	} else {
+		//Disable Watchdog Interrupt
+		rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),FALSE);
+		res = rtc_read(RTC_CTL_ADDR);
+		if(!(res & 0x60))
+			printf("Watchdog disabled!\n");
+	}
 
 #ifdef TC_ON
 	//Enable trickle charger (Imax = 0,65mA, bei U=3,3V)
