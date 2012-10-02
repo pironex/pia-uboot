@@ -243,9 +243,9 @@ int misc_init_r(void)
 
 	/* RTC Initialization */
 #if defined(CONFIG_CMD_DATE) && defined(CONFIG_RTC_DS1374)
-	char *wd_enable = getenv("wd_enable");
-	if (wd_enable != NULL && strcmp(wd_enable, "true") == 0)
-		ds1374_wd_enable = 1;
+#ifdef CONFIG_RTC_DS1374_ENABLEWD
+	ds1374_wd_enable = 1;
+#endif
 	rtc_init();
 #endif
 	memset(&expansion_config, 0, sizeof (expansion_config));
