@@ -24,7 +24,7 @@
 VERSION = 2012
 PATCHLEVEL = 07
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -617,7 +617,7 @@ $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 
 $(obj)include/generated/asm-offsets.h:	$(obj)include/autoconf.mk.dep \
 	$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
-	@echo Generating $@
+	@$(XECHO) Generating $@
 	tools/scripts/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
 
 $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
@@ -792,7 +792,7 @@ clobber:	tidy
 	@rm -f $(obj)u-boot.dtb
 	@rm -f $(obj)u-boot.sb
 	@rm -f $(obj)u-boot.spr
-	@rm -f $(obj)tools/inca-swap-bytes
+	@rm -f $(obj)tools/xway-swap-bytes
 	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
 	@rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
