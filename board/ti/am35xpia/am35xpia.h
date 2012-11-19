@@ -373,4 +373,42 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(ETK_D5_ES2),		(IEN  | PTU | EN  | M4)) /* DIN_INT1   gpio_19  H2-13 */\
 	MUX_VAL(CP(ETK_D7_ES2),		(IEN  | PTU | EN  | M4)) /* DIN_INT2   gpio_21  H2-23 */\
 
+#define MUX_PIA_EMS_IO_V3() \
+	MUX_VAL(CP(MMC2_CLK),		(IDIS | PTU | DIS | M4)) /* USB_Reset  gpio_130 H1-39 */\
+	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTU | EN  | M4)) /* CAN_INT1   gpio_132 H1-35 */\
+	MUX_VAL(CP(MMC2_DAT1),		(IEN  | PTU | EN  | M4)) /* CAN_INT2   gpio_133 H1-33 */\
+	MUX_VAL(CP(MMC2_DAT2),		(IEN  | PTU | EN  | M4)) /* CAN_INT3   gpio_134 H1-31 */\
+	MUX_VAL(CP(MMC2_DAT3),		(IDIS | PTU | DIS | M4)) /* <io>_RESET gpio_135 H1-29 */\
+	MUX_VAL(CP(MMC2_DAT4),		(IEN  | PTU | EN  | M4)) /* DISP_INT   gpio_136 H1-27 */\
+	MUX_VAL(CP(MMC2_DAT5),		(IEN  | PTU | EN  | M4)) /* DIN_INT1   gpio_137 H1-25 */\
+	MUX_VAL(CP(MMC2_DAT6),		(IEN  | PTU | EN  | M4)) /* DIN_INT2   gpio_138 H1-23 */\
+	MUX_VAL(CP(MMC2_DAT7),		(M7))                    /* NC                  H1-21 */\
+	MUX_VAL(CP(HDQ_SIO),		(M7))                    /* hdq_sio             H2-22 */\
+	/* MCSPI1 */ \
+	MUX_VAL(CP(MCSPI1_CLK),		(IEN  | PTU | DIS | M0)) /* mcspi1_clk  H2-12 */\
+	MUX_VAL(CP(MCSPI1_SIMO),	(IDIS | PTU | DIS | M0)) /* mcspi1_simo H2-10 */\
+	MUX_VAL(CP(MCSPI1_SOMI),	(IEN  | PTU | DIS | M0)) /* mcspi1_somi H2-08 */\
+	MUX_VAL(CP(MCSPI1_CS0),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs0  H2-06 */\
+	MUX_VAL(CP(MCSPI1_CS1),		(IDIS | PTU | EN  | M0)) /* NC mcspi1_cs1  H2-04 */\
+	MUX_VAL(CP(MCSPI1_CS2),		(IDIS | PTU | EN  | M0)) /* mcspi1_cs2  H2-02 */\
+	MUX_VAL(CP(MCSPI1_CS3),		(IDIS | PTU | EN  | M0)) /* NC mcspi1_cs3  H2-09 */\
+	/* MCSPI2 */\
+	MUX_VAL(CP(MCSPI2_CLK),		(IEN  | PTU | DIS | M0)) /* mcspi2_clk  H1-19 */\
+	MUX_VAL(CP(MCSPI2_SIMO),	(IDIS | PTU | DIS | M0)) /* mcspi2_simo H1-17 */\
+	MUX_VAL(CP(MCSPI2_SOMI),	(IEN  | PTU | DIS | M0)) /* mcspi2_somi H1-15 */\
+	MUX_VAL(CP(MCSPI2_CS0),		(IDIS | PTU | EN  | M0)) /* mcspi2_cs0 gpio_181 H1-13 */\
+	MUX_VAL(CP(MCSPI2_CS1),		(IDIS | PTU | EN  | M0)) /* NC   gpio_182 H1-11 */\
+	MUX_VAL(CP(ETK_CLK_ES2),	(IDIS | PTU | EN  | M3)) /* HSUSB1.STP   gpio_12  H2-19 */\
+	MUX_VAL(CP(ETK_CTL_ES2),	(IDIS | PTU | DIS | M3)) /* HSUSB1.CLK   gpio_13  H2-17 */\
+	MUX_VAL(CP(ETK_D0_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA0 gpio_14  H2-15 */\
+	MUX_VAL(CP(ETK_D1_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1_DATA1 gpio_15  H2-29 */\
+	MUX_VAL(CP(ETK_D2_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1_DATA2 gpio_16  H2-27 */\
+	MUX_VAL(CP(ETK_D3_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA3 gpio_17  H2-25 */\
+	MUX_VAL(CP(ETK_D4_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA4 gpio_18  H2-21 */\
+	MUX_VAL(CP(ETK_D5_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA5 gpio_19  H2-13 */\
+	MUX_VAL(CP(ETK_D6_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA6 gpio_20  H2-11 */\
+	MUX_VAL(CP(ETK_D7_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DATA7 gpio_21  H2-23 */\
+	MUX_VAL(CP(ETK_D8_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.DIR   gpio_22  H1-36 */\
+	MUX_VAL(CP(ETK_D9_ES2),		(IEN  | PTU | DIS | M3)) /* HSUSB1.NXT   gpio_23  H1-34 */\
+
 #endif /* _AM3517CRANE_H_ */
