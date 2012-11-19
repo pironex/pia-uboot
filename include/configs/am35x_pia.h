@@ -148,7 +148,9 @@
 
 #define CONFIG_CMD_DATE     /* Date and RTC support */
 #define CONFIG_RTC_DS1374   /* RTC DS1374 */
-//#define CONFIG_RTC_DS1374_ENABLEWD   /* RTC DS1374 */
+#if 0
+#define CONFIG_RTC_DS1374_ENABLEWD   /* RTC DS1374 */
+#endif
 
 #undef CONFIG_CMD_FLASH     /* flinfo, erase, protect */
 #undef CONFIG_CMD_FPGA      /* FPGA configuration Support */
