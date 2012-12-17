@@ -75,3 +75,11 @@ cscope.*
 /onenand_ipl/onenand-ipl*
 /onenand_ipl/board/*/onenand*
 /onenand_ipl/board/*/*.S
+
+# local ignores
+/build.sh
+/.cproject
+/.directory
+/.project
+/.gitk-tmp.*
+/.settings
