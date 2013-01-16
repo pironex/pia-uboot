@@ -40,10 +40,12 @@
 #define CLK_MODE_MASK		0xfffffff8
 #define CLK_DIV_SEL		0xFFFFFFE0
 #define CPGMAC0_IDLE		0x30000
+#define DPLL_CLKDCOLDO_GATE_CTRL        0x300
 
 const struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
 const struct cm_wkuppll *cmwkup = (struct cm_wkuppll *)CM_WKUP;
 const struct cm_dpll *cmdpll = (struct cm_dpll *)CM_DPLL;
+const struct cm_rtc *cmrtc = (struct cm_rtc *)CM_RTC;
 
 static void enable_interface_clocks(void)
 {
@@ -114,6 +116,16 @@ static void enable_per_clocks(void)
 	while (readl(&cmwkup->wkup_uart0ctrl) != PRCM_MOD_EN)
 		;
 
+	/* GPMC */
+	writel(PRCM_MOD_EN, &cmper->gpmcclkctrl);
+	while (readl(&cmper->gpmcclkctrl) != PRCM_MOD_EN)
+		;
+
+	/* ELM */
+	writel(PRCM_MOD_EN, &cmper->elmclkctrl);
+	while (readl(&cmper->elmclkctrl) != PRCM_MOD_EN)
+		;
+
 	/* MMC0*/
 	writel(PRCM_MOD_EN, &cmper->mmc0clkctrl);
 	while (readl(&cmper->mmc0clkctrl) != PRCM_MOD_EN)
@@ -153,9 +165,19 @@ static void enable_per_clocks(void)
 	writel(PRCM_MOD_EN, &cmper->spi0clkctrl);
 	while (readl(&cmper->spi0clkctrl) != PRCM_MOD_EN)
 		;
+
+	/* MUSB */
+	writel(PRCM_MOD_EN, &cmper->usb0clkctrl);
+	while (readl(&cmper->usb0clkctrl) != PRCM_MOD_EN)
+		;
+
+	/* RTC */
+	writel(PRCM_MOD_EN, &cmrtc->rtcclkctrl);
+	while (readl(&cmrtc->rtcclkctrl) != PRCM_MOD_EN)
+		;
 }
 
-static void mpu_pll_config(void)
+void mpu_pll_config(int mpupll_M)
 {
 	u32 clkmode, clksel, div_m2;
 
@@ -169,7 +191,7 @@ static void mpu_pll_config(void)
 		;
 
 	clksel = clksel & (~CLK_SEL_MASK);
-	clksel = clksel | ((MPUPLL_M << CLK_SEL_SHIFT) | MPUPLL_N);
+	clksel = clksel | ((mpupll_M << CLK_SEL_SHIFT) | MPUPLL_N);
 	writel(clksel, &cmwkup->clkseldpllmpu);
 
 	div_m2 = div_m2 & ~CLK_DIV_MASK;
@@ -249,6 +271,8 @@ static void per_pll_config(void)
 
 	while (readl(&cmwkup->idlestdpllper) != ST_DPLL_CLK)
 		;
+
+	writel(DPLL_CLKDCOLDO_GATE_CTRL, &cmwkup->clkdcoldodpllper);
 }
 
 void ddr_pll_config(unsigned int ddrpll_m)
@@ -300,7 +324,8 @@ void enable_emif_clocks(void)
  */
 void pll_init()
 {
-	mpu_pll_config();
+	/* Start at 550MHz, will be tweaked up if possible. */
+	mpu_pll_config(MPUPLL_M_550);
 	core_pll_config();
 	per_pll_config();
 

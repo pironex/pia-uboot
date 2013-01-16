@@ -21,6 +21,7 @@
 #include <asm/omap_common.h>
 #include <asm/arch/omap.h>
 #include <asm/arch/mmc_host_def.h>
+#include <asm/arch/sys_proto.h>
 
 /*
  * This is used to verify if the configuration header
@@ -53,6 +54,9 @@ void spl_board_init(void)
 {
 #ifdef CONFIG_SPL_NAND_SUPPORT
 	gpmc_init();
+#endif
+#ifdef CONFIG_AM33XX
+	am33xx_spl_board_init();
 #endif
 }
 

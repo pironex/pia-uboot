@@ -25,7 +25,6 @@
 #include <malloc.h>
 
 #include <linux/usb/ch9.h>
-#include <usbdescriptors.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/composite.h>
 
@@ -165,6 +164,9 @@ static void handle_getstatus(struct usb_request *req)
 
 	/* send status response */
 	dstat->bStatus = f_dfu->dfu_status;
+	dstat->bwPollTimeout[0] = 0;
+	dstat->bwPollTimeout[1] = 0;
+	dstat->bwPollTimeout[2] = 0;
 	dstat->bState = f_dfu->dfu_state;
 	dstat->iString = 0;
 }
@@ -535,8 +537,10 @@ dfu_handle(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 			value = min(len, (u16) sizeof(dfu_func));
 			memcpy(req->buf, &dfu_func, value);
 		}
-	} else /* DFU specific request */
-		value = dfu_state[f_dfu->dfu_state] (f_dfu, ctrl, gadget, req);
+		return value;
+	}
+
+	value = dfu_state[f_dfu->dfu_state] (f_dfu, ctrl, gadget, req);
 
 	if (value >= 0) {
 		req->length = value;

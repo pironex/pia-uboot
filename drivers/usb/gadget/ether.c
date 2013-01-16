@@ -24,7 +24,6 @@
 #include <asm/errno.h>
 #include <linux/netdevice.h>
 #include <linux/usb/ch9.h>
-#include <usbdescriptors.h>
 #include <linux/usb/cdc.h>
 #include <linux/usb/gadget.h>
 #include <net.h>
@@ -1969,8 +1968,8 @@ static int is_eth_addr_valid(char *str)
 			p = q;
 		}
 
-		if (i == 6) /* it looks ok */
-			return 1;
+		/* Now check the contents. */
+		return is_valid_ether_addr(ea);
 	}
 	return 0;
 }

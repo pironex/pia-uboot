@@ -37,6 +37,8 @@ struct am335x_baseboard_id {
 	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];
 };
 
+int board_is_evm_15_or_later(void);
+
 #define BOARD_REV_ID	0x0
 
 u32 get_cpu_rev(void);
@@ -50,6 +52,11 @@ extern struct ctrl_stat *cstat;
 u32 get_device_type(void);
 void setup_clocks_for_console(void);
 void ddr_pll_config(unsigned int ddrpll_M);
+void mpu_pll_config(int mpupll_M);
+void sdelay(unsigned long);
+void gpmc_init(void);
+void omap_nand_switch_ecc(int);
+void am33xx_spl_board_init(void);
 
 /*
  * We have three pin mux functions that must exist.  We must be able to enable

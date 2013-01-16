@@ -60,6 +60,8 @@ LIBS-$(CONFIG_SPL_POST_MEM_SUPPORT) += post/drivers/memory.o
 LIBS-$(CONFIG_SPL_NET_SUPPORT) += net/libnet.o
 LIBS-$(CONFIG_SPL_ETH_SUPPORT) += drivers/net/libnet.o
 LIBS-$(CONFIG_SPL_ETH_SUPPORT) += drivers/net/phy/libphy.o
+LIBS-$(CONFIG_SPL_USB_ETH_SUPPORT) += drivers/usb/gadget/libusb_gadget.o
+LIBS-$(CONFIG_SPL_MUSB_GADGET_SUPPORT) += drivers/usb/musb-new/libusb_musb-new.o
 
 ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
@@ -110,16 +112,13 @@ LDPPFLAGS += \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
-ifdef CONFIG_OMAP
 $(OBJTREE)/MLO:	$(obj)u-boot-spl.bin
 	$(OBJTREE)/tools/mkimage -T omapimage \
 		-a $(CONFIG_SPL_TEXT_BASE) -d $< $@
-endif
-ifdef CONFIG_AM33XX
-$(OBJTREE)/MLO:	$(obj)u-boot-spl.bin
-	$(OBJTREE)/tools/mkimage -T omapimage \
+
+$(OBJTREE)/MLO.byteswap: $(obj)u-boot-spl.bin
+	$(OBJTREE)/tools/mkimage -T omapimage -n byteswap \
 		-a $(CONFIG_SPL_TEXT_BASE) -d $< $@
-endif
 
 ALL-y	+= $(obj)u-boot-spl.bin
 

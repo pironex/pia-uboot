@@ -163,6 +163,13 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	boot_device = spl_boot_device();
 	debug("boot device - %d\n", boot_device);
+
+#ifdef CONFIG_UART_THEN_USB_SPL
+	/* Hack: load SPL via UART, then use USB */
+	if (boot_device == BOOT_DEVICE_UART)
+		boot_device = BOOT_DEVICE_USB;
+#endif
+
 	switch (boot_device) {
 #ifdef CONFIG_SPL_RAM_DEVICE
 	case BOOT_DEVICE_RAM:
@@ -203,6 +210,11 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #else
 		spl_net_load_image(NULL);
 #endif
+		break;
+#endif
+#ifdef CONFIG_SPL_USB_ETH_SUPPORT
+	case BOOT_DEVICE_USB:
+		spl_net_load_image("usb_ether");
 		break;
 #endif
 	default:
