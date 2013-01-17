@@ -471,7 +471,8 @@ void s_init(void)
 	/* The following boards are known to use DDR3. */
 	if ((!strncmp("A335X_SK", header.name, HDR_NAME_LEN)) || 
 			(!strncmp("A33515BB", header.name, 8) &&
-			 strncmp("1.5", header.version, 3) <= 0))
+			 strncmp("1.5", header.version, 3) <= 0) ||
+			 (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X))
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR3);
 	else
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR2);
@@ -575,6 +576,7 @@ int arch_misc_init(void)
 	return 0;
 }
 
+#if (CONFIG_MACH_TYPE != MACH_TYPE_PIA_AM335X)
 /*
  * Basic board specific setup.  Pinmux has been handled already.
  */
@@ -590,6 +592,7 @@ int board_init(void)
 
 	return 0;
 }
+#endif
 
 #if (defined(CONFIG_DRIVER_TI_CPSW) && !defined(CONFIG_SPL_BUILD)) || \
 	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
