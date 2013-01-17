@@ -14261,6 +14261,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_pia_am35x()       (0)
 #endif
 
+#ifdef CONFIG_MACH_PIA_AM335X
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type     __machine_arch_type
+# else
+#  define machine_arch_type     MACH_TYPE_PIA_AM335X
+# endif
+# define machine_is_pia_am335x()    (machine_arch_type == MACH_TYPE_PIA_AM335X)
+#else
+# define machine_is_pia_am335x()    (0)
+#endif
+
 /*
  * These have not yet been registered
  */
