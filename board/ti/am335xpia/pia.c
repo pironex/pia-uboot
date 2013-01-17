@@ -16,7 +16,7 @@
 #include <common.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/common_def.h>
+#include <asm/arch/sys_proto.h>
 #include <serial.h>
 #include <i2c.h>
 
@@ -39,6 +39,8 @@ int board_init(void)
 #endif
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
+
+	gpmc_init();
 
 	return 0;
 }
