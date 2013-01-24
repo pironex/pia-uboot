@@ -323,7 +323,9 @@
 
 #define CONFIG_ENV_IS_NOWHERE
 
-/* NAND Configuration. */
+/* NAND Configuration.
+ * Page  2K + 64 Bytes
+ * Block 64 Pages = 128K + 4K */
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT	(CONFIG_SYS_NAND_BLOCK_SIZE / \
 					 CONFIG_SYS_NAND_PAGE_SIZE)
@@ -379,7 +381,7 @@
 #ifdef CONFIG_SPL_BUILD
 #undef CONFIG_PHYLIB			/* Only needed on CPSW */
 #endif
-
+#endif
 /*
  * Due to size constraints we need to limit what goes into the USB SPL.
  * For now we allow either USB or CPSW but not both.  This is OK as the
@@ -402,21 +404,12 @@
 /* Y-Modem. */
 #define CONFIG_SPL_YMODEM_SUPPORT
 
-/* SPI */
-#define CONFIG_SPL_SPI_SUPPORT
-#define CONFIG_SPL_SPI_FLASH_SUPPORT
-#define CONFIG_SPL_SPI_LOAD
-#define CONFIG_SPL_SPI_BUS		0
-#define CONFIG_SPL_SPI_CS		0
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
-
 /* NAND */
 #define CONFIG_SPL_NAND_AM33XX_BCH
 #define CONFIG_SPL_NAND_SUPPORT
 #define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x80000
-#endif
 
 /*
  * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
@@ -437,7 +430,6 @@
 
 /*
  * USB configuration
- * TODO remove musb gadget
  */
 #define CONFIG_USB_MUSB_DSPS
 #define CONFIG_ARCH_MISC_INIT
@@ -498,6 +490,8 @@
 #endif
 #endif
 
+/* TODO remove */
+#if 0
 /*
  * NOR Size = 16 MB
  * No.Of Sectors/Blocks = 128
@@ -532,5 +526,6 @@
 #define CONFIG_MTD_DEVICE
 #define CONFIG_CMD_FLASH
 #endif	/* NOR support */
+#endif
 
 #endif	/* ! __CONFIG_AM335X_PIA_H */
