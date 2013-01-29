@@ -18,6 +18,15 @@
 
 #define CONFIG_AM33XX
 
+#define PIA_ON_BONE
+/* TODO only for dev */
+#ifdef PIA_ON_BONE
+#define CONFIG_DISPLAY_CPUINFO
+#define DEBUG
+#ifdef DEBUG
+#endif /* DEBUG */
+#endif /* PIA_ON_BONE */
+
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
 
@@ -203,7 +212,7 @@
 #define CONFIG_SPI
 #define CONFIG_OMAP3_SPI
 #define CONFIG_MTD_DEVICE
-#if PIA
+#if 0
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_CMD_SF
@@ -371,8 +380,10 @@
 #endif
 
 /* Core network SPL (USB and CPSW). */
+#if 0
 #define CONFIG_SPL_NET_SUPPORT
 #define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"
+#endif
 
 /* USB (RNDIS) SPL */
 #ifdef CONFIG_USB_SPL
@@ -389,7 +400,7 @@
  */
 #ifndef CONFIG_USB_SPL
 /* CPSW SPL */
-#define CONFIG_SPL_ETH_SUPPORT
+/*#define CONFIG_SPL_ETH_SUPPORT*/
 #endif
 
 /* SD/MMC/eMMC */
@@ -490,6 +501,7 @@
 #endif
 #endif
 
+
 /* TODO remove */
 #if 0
 /*
@@ -527,5 +539,9 @@
 #define CONFIG_CMD_FLASH
 #endif	/* NOR support */
 #endif
+
+#ifdef PIA_ON_BONE
+#undef CONFIG_SPL_NAND_SUPPORT
+#endif /* PIA_ON_BONE */
 
 #endif	/* ! __CONFIG_AM335X_PIA_H */

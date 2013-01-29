@@ -107,6 +107,7 @@ void spl_mmc_load_image(void)
 	int err;
 	u32 boot_mode;
 
+	debug(">>spl:spl_mmc_load_image()\n");
 	mmc_initialize(gd->bd);
 	/* We register only one device. So, the dev id is always 0 */
 	mmc = find_mmc_device(0);
@@ -115,6 +116,7 @@ void spl_mmc_load_image(void)
 		hang();
 	}
 
+	debug("  +mmc_init()\n");
 	err = mmc_init(mmc);
 	if (err) {
 		printf("spl: mmc init failed: err - %d\n", err);

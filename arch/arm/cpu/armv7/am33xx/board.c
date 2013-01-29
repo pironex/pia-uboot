@@ -88,6 +88,7 @@ int board_is_evm_15_or_later(void)
  */
 static int read_eeprom(void)
 {
+	debug(">>spl:read_eeprom()\n");
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 		puts("Could not probe the EEPROM; something fundamentally "
@@ -121,6 +122,8 @@ static int read_eeprom(void)
 			return -EINVAL;
 		}
 	}
+	debug("EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
+			header.magic, header.name, header.version, header.serial);
 
 	return 0;
 }
@@ -275,6 +278,7 @@ static void rtc32k_enable(void)
 
 void am33xx_spl_board_init(void)
 {
+	debug(">>spl:am33xx_spl_board_init()\n");
 	if (!strncmp("A335BONE", header.name, 8)) {
 		/* BeagleBone PMIC Code */
 		uchar pmic_status_reg;
@@ -412,6 +416,7 @@ void s_init(void)
 	gd = &gdata;
 
 	preloader_console_init();
+
 #endif
 
 	/* Initalize the board header */
@@ -468,6 +473,8 @@ void s_init(void)
 	am33xx_spl_board_init();
 #endif
 
+	debug("  +spl:config_ddr");
+#ifndef PIA_ON_BONE
 	/* The following boards are known to use DDR3. */
 	if ((!strncmp("A335X_SK", header.name, HDR_NAME_LEN)) || 
 			(!strncmp("A33515BB", header.name, 8) &&
@@ -475,6 +482,7 @@ void s_init(void)
 			 (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X))
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR3);
 	else
+#endif /* TODO remove after debug PIA_ON_BONE */
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR2);
 #endif
 }
@@ -643,6 +651,8 @@ int board_eth_init(bd_t *bis)
 	uint8_t mac_addr[6];
 	uint32_t mac_hi, mac_lo;
 
+	debug("board_eth_init()\n");
+
 	/* try reading mac address from efuse */
 	mac_lo = readl(&cdev->macid0l);
 	mac_hi = readl(&cdev->macid0h);
@@ -676,6 +686,7 @@ int board_eth_init(bd_t *bis)
 	}
 
 	if (board_is_bone()) {
+		debug("enable MII\n");
 		writel(MII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_MII;

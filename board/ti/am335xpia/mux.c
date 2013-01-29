@@ -14,10 +14,11 @@
  * GNU General Public License for more details.
  */
 
-#include <config.h>
-#include <asm/arch/common_def.h>
+#include <common.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
+#include <i2c.h>
 
 #define MUX_CFG(value, offset)	\
 	__raw_writel(value, (CTRL_BASE + offset));
@@ -29,7 +30,13 @@
 #define P_DOWN (0x0 << 4) /* Pull DOWN Selection */
 #define P_EN   (0x0 << 3) /* Pull enabled */
 #define P_DIS   (0x1 << 3) /* Pull up disabled */
-//#define MODE(val)	val	/* used for Readability */
+
+#define RXACTIVE (0x1 << 5)
+#define PULLUP_EN	(0x1 << 4) /* Pull UP Selection */
+#define PULLUDEN	(0x0 << 3) /* Pull up enabled */
+#define PULLUDDIS	(0x1 << 3) /* Pull up disabled */
+#define MODE(val)	val	/* used for Readability */
+
 /* mux modes */
 #define M0 0
 #define M1 1
@@ -264,12 +271,75 @@ struct module_pin_mux {
 				(PAD_CTRL_BASE))->x)
 
 static struct module_pin_mux uart0_pin_mux[] = {
-	{OFFSET(uart0_rxd), (M0 | P_UP | IEN)},	/* UART0_RXD */
-	{OFFSET(uart0_txd), (M0 | PEN)},		/* UART0_TXD */
+	{OFFSET(uart0_rxd), (M0 | P_UP | IEN)},  /* UART0_RXD */
+	{OFFSET(uart0_txd), (M0 | P_UP | P_EN)}, /* UART0_TXD */
+	{-1},
+};
+
+static struct module_pin_mux mii1_pin_mux[] = {
+	{OFFSET(mii1_rxerr), MODE(0) | IEN},	/* MII1_RXERR */
+	{OFFSET(mii1_txen), MODE(0)},			/* MII1_TXEN */
+	{OFFSET(mii1_rxdv), MODE(0) | IEN},	/* MII1_RXDV */
+	{OFFSET(mii1_txd3), MODE(0)},			/* MII1_TXD3 */
+	{OFFSET(mii1_txd2), MODE(0)},			/* MII1_TXD2 */
+	{OFFSET(mii1_txd1), MODE(0)},			/* MII1_TXD1 */
+	{OFFSET(mii1_txd0), MODE(0)},			/* MII1_TXD0 */
+	{OFFSET(mii1_txclk), MODE(0) | IEN},	/* MII1_TXCLK */
+	{OFFSET(mii1_rxclk), MODE(0) | IEN},	/* MII1_RXCLK */
+	{OFFSET(mii1_rxd3), MODE(0) | IEN},	/* MII1_RXD3 */
+	{OFFSET(mii1_rxd2), MODE(0) | IEN},	/* MII1_RXD2 */
+	{OFFSET(mii1_rxd1), MODE(0) | IEN},	/* MII1_RXD1 */
+	{OFFSET(mii1_rxd0), MODE(0) | IEN},	/* MII1_RXD0 */
+	{OFFSET(mdio_data), MODE(0) | IEN | PULLUP_EN}, /* MDIO_DATA */
+	{OFFSET(mdio_clk), MODE(0) | PULLUP_EN},	/* MDIO_CLK */
+	{-1},
+};
+static struct module_pin_mux rgmii2_pin_mux[] = {
+	{OFFSET(gpmc_a0), MODE(1)},             /* RGMII2_TCTL / TXEN */
+	{OFFSET(gpmc_a1), MODE(1) | IEN},       /* RGMII2_RCTL / RXDV */
+	{OFFSET(gpmc_a2), MODE(1)},             /* RGMII2_TXD3 */
+	{OFFSET(gpmc_a3), MODE(1)},             /* RGMII2_TXD2 */
+	{OFFSET(gpmc_a4), MODE(1)},             /* RGMII2_TXD1 */
+	{OFFSET(gpmc_a5), MODE(1)},             /* RGMII2_TXD0 */
+	{OFFSET(gpmc_a6), MODE(1)},             /* RGMII2_TCLK */
+	{OFFSET(gpmc_a7), MODE(1) | IEN},       /* RGMII2_RCLK */
+	{OFFSET(gpmc_a8), MODE(1) | IEN},       /* RGMII2_RXD3 */
+	{OFFSET(gpmc_a9), MODE(1) | IEN},       /* RGMII2_RXD2 */
+	{OFFSET(gpmc_a10), MODE(1) | IEN},      /* RGMII2_RXD1 */
+	{OFFSET(gpmc_a11), MODE(1) | IEN},      /* RGMII2_RXD0 */
+	{OFFSET(mdio_data),MODE(0) | IEN | P_UP},/* MDIO_DATA */
+	{OFFSET(mdio_clk), MODE(0) | P_UP},     /* MDIO_CLK */
+//----
+	{OFFSET(gpmc_a0), MODE(1)},			/* RGMII2_TXEN */
+	{OFFSET(mii1_rxdv), MODE(0) | IEN},	/* MII1_RXDV */
+	{OFFSET(mii1_txd3), MODE(0)},			/* MII1_TXD3 */
+	{OFFSET(mii1_txd2), MODE(0)},			/* MII1_TXD2 */
+	{OFFSET(mii1_txd1), MODE(0)},			/* MII1_TXD1 */
+	{OFFSET(mii1_txd0), MODE(0)},			/* MII1_TXD0 */
+	{OFFSET(mii1_txclk), MODE(0) | IEN},	/* MII1_TXCLK */
+	{OFFSET(mii1_rxclk), MODE(0) | IEN},	/* MII1_RXCLK */
+	{OFFSET(mii1_rxd3), MODE(0) | IEN},	/* MII1_RXD3 */
+	{OFFSET(mii1_rxd2), MODE(0) | IEN},	/* MII1_RXD2 */
+	{OFFSET(mii1_rxd1), MODE(0) | IEN},	/* MII1_RXD1 */
+	{OFFSET(mii1_rxd0), MODE(0) | IEN},	/* MII1_RXD0 */
+	{OFFSET(mdio_data), MODE(0) | IEN | PULLUP_EN}, /* MDIO_DATA */
+	{OFFSET(mdio_clk), MODE(0) | PULLUP_EN},	/* MDIO_CLK */
 	{-1},
 };
 
 #ifdef CONFIG_MMC
+#ifdef PIA_ON_BONE
+static struct module_pin_mux mmc0_pin_mux[] = {
+	{OFFSET(mmc0_dat3), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT3 */
+	{OFFSET(mmc0_dat2), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT2 */
+	{OFFSET(mmc0_dat1), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT1 */
+	{OFFSET(mmc0_dat0), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT0 */
+	{OFFSET(mmc0_clk),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CLK */
+	{OFFSET(mmc0_cmd),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CMD */
+	{OFFSET(mii1_txd2), (MODE(7) | IEN | PULLUP_EN)},	/* MMC0_CD */
+	{-1},
+};
+#else
 static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat3), (M0 | IEN | P_UP)},	/* MMC0_DAT3 */
 	{OFFSET(mmc0_dat2), (M0 | IEN | P_UP)},	/* MMC0_DAT2 */
@@ -281,13 +351,22 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(spi0_cs1), (M5 | IEN | P_UP)},	/* MMC0_CD */
 	{-1},
 };
+#endif /* PIA_ON_BONE */
 #endif
 
 static struct module_pin_mux i2c0_pin_mux[] = {
 	{OFFSET(i2c0_sda), (M0 | IEN |
-			PEN | SLEWCTRL)}, /* I2C_DATA */
+			P_EN | SLEWCTRL)}, /* I2C_DATA */
 	{OFFSET(i2c0_scl), (M0 | IEN |
-			PEN | SLEWCTRL)}, /* I2C_SCLK */
+			P_EN | SLEWCTRL)}, /* I2C_SCLK */
+	{-1},
+};
+
+static struct module_pin_mux i2c1_pin_mux[] = {
+	{OFFSET(spi0_d1), (MODE(2) | IEN |
+			PULLUDEN | SLEWCTRL)},	/* I2C_DATA */
+	{OFFSET(spi0_cs0), (MODE(2) | IEN |
+			PULLUDEN | SLEWCTRL)},	/* I2C_SCLK */
 	{-1},
 };
 
@@ -307,17 +386,30 @@ static void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 
 void enable_uart0_pin_mux(void)
 {
+	debug(">>pia:enable_uart0_pin_mux()\n");
 	configure_module_pin_mux(uart0_pin_mux);
 }
 
 #ifdef CONFIG_MMC
 void enable_mmc0_pin_mux(void)
 {
+	debug(">>pia:enable_mmc0_pin_mux()\n");
 	configure_module_pin_mux(mmc0_pin_mux);
 }
 #endif
 
 void enable_i2c0_pin_mux(void)
 {
+	debug(">>pia:enable_i2c0_pin_mux()\n");
 	configure_module_pin_mux(i2c0_pin_mux);
+}
+
+void enable_board_pin_mux(struct am335x_baseboard_id *header)
+{
+	debug(">>pia:enable_board_pin_mux()\n");
+	/* Beaglebone pinmux */
+	configure_module_pin_mux(i2c1_pin_mux);
+	configure_module_pin_mux(mii1_pin_mux);
+	configure_module_pin_mux(mmc0_pin_mux);
+	// TODO use eeprom header spec
 }

@@ -52,16 +52,20 @@ u32 spl_boot_mode(void)
 
 void spl_board_init(void)
 {
+	debug(">>spl:spl_board_init()\n");
 #ifdef CONFIG_SPL_NAND_SUPPORT
+	debug("  +spl:gpmc_init()\n");
 	gpmc_init();
 #endif
 #ifdef CONFIG_AM33XX
+	debug("  +spl:am33xx_spl_board_init()\n");
 	am33xx_spl_board_init();
 #endif
 }
 
 int board_mmc_init(bd_t *bis)
 {
+	debug(">>spl:board_mmc_init()\n");
 	switch (spl_boot_device()) {
 	case BOOT_DEVICE_MMC1:
 		omap_mmc_init(0, 0, 0);

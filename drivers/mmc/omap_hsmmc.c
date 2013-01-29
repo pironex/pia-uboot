@@ -544,6 +544,7 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max)
 {
 	struct mmc *mmc;
 
+	debug(">>omap_mmc_init()\n");
 	mmc = &hsmmc_dev[dev_index];
 
 	sprintf(mmc->name, "OMAP SD/MMC");
@@ -598,7 +599,9 @@ int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max)
 		mmc->b_max = 1;
 #endif
 
+	debug("  +mmc_register(%s)\n", mmc->name);
 	mmc_register(mmc);
+	debug("  -mmc_register(%s)\n", mmc->name);
 
 	return 0;
 }

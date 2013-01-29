@@ -18,7 +18,8 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS	:= pia.o ../am335x/mux.o
+#COBJS	:= pia.o ../am335x/mux.o
+COBJS	:= pia.o mux.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

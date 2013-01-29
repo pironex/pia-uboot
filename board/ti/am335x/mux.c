@@ -490,6 +490,7 @@ static unsigned short detect_daughter_board_profile(void)
 
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
+	debug(">>am335x:enable_board_pin_mux()\n");
 	/* Do board-specific muxes. */
 	if (!strncmp(header->name, "A335BONE", HDR_NAME_LEN)) {
 		/* Beaglebone pinmux */

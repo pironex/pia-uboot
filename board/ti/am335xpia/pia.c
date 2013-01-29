@@ -32,6 +32,7 @@ DECLARE_GLOBAL_DATA_PTR;
 int board_init(void)
 {
 	enable_uart0_pin_mux();
+	debug(">>pia:board_init()\n");
 
 #ifdef CONFIG_I2C
 	enable_i2c0_pin_mux();
