@@ -41,6 +41,7 @@
 #define AM3517_IP_SW_RESET  0x48002598
 #define CPGMACSS_SW_RST     (1 << 1)
 #define ETHERNET_NRST       65  /* GPIO for ETHERNET nRST */
+#define EN_VCC_5V_PER       28
 #define EMACID_ADDR_LSB     0x48002380
 #define EMACID_ADDR_MSB     0x48002384
 #endif
@@ -168,6 +169,11 @@ int misc_init_r(void)
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
 	dieid_num_r();
+	// enable power for expansion boards which are supplied by VCC_5V_PER
+	if (0 == gpio_request(EN_VCC_5V_PER, "")) {
+		gpio_direction_output(EN_VCC_5V_PER, 1);
+		udelay(1000); // LDO has 0.6 ms typical rise time
+	}
 #if defined(CONFIG_DRIVER_TI_EMAC)
 	if (0 == gpio_request(ETHERNET_NRST, "")) {
 	    gpio_direction_output(ETHERNET_NRST, 0);
