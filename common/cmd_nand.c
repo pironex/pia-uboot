@@ -48,8 +48,8 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob, int repeat)
 
 	last = off;
 
-	datbuf = malloc(nand->writesize);
-	oobbuf = malloc(nand->oobsize);
+	datbuf = memalign(ARCH_DMA_MINALIGN, nand->writesize);
+	oobbuf = memalign(ARCH_DMA_MINALIGN, nand->oobsize);
 	if (!datbuf || !oobbuf) {
 		puts("No memory for page buffer\n");
 		return 1;
@@ -219,6 +219,9 @@ static int arg_off_size(int argc, char *const argv[], int *idx,
 	}
 
 print:
+	if (getenv("nandsilent") != NULL)
+		return 0;
+
 	printf("device %d ", *idx);
 	if (*size == nand_info[*idx].size)
 		puts("whole chip\n");
@@ -231,12 +234,18 @@ print:
 #ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
 static void print_status(ulong start, ulong end, ulong erasesize, int status)
 {
+	/*
+	 * Micron NAND flash (e.g. MT29F4G08ABADAH4) BLOCK LOCK READ STATUS is
+	 * not the same as others.  Instead of bit 1 being lock, it is
+	 * #lock_tight. To make the driver support either format, ignore bit 1
+	 * and use only bit 0 and bit 2.
+	 */
 	printf("%08lx - %08lx: %08lx blocks %s%s%s\n",
 		start,
 		end - 1,
 		(end - start) / erasesize,
 		((status & NAND_LOCK_STATUS_TIGHT) ?  "TIGHT " : ""),
-		((status & NAND_LOCK_STATUS_LOCK) ?  "LOCK " : ""),
+		(!(status & NAND_LOCK_STATUS_UNLOCK) ?  "LOCK " : ""),
 		((status & NAND_LOCK_STATUS_UNLOCK) ?  "UNLOCK " : ""));
 }
 
@@ -550,7 +559,9 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		if (argc != o + args)
 			goto usage;
 
-		printf("\nNAND %s: ", cmd);
+		if (getenv("nandsilent") == NULL)
+			printf("\nNAND %s: ", cmd);
+
 		/* skip first two or three arguments, look for offset and size */
 		if (arg_off_size(argc - o, argv + o, &dev, &off, &size) != 0)
 			return 1;
@@ -584,7 +595,9 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			}
 		}
 		ret = nand_erase_opts(nand, &opts);
-		printf("%s\n", ret ? "ERROR" : "OK");
+
+		if (getenv("nandsilent") == NULL)
+			printf("%s\n", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;
 	}
@@ -611,7 +624,9 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		addr = (ulong)simple_strtoul(argv[2], NULL, 16);
 
 		read = strncmp(cmd, "read", 4) == 0; /* 1 = read, 0 = write */
-		printf("\nNAND %s: ", read ? "read" : "write");
+
+		if (getenv("nandsilent") == NULL)
+			printf("\nNAND %s: ", read ? "read" : "write");
 
 		nand = &nand_info[dev];
 
@@ -689,8 +704,9 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			return 1;
 		}
 
-		printf(" %zu bytes %s: %s\n", rwsize,
-		       read ? "read" : "written", ret ? "ERROR" : "OK");
+		if (getenv("nandsilent") == NULL)
+			printf(" %zu bytes %s: %s\n", rwsize,
+			       read ? "read" : "written", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;
 	}
@@ -749,11 +765,18 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 
-	if (strcmp(cmd, "unlock") == 0) {
+	if (strncmp(cmd, "unlock", 5) == 0) {
+		int allexcept = 0;
+
+		s = strchr(cmd, '.');
+
+		if (s && !strcmp(s, ".allexcept"))
+			allexcept = 1;
+
 		if (arg_off_size(argc - 2, argv + 2, &dev, &off, &size) < 0)
 			return 1;
 
-		if (!nand_unlock(&nand_info[dev], off, size)) {
+		if (!nand_unlock(&nand_info[dev], off, size, allexcept)) {
 			puts("NAND flash successfully unlocked\n");
 		} else {
 			puts("Error unlocking NAND flash, "
@@ -807,7 +830,7 @@ U_BOOT_CMD(
 	"\n"
 	"nand lock [tight] [status]\n"
 	"    bring nand to lock state or display locked pages\n"
-	"nand unlock [offset] [size] - unlock section"
+	"nand unlock[.allexcept] [offset] [size] - unlock section"
 #endif
 #ifdef CONFIG_ENV_OFFSET_OOB
 	"\n"

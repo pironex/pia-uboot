@@ -18,7 +18,9 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS	:= evm.o mux.o
+ifeq ($(CONFIG_SPL_BUILD)$(CONFIG_NOR_BOOT),y)
+COBJS	:= mux.o
+endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

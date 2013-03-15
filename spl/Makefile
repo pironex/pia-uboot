@@ -23,8 +23,7 @@ include $(TOPDIR)/config.mk
 # We want the final binaries in this directory
 obj := $(OBJTREE)/spl/
 
-HAVE_VENDOR_COMMON_LIB := $(shell [ -f $(SRCTREE)/board/$(VENDOR)/common/Makefile ] \
-			&& echo y || echo n)
+HAVE_VENDOR_COMMON_LIB = $(if $(wildcard $(SRCTREE)/board/$(VENDOR)/common/Makefile),y,n)
 
 ifdef	CONFIG_SPL_START_S_PATH
 START_PATH := $(subst ",,$(CONFIG_SPL_START_S_PATH))
@@ -42,6 +41,7 @@ endif
 LIBS-y += board/$(BOARDDIR)/lib$(BOARD).o
 LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/lib$(VENDOR).o
 
+LIBS-$(CONFIG_SPL_FRAMEWORK) += common/spl/libspl.o
 LIBS-$(CONFIG_SPL_LIBCOMMON_SUPPORT) += common/libcommon.o
 LIBS-$(CONFIG_SPL_LIBDISK_SUPPORT) += disk/libdisk.o
 LIBS-$(CONFIG_SPL_I2C_SUPPORT) += drivers/i2c/libi2c.o
@@ -57,9 +57,24 @@ LIBS-$(CONFIG_SPL_NAND_SUPPORT) += drivers/mtd/nand/libnand.o
 LIBS-$(CONFIG_SPL_ONENAND_SUPPORT) += drivers/mtd/onenand/libonenand.o
 LIBS-$(CONFIG_SPL_DMA_SUPPORT) += drivers/dma/libdma.o
 LIBS-$(CONFIG_SPL_POST_MEM_SUPPORT) += post/drivers/memory.o
+LIBS-$(CONFIG_SPL_NET_SUPPORT) += net/libnet.o
+LIBS-$(CONFIG_SPL_ETH_SUPPORT) += drivers/net/libnet.o
+LIBS-$(CONFIG_SPL_ETH_SUPPORT) += drivers/net/phy/libphy.o
+LIBS-$(CONFIG_SPL_USB_ETH_SUPPORT) += drivers/usb/gadget/libusb_gadget.o
+LIBS-$(CONFIG_SPL_MUSB_GADGET_SUPPORT) += drivers/usb/musb-new/libusb_musb-new.o
 
 ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
+endif
+
+ifeq ($(SOC),tegra20)
+LIBS-y += arch/$(ARCH)/cpu/$(SOC)-common/lib$(SOC)-common.o
+endif
+
+# Add GCC lib
+ifeq ("$(USE_PRIVATE_LIBGCC)", "yes")
+PLATFORM_LIBGCC = $(SPLTREE)/arch/$(ARCH)/lib/libgcc.o
+PLATFORM_LIBS := $(filter-out %/libgcc.o, $(filter-out -lgcc, $(PLATFORM_LIBS))) $(PLATFORM_LIBGCC)
 endif
 
 START := $(addprefix $(SPLTREE)/,$(START))
@@ -97,16 +112,13 @@ LDPPFLAGS += \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
-ifdef CONFIG_OMAP
 $(OBJTREE)/MLO:	$(obj)u-boot-spl.bin
 	$(OBJTREE)/tools/mkimage -T omapimage \
 		-a $(CONFIG_SPL_TEXT_BASE) -d $< $@
-endif
-ifdef CONFIG_AM33XX
-$(OBJTREE)/MLO:	$(obj)u-boot-spl.bin
-	$(OBJTREE)/tools/mkimage -T omapimage \
+
+$(OBJTREE)/MLO.byteswap: $(obj)u-boot-spl.bin
+	$(OBJTREE)/tools/mkimage -T omapimage -n byteswap \
 		-a $(CONFIG_SPL_TEXT_BASE) -d $< $@
-endif
 
 ALL-y	+= $(obj)u-boot-spl.bin
 
@@ -126,9 +138,7 @@ $(obj)u-boot-spl.bin:	$(obj)u-boot-spl
 	$(OBJCOPY) $(OBJCFLAGS) -O binary $< $@
 
 GEN_UBOOT = \
-	UNDEF_SYM=`$(OBJDUMP) -x $(LIBS) | \
-	sed  -n -e 's/.*\($(SYM_PREFIX)__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
-	cd $(obj) && $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(__START) \
+	cd $(obj) && $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $(__START) \
 		--start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
 		-Map u-boot-spl.map -o u-boot-spl
 

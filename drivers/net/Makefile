@@ -71,6 +71,7 @@ COBJS-$(CONFIG_SMC91111) += smc91111.o
 COBJS-$(CONFIG_SMC911X) += smc911x.o
 COBJS-$(CONFIG_DRIVER_TI_EMAC) += davinci_emac.o
 COBJS-$(CONFIG_TSEC_ENET) += tsec.o fsl_mdio.o
+COBJS-$(CONFIG_DRIVER_TI_CPSW) += cpsw.o
 COBJS-$(CONFIG_FMAN_ENET) += fsl_mdio.o
 COBJS-$(CONFIG_TSI108_ETH) += tsi108_eth.o
 COBJS-$(CONFIG_ULI526X) += uli526x.o
@@ -79,6 +80,7 @@ COBJS-$(CONFIG_XILINX_AXIEMAC) += xilinx_axi_emac.o
 COBJS-$(CONFIG_XILINX_EMACLITE) += xilinx_emaclite.o
 COBJS-$(CONFIG_XILINX_LL_TEMAC) += xilinx_ll_temac.o xilinx_ll_temac_mdio.o \
 		xilinx_ll_temac_fifo.o xilinx_ll_temac_sdma.o
+COBJS-$(CONFIG_ZYNQ_GEM) += zynq_gem.o
 
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(COBJS:.o=.c)
