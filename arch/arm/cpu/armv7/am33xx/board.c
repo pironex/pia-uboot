@@ -474,16 +474,24 @@ void s_init(void)
 #endif
 
 	debug("  +spl:config_ddr");
-#ifndef PIA_ON_BONE
 	/* The following boards are known to use DDR3. */
+	/* TODO revert to original if test of */
 	if ((!strncmp("A335X_SK", header.name, HDR_NAME_LEN)) || 
 			(!strncmp("A33515BB", header.name, 8) &&
 			 strncmp("1.5", header.version, 3) <= 0) ||
-			 (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X))
+			 ((strncmp("A335BONE", header.name, HDR_NAME_LEN)) && /* TODO rm */
+			 (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X)))
+	{
+		debug("   Memory Type: DDR3");
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR3);
+	}
 	else
-#endif /* TODO remove after debug PIA_ON_BONE */
+	{
+		/* TODO remove after debug PIA_ON_BONE */
+		debug("   Memory Type: DDR2");
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR2);
+
+	}
 #endif
 }
 
