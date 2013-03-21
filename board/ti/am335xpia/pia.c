@@ -17,14 +17,26 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/gpio.h>
 #include <serial.h>
 #include <i2c.h>
+#include <mmc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_RESET		(0x1 << 1)
 #define UART_CLK_RUNNING_MASK	0x1
 #define UART_SMART_IDLE_EN	(0x1 << 0x3)
+
+int board_mmc_getcd(struct mmc* mmc)
+{
+#ifdef CONFIG_MMC_CD_GPIO
+	debug(">>pia:board_mmc_getcd()");
+	return (gpio_get_value(CONFIG_MMC_CD_GPIO));
+#else
+	return 1;
+#endif
+}
 
 /*
  * Basic board specific setup

@@ -404,6 +404,16 @@ void enable_i2c0_pin_mux(void)
 	configure_module_pin_mux(i2c0_pin_mux);
 }
 
+static void init_pia_gpios()
+{
+	debug(">>pia:init_pia_gpios()\n");
+#if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
+	gpio_request(CONFIG_MMC_CD_GPIO);
+	gpio_direction_input(CONFIG_MMC_CD_GPIO);
+	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));
+#endif
+}
+
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
 	debug(">>pia:enable_board_pin_mux()\n");
@@ -412,4 +422,6 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	configure_module_pin_mux(mii1_pin_mux);
 	configure_module_pin_mux(mmc0_pin_mux);
 	// TODO use eeprom header spec
+	/* There is no hook for additional GPIO initialization */
+	init_pia_gpios();
 }
