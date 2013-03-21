@@ -18,14 +18,15 @@
 
 #define CONFIG_AM33XX
 
-#define PIA_ON_BONE
+/*#define PIA_ON_BONE*/
+#define PIA_DEBUG
 /* TODO only for dev */
-#ifdef PIA_ON_BONE
+#ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
 #define DEBUG
 #ifdef DEBUG
 #endif /* DEBUG */
-#endif /* PIA_ON_BONE */
+#endif /* PIA_DEBUG */
 
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
@@ -263,7 +264,10 @@
 #endif
 
 /* CPSW ethernet */
+#if 0 /* no ethernet boot required */
 #define CONFIG_CMD_NET
+#endif
+/* below only for testing, not really used */
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
 #define CONFIG_DRIVER_TI_CPSW
@@ -279,6 +283,8 @@
 #define CONFIG_PHY_GIGE
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_SMSC
+
+#define CONFIG_CMD_MII
 
  /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1		/*  1 bank of DRAM */
@@ -449,8 +455,10 @@
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_GADGET_VBUS_DRAW	2
 #define CONFIG_MUSB_HOST
+#if 0 /* todo reanable */
 #define CONFIG_AM335X_USB0
 #define CONFIG_AM335X_USB0_MODE	MUSB_PERIPHERAL
+#endif
 #define CONFIG_AM335X_USB1
 #define CONFIG_AM335X_USB1_MODE MUSB_HOST
 
