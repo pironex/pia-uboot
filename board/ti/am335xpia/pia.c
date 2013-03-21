@@ -28,6 +28,15 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UART_CLK_RUNNING_MASK	0x1
 #define UART_SMART_IDLE_EN	(0x1 << 0x3)
 
+
+int board_late_init()
+{
+	/* use this as testing function, ETH is not initialized here */
+
+
+	return 0;
+}
+
 int board_mmc_getcd(struct mmc* mmc)
 {
 #ifdef CONFIG_MMC_CD_GPIO

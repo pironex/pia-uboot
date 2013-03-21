@@ -28,6 +28,8 @@
 #endif /* DEBUG */
 #endif /* PIA_DEBUG */
 
+#define CONFIG_BOARD_LATE_INIT
+
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
 
