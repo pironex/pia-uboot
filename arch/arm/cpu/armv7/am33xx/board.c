@@ -528,13 +528,13 @@ void s_init(void)
 			 ((strncmp("A335BONE", header.name, HDR_NAME_LEN)) && /* TODO rm */
 			 (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X)))
 	{
-		debug("   Memory Type: DDR3");
+		debug("   Memory Type: DDR3\n");
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR3);
 	}
 	else
 	{
 		/* TODO remove after debug PIA_ON_BONE */
-		debug("   Memory Type: DDR2");
+		debug("   Memory Type: DDR2\n");
 		config_ddr(EMIF_REG_SDRAM_TYPE_DDR2);
 
 	}
