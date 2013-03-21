@@ -83,11 +83,48 @@ int board_is_evm_15_or_later(void)
 			strncmp("1.5", header.version, 3) <= 0);
 }
 
+static int init_eeprom(void)
+{
+	int size, pos;
+	int to; /* 10 ms timeout */
+	/* init with default magic number, generic name and version info */
+	header.magic = 0xEE3355AA;
+	strncpy((char *)&header.name, "PIA335__", 8);
+	strncpy((char *)&header.version, "0.00", 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
+	memset(&header.config, 0, 32);
+	puts("Missing magic number, assuming first start, init EEPROM.\n");
+	printf("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
+			header.magic, header.name, header.version, header.serial);
+	size = sizeof(header);
+	pos = 0;
+	do {
+		to = 10;
+		/* page size is 8 bytes */
+		do {
+			if (!i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR, pos, 1,
+					&((uchar *)&header)[pos],
+					((size-pos) >= 8 ? 8 : size))) {
+				to = 0;
+				puts("I2C: success\n");
+			} else {
+				udelay(1000);
+			}
+		} while (--to > 0);
+		pos += 8;
+		/* wait to avoid NACK error spam */
+		udelay(2000);
+	} while (pos < size);
+
+	return 0;
+}
+
 /*
  * Read header information from EEPROM into global structure.
  */
 static int read_eeprom(void)
 {
+	int i;
 	debug(">>spl:read_eeprom()\n");
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
@@ -115,6 +152,15 @@ static int read_eeprom(void)
 				"fundamentally wrong on the I2C bus.\n");
 			return -EIO;
 		}
+
+#ifdef MACH_TYPE_PIA_AM335X
+		if (header.magic != 0xEE3355AA || header.config[32] != 0 ) {
+			if (init_eeprom()) {
+				puts("Could not initialize EEPROM.\n");
+				return -EIO;
+			}
+		}
+#endif
 
 		if (header.magic != 0xEE3355AA) {
 			printf("Incorrect magic number (0x%x) in EEPROM\n",
