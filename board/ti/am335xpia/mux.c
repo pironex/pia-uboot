@@ -291,7 +291,7 @@ static struct module_pin_mux mii1_pin_mux[] = {
 	{OFFSET(mii1_rxd1), MODE(0) | IEN},	/* MII1_RXD1 */
 	{OFFSET(mii1_rxd0), MODE(0) | IEN},	/* MII1_RXD0 */
 	{OFFSET(mdio_data), MODE(0) | IEN | PULLUP_EN}, /* MDIO_DATA */
-	{OFFSET(mdio_clk), MODE(0) | PULLUP_EN},	/* MDIO_CLK */
+	{OFFSET(mdio_clk), MODE(0) | P_DOWN | P_EN},	/* MDIO_CLK */
 	{-1},
 };
 static struct module_pin_mux rgmii2_pin_mux[] = {
@@ -328,7 +328,8 @@ static struct module_pin_mux rgmii2_pin_mux[] = {
 };
 
 #ifdef CONFIG_MMC
-#ifdef PIA_ON_BONE
+#ifndef PIA_ON_BONE
+/* configuration for KM_E2 */
 static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat3), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT3 */
 	{OFFSET(mmc0_dat2), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT2 */
@@ -337,9 +338,11 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_clk),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CLK */
 	{OFFSET(mmc0_cmd),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CMD */
 	{OFFSET(mii1_txd2), (MODE(7) | IEN | PULLUP_EN)},	/* MMC0_CD */
+	{OFFSET(mii1_txclk), (MODE(7) | IEN | PULLUP_EN)},  /* MMC0_WP */
 	{-1},
 };
 #else
+/* configuration for Beaglebone */
 static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat3), (M0 | IEN | P_UP)},	/* MMC0_DAT3 */
 	{OFFSET(mmc0_dat2), (M0 | IEN | P_UP)},	/* MMC0_DAT2 */
@@ -347,7 +350,6 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat0), (M0 | IEN | P_UP)},	/* MMC0_DAT0 */
 	{OFFSET(mmc0_clk), (M0 | IEN | P_UP)},	/* MMC0_CLK */
 	{OFFSET(mmc0_cmd), (M0 | IEN | P_UP)},	/* MMC0_CMD */
-	{OFFSET(mcasp0_aclkr), (M4 | IEN)},		/* MMC0_WP */
 	{OFFSET(spi0_cs1), (M5 | IEN | P_UP)},	/* MMC0_CD */
 	{-1},
 };
