@@ -18,6 +18,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
+#include <asm/gpio.h>
 #include <i2c.h>
 
 #define MUX_CFG(value, offset)	\
@@ -358,17 +359,17 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 
 static struct module_pin_mux i2c0_pin_mux[] = {
 	{OFFSET(i2c0_sda), (M0 | IEN |
-			P_EN | SLEWCTRL)}, /* I2C_DATA */
+			P_UP | P_EN | SLEWCTRL)}, /* I2C_DATA */
 	{OFFSET(i2c0_scl), (M0 | IEN |
-			P_EN | SLEWCTRL)}, /* I2C_SCLK */
+			P_UP | P_EN | SLEWCTRL)}, /* I2C_SCLK */
 	{-1},
 };
 
 static struct module_pin_mux i2c1_pin_mux[] = {
-	{OFFSET(spi0_d1), (MODE(2) | IEN |
-			PULLUDEN | SLEWCTRL)},	/* I2C_DATA */
-	{OFFSET(spi0_cs0), (MODE(2) | IEN |
-			PULLUDEN | SLEWCTRL)},	/* I2C_SCLK */
+	{OFFSET(uart0_ctsn), (MODE(3) | IEN |
+			P_UP | P_EN | SLEWCTRL)},	/* I2C_DATA */
+	{OFFSET(uart0_rtsn), (MODE(3) | IEN |
+			P_UP | P_EN | SLEWCTRL)},	/* I2C_SCLK */
 	{-1},
 };
 
@@ -406,11 +407,11 @@ void enable_i2c0_pin_mux(void)
 	configure_module_pin_mux(i2c0_pin_mux);
 }
 
-static void init_pia_gpios()
+static void init_pia_gpios(void)
 {
 	debug(">>pia:init_pia_gpios()\n");
 #if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
-	gpio_request(CONFIG_MMC_CD_GPIO);
+	gpio_request(CONFIG_MMC_CD_GPIO, "mmc0_cd");
 	gpio_direction_input(CONFIG_MMC_CD_GPIO);
 	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));
 #endif
