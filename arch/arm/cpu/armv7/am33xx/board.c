@@ -295,7 +295,7 @@ static void rtc32k_enable(void)
 	writel((1 << 3) | (1 << 6), &rtc->osc);
 }
 
-void am33xx_spl_board_init(void)
+void __attribute__((weak)) am33xx_spl_board_init(void)
 {
 	debug(">>spl:am33xx_spl_board_init()\n");
 	if (!strncmp("A335BONE", header.name, 8)) {
