@@ -373,6 +373,16 @@ static struct module_pin_mux i2c1_pin_mux[] = {
 	{-1},
 };
 
+static struct module_pin_mux e2_supervisor_pin_mux[] = {
+	{OFFSET(lcd_data3), (M7 | P_DOWN)}, /* FlipFlop Clock 2_09 */
+	{OFFSET(gpmc_ad14), (M7 | IEN | P_DOWN | P_EN)}, /* WD_RESET 1_14 */
+	{OFFSET(mii1_col),  (M7 | IEN | P_DOWN | P_EN)}, /* PB_RESET 3_00 */
+	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
+	{OFFSET(lcd_vsync), (M7 | IEN | P_UP | P_EN)},   /* WD_SET1  2_22 */
+	{OFFSET(lcd_hsync), (M7 | IEN | P_DOWN | P_EN)},   /* WD_SET2  2_23 */
+	{OFFSET(lcd_ac_bias_en), (M7 | IEN | P_UP | P_EN)},   /* 24V_Fail  2_25 */
+};
+
 /*
  * Configure the pin mux for the module
  */
@@ -415,6 +425,22 @@ static void init_pia_gpios(void)
 	gpio_direction_input(CONFIG_MMC_CD_GPIO);
 	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));
 #endif
+	/* Supervisor */
+	gpio_request(CONFIG_E2_PB_RESET_GPIO, "pb_reset");
+	gpio_direction_input(CONFIG_E2_PB_RESET_GPIO);
+	gpio_request(CONFIG_E2_WD_RESET_GPIO, "wd_reset");
+	gpio_direction_input(CONFIG_E2_WD_RESET_GPIO);
+	/* reset clock for supervisor flip flops */
+	gpio_request(CONFIG_E2_FF_CLOCK_GPIO, "ff_clock");
+	gpio_direction_output(CONFIG_E2_FF_CLOCK_GPIO, 0);
+
+	/* Watchdog config, both high = WD disabled */
+	gpio_request(CONFIG_E2_WD_SET1_GPIO, "wd_set1");
+	gpio_direction_output(CONFIG_E2_WD_SET1_GPIO, 1);
+	gpio_request(CONFIG_E2_WD_SET2_GPIO, "wd_set2");
+	gpio_direction_output(CONFIG_E2_WD_SET2_GPIO, 1);
+	gpio_request(CONFIG_E2_24V_FAIL_GPIO, "fail_24v");
+	gpio_direction_input(CONFIG_E2_24V_FAIL_GPIO);
 }
 
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
@@ -424,6 +450,7 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	configure_module_pin_mux(i2c1_pin_mux);
 	configure_module_pin_mux(mii1_pin_mux);
 	configure_module_pin_mux(mmc0_pin_mux);
+	configure_module_pin_mux(e2_supervisor_pin_mux);
 	// TODO use eeprom header spec
 	/* There is no hook for additional GPIO initialization */
 	init_pia_gpios();
