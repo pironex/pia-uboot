@@ -77,6 +77,12 @@ static inline int board_is_evm_sk(void)
 	return !strncmp("A335X_SK", header.name, HDR_NAME_LEN);
 }
 
+static inline int board_is_pia(void)
+{
+	debug("name:%8s\n", header.name);
+	return !strncmp(header.name, "PIA335", 6);
+}
+
 int board_is_evm_15_or_later(void)
 {
 	return (!strncmp("A33515BB", header.name, 8) &&
@@ -678,6 +684,25 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	},
 };
 
+#if (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X)
+static struct cpsw_platform_data cpsw_data = {
+	.mdio_base		= AM335X_CPSW_MDIO_BASE,
+	.cpsw_base		= AM335X_CPSW_BASE,
+	.mdio_div		= 0xff,
+	.channels		= 8,
+	.cpdma_reg_ofs		= 0x800,
+	.slaves			= 1,
+	.slave_data		= cpsw_slaves,
+	.ale_reg_ofs		= 0xd00,
+	.ale_entries		= 1024,
+	.host_port_reg_ofs	= 0x208,
+	.hw_stats_reg_ofs	= 0x900,
+	.mac_control		= (1 << 5),
+	.control		= cpsw_control,
+	.host_port_num		= 1,
+	.version		= CPSW_CTRL_VERSION_2,
+};
+#else
 static struct cpsw_platform_data cpsw_data = {
 	.mdio_base		= AM335X_CPSW_MDIO_BASE,
 	.cpsw_base		= AM335X_CPSW_BASE,
@@ -695,6 +720,7 @@ static struct cpsw_platform_data cpsw_data = {
 	.host_port_num		= 0,
 	.version		= CPSW_CTRL_VERSION_2,
 };
+#endif
 #endif
 
 #if defined(CONFIG_DRIVER_TI_CPSW) || \
@@ -739,12 +765,13 @@ int board_eth_init(bd_t *bis)
 		}
 	}
 
-	if (board_is_bone()) {
+	if (board_is_bone() || board_is_pia()) {
 		debug("enable MII\n");
 		writel(MII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_MII;
 	} else {
+		debug("enable RGMII\n");
 		writel(RGMII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_RGMII;
