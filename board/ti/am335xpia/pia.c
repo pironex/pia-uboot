@@ -39,10 +39,57 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PIA_TPS65910_CTRL_BUS 0
 #define PIA_TPS65910_CTRL_ADDRESS 0x2D
 #define PIA_TPS65910_SMART_ADDRESS 0x2D
+
+#ifndef CONFIG_SPL_BUILD
+
+/*
+ * Read header information from EEPROM into global structure.
+ */
+static int read_eeprom(void)
+{
+	debug(">>pia:read_eeprom()\n");
+	/* Check if baseboard eeprom is available */
+	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
+		puts("Could not probe the EEPROM; something fundamentally "
+			"wrong on the I2C bus.\n");
+		return -ENODEV;
+	}
+
+	/*
+	 * read the eeprom using i2c again,
+	 * but use only a 1 byte address
+	 */
+	if (i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR, 0, 1,
+			(uchar *)&header, sizeof(header))) {
+		puts("Could not read the EEPROM; something "
+				"fundamentally wrong on the I2C bus.\n");
+		return -EIO;
+	}
+
+	if (header.magic != 0xEE3355AA ||
+#if (defined PIA_KM_E2_REV) && (PIA_KM_E2_REV == 1)
+			(strncmp(&header.name[0], "PIA335E2", 8))) {
+#else
+		{
+#endif
+		printf("Incorrect magic number (0x%x) in EEPROM\n",
+				header.magic);
+		am33xx_first_start();
+	}
+	debug("EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
+			header.magic, header.name, header.version, header.serial);
+
+	return 0;
+}
+
+#endif
 int board_late_init()
 {
 	/* use this as testing function, ETH is not initialized here */
+	//i2c_se
+	debug("+pia:board_late_init()\n");
 
+	read_eeprom();
 
 	return 0;
 }
