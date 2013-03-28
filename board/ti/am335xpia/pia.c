@@ -31,14 +31,20 @@ DECLARE_GLOBAL_DATA_PTR;
 #undef PIA_TESTING
 #endif
 #endif
+
 #include <errno.h>
 #include <i2c.h>
 #include <mmc.h>
 #include <phy.h>
 
+#define PIA_RX8801_BUS 		1
+#define PIA_RX8801_ADDRESS	0x32
 #define PIA_TPS65910_CTRL_BUS 0
 #define PIA_TPS65910_CTRL_ADDRESS 0x2D
 #define PIA_TPS65910_SMART_ADDRESS 0x2D
+
+#define TC(t) \
+	t = ((t & 0x0f) + (10 *(t >> 4 && 0xf)))
 
 static int init_rtc_rx8801(void)
 {
@@ -187,7 +193,149 @@ static int read_eeprom(void)
 	return 0;
 }
 
+#ifdef PIA_TESTING
+
+static int test_rtc_tps(void)
+{
+	unsigned char sec, min, hr, day, mon, yr, fl;
+	int ec;
+	debug("CHECK TPS RTC TPS65910...\n");
+	i2c_set_bus_num(0);
+	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
+		puts(" FAIL: Could not probe TPS device\n");
+		return -ENODEV;
+	}
+	/* dummy reads neccessary */
+	ec = i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &fl, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &fl, 1);
+	printf(" CtrlReg: 0x%02x\n", fl);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &fl, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &fl, 1);
+	printf(" Status: 0x%02x\n", fl);
+	if ((fl & 0x02) == 0)
+		init_tps65910();
+
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0, 1, &sec, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 1, 1, &min, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 2, 1, &hr, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 3, 1, &day, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 4, 1, &mon, 1);
+	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 5, 1, &yr, 1);
+
+	if (ec) {
+		puts("  FAIL: Unable to read TPS RTC register\n");
+		return -EIO;
+	}
+	debug("  Date: 20%02d-%02d-%02d\n", TC(yr), TC(mon), TC(day));
+	debug("  Time:   %02d:%02d:%02d\n", TC(hr), TC(min), TC(sec));
+
+	puts("TPS RTC: OK\n");
+
+	return 0;
+}
+
+static int test_rtc_rx8801(void)
+{
+	unsigned char sec, min, hr, day, mon, yr, fl;
+	int ec;
+	debug("CHECK RTC RX-8801...\n");
+	i2c_set_bus_num(PIA_RX8801_BUS);
+	if (i2c_probe(PIA_RX8801_ADDRESS)) {
+		puts(" FAIL: Could not probe RTC device\n");
+		return -ENODEV;
+	}
+	ec = i2c_read(PIA_RX8801_ADDRESS, 0x0e, 1, &fl, 1);
+	if (fl & 0x01) {
+		puts("  WARN: Voltage Drop Flag set. "
+				"Temp. compensation was stopped, BAT might be damaged!\n");
+	}
+	if (fl & 0x02) {
+		puts("  WARN: Voltage Low Flag set. "
+				"Data loss - RTC must be be re-initialized, check BAT!\n");
+	}
+
+	if (!(fl & 0x03)) {
+		puts("  Error Flags: OK\n");
+	} else {
+		puts("  Resetting RTC Flags\n");
+	}
+	ec = i2c_read(PIA_RX8801_ADDRESS, 0, 1, &sec, 1);
+	ec = i2c_read(PIA_RX8801_ADDRESS, 1, 1, &min, 1);
+	ec = i2c_read(PIA_RX8801_ADDRESS, 2, 1, &hr, 1);
+	ec = i2c_read(PIA_RX8801_ADDRESS, 4, 1, &day, 1);
+	ec = i2c_read(PIA_RX8801_ADDRESS, 5, 1, &mon, 1);
+	ec = i2c_read(PIA_RX8801_ADDRESS, 6, 1, &yr, 1);
+
+	if (ec) {
+		puts("  FAIL: Unable to read RTC register\n");
+		return -EIO;
+	}
+	debug("  Date: 20%02d-%02d-%02d\n", TC(yr), TC(mon), TC(day));
+	debug("  Time:   %02d:%02d:%02d\n", TC(hr), TC(min), TC(sec));
+
+	puts("RTC: OK\n");
+	return 0;
+}
+
+static int test_temp_sensor(void)
+{
+	/* TODO */
+	return 0;
+}
+
+static int test_supervisor(void)
+{
+	int pb, wd;
+	puts("CHECK RESET...\n");
+	pb = gpio_get_value(CONFIG_E2_PB_RESET_GPIO);
+	wd = gpio_get_value(CONFIG_E2_WD_RESET_GPIO);
+	puts(" last reset was: ");
+	if (wd == 0 && pb == 0) {
+		puts(" Cold Boot\n");
+		puts(" Enabling Watchdog, wait for RESET\n");
+		gpio_set_value(CONFIG_E2_WD_SET1_GPIO, 0); /* will reset in 300 ms */
+		mdelay(1000);
+	} else if (wd == 0) {
+		puts(" WatchDog Reset\n");
+	} else if (pb == 0) {
+		puts(" PushButton Reset\n");
+	} else {
+		puts(" None or Soft Reset\n");
+	}
+
+	puts(" Clearing RESET Flags\n");
+	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 1); /* reset flipflops */
+	mdelay(1);
+	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 0);
+
+	pb = gpio_get_value(CONFIG_E2_24V_FAIL_GPIO);
+	printf("24V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
+
+	return 0;
+}
+
+static int test_pia(void)
+{
+	int rc = 0;
+
+	printf("\nRunning board tests on %.8s Rev%.4s\n\n",
+			header.name, header.version);
+	rc |= test_supervisor();
+	rc |= test_rtc_rx8801();
+	rc |= test_rtc_tps();
+	rc |= test_temp_sensor();
+
+	return rc;
+}
+
+#else
+static inline int test_pia(void) {
+	puts("Board tests disabled\n");
+	return 0;
+}
 #endif
+#endif
+
 int board_late_init()
 {
 	/* use this as testing function, ETH is not initialized here */
@@ -196,6 +344,7 @@ int board_late_init()
 
 	read_eeprom();
 
+	test_pia();
 	return 0;
 }
 
