@@ -20,6 +20,8 @@
 
 /*#define PIA_ON_BONE*/
 #define PIA_DEBUG
+#define PIA_TESTING
+#define PIA_KM_E2_REV 1
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
@@ -41,7 +43,7 @@
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT		"U-Boot# "
 #define CONFIG_SYS_NO_FLASH
-#define MACH_TYPE_PIA_AM335X		10001	/* FIXME sync with kernel! */
+#define MACH_TYPE_PIA_AM335X		10001	/* sync with kernel! */
 #define CONFIG_MACH_TYPE		MACH_TYPE_PIA_AM335X
 
 #define CONFIG_OF_LIBFDT
@@ -75,7 +77,7 @@
 	"optargs=\0" \
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
-	"mmcrootfstype=ext3 rootwait\0" \
+	"mmcrootfstype=ext4 rootwait\0" \
 	"nandroot=ubi0:rootfs rw ubi.mtd=7,2048\0" \
 	"nandrootfstype=ubifs rootwait=1\0" \
 	"nandsrcaddr=0x280000\0" \
@@ -90,7 +92,7 @@
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
 	"bootargs_defaults=setenv bootargs " \
-		"console=${console} " \
+		"console=${console} early_printk debug " \
 		"${optargs}\0" \
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
@@ -283,9 +285,13 @@
 #define CONFIG_BOOTP_SUBNETMASK
 #define CONFIG_NET_RETRY_COUNT         10
 #define CONFIG_NET_MULTI
+#if 0
 #define CONFIG_PHY_GIGE
+#endif
 #define CONFIG_PHYLIB
+#if 0
 #define CONFIG_PHY_SMSC
+#endif
 
 #define CONFIG_CMD_MII
 
@@ -421,8 +427,10 @@
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
 
+#if 0
 /* Y-Modem. */
 #define CONFIG_SPL_YMODEM_SUPPORT
+#endif
 
 /* NAND */
 #define CONFIG_SPL_NAND_AM33XX_BCH
@@ -471,10 +479,12 @@
 #endif
 
 #ifdef CONFIG_MUSB_GADGET
+#if 0
 #define CONFIG_USB_ETHER
 #define CONFIG_USB_ETH_RNDIS
 #define CONFIG_USBNET_DEV_ADDR	"aa:bb:cc:00:11:33"
 #define CONFIG_USBNET_HOST_ADDR	"aa:bb:cc:00:11:44"
+#endif
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_TFTP
@@ -512,7 +522,13 @@
 #endif
 #endif
 
-
+/* E2 settings */
+#define CONFIG_E2_FF_CLOCK_GPIO ((2 * 32) + 9)
+#define CONFIG_E2_24V_FAIL_GPIO ((2 * 32) + 25)
+#define CONFIG_E2_WD_RESET_GPIO ((1 * 32) + 14)
+#define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)
+#define CONFIG_E2_WD_SET1_GPIO  ((2 * 32) + 22)
+#define CONFIG_E2_WD_SET2_GPIO  ((2 * 32) + 23)
 /* TODO remove */
 #if 0
 /*
