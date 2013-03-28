@@ -644,7 +644,6 @@ int arch_misc_init(void)
 	return 0;
 }
 
-#if (CONFIG_MACH_TYPE != MACH_TYPE_PIA_AM335X)
 /*
  * Basic board specific setup.  Pinmux has been handled already.
  */
@@ -660,7 +659,6 @@ int board_init(void)
 
 	return 0;
 }
-#endif
 
 #if (defined(CONFIG_DRIVER_TI_CPSW) && !defined(CONFIG_SPL_BUILD)) || \
 	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))

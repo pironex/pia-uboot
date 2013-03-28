@@ -47,6 +47,10 @@ int board_mmc_getcd(struct mmc* mmc)
 #endif
 }
 
+
+/* TODO override weak definition from am33xx/board.c
+ * currently identical implementation */
+#if 0
 /*
  * Basic board specific setup
  */
@@ -58,6 +62,8 @@ int board_init(void)
 #ifdef CONFIG_I2C
 	enable_i2c0_pin_mux();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	if (read_eeprom() < 0)
+		puts("Could not get board ID\n");
 #endif
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
@@ -66,3 +72,4 @@ int board_init(void)
 
 	return 0;
 }
+#endif
