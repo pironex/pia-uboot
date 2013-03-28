@@ -140,8 +140,7 @@ void am33xx_spl_board_init(void)
 int board_mmc_getcd(struct mmc* mmc)
 {
 #ifdef CONFIG_MMC_CD_GPIO
-	debug(">>pia:board_mmc_getcd()");
-	return (gpio_get_value(CONFIG_MMC_CD_GPIO));
+	return (1 ^ gpio_get_value(CONFIG_MMC_CD_GPIO));
 #else
 	return 1;
 #endif
