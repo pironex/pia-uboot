@@ -40,6 +40,111 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PIA_TPS65910_CTRL_ADDRESS 0x2D
 #define PIA_TPS65910_SMART_ADDRESS 0x2D
 
+static int init_rtc_rx8801(void)
+{
+	u8 regval;
+
+	/* RTC EX-8801 */
+	puts("Initializing RTC (clearing error flags)\n");
+	i2c_set_bus_num(PIA_RX8801_BUS);
+	if (i2c_probe(PIA_RX8801_ADDRESS)) {
+		puts(" FAIL: Could not probe RTC device\n");
+		return -ENODEV;
+	}
+
+	/* clear RESET */
+	regval = 0x40; /* 2s temp compensation, reset off */
+	if (i2c_write(PIA_RX8801_ADDRESS, 0x0f, 1, &regval, 1)) {
+		puts(" Couldn't write RTC control register\n");
+		return -EIO;
+	}
+
+	/* clear error flags, they are undefined on first start */
+	regval = 0x00; /* clear all interrupt + error flags */
+	if (i2c_write(PIA_RX8801_ADDRESS, 0x0e, 1, &regval, 1)) {
+		puts(" Couldn't clear RTC flag register\n");
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int init_tps65910(void)
+{
+	u8 regval;
+
+	/* RTC on TPS65910 */
+	puts("Initializing TPS RTC (clearing flags and starting RTC)\n");
+	i2c_set_bus_num(0);
+	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
+		puts(" FAIL: Could not probe RTC device\n");
+		return -ENODEV;
+	}
+
+	/* start clock */
+	regval = 0x01; /* 24 hour, direct reg access, rtc running */
+	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
+		puts(" Couldn't write RTC CONTROL register\n");
+		return -EIO;
+	}
+
+	/* clear powerup and alarm flags */
+	regval = 0xC0;
+	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
+		puts(" Couldn't write RTC STATUS register\n");
+		return -EIO;
+	}
+
+	return 0;
+}
+
+extern struct am335x_baseboard_id header;
+
+int am33xx_first_start(void)
+{
+	int size, pos;
+	int to; /* 10 ms timeout */
+
+	/* EUI EEPROM */
+	/* init with default magic number, generic name and version info */
+	header.magic = 0xEE3355AA;
+#if (defined PIA_KM_E2_REV) && (PIA_KM_E2_REV == 1)
+	strncpy((char *)&header.name, "PIA335E2", 8);
+	strncpy((char *)&header.version, "0.01", 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
+#else
+	strncpy((char *)&header.name, "PIA335__", 8);
+	strncpy((char *)&header.version, "0.00", 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
+#endif
+	memset(&header.config, 0, 32);
+	puts("Missing magic number, assuming first start, init EEPROM.\n");
+	printf("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
+			header.magic, header.name, header.version, header.serial);
+	size = sizeof(header);
+	pos = 0;
+	do {
+		to = 10;
+		/* page size is 8 bytes */
+		do {
+			if (!i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR, pos, 1,
+					&((uchar *)&header)[pos], 1)) {
+				to = 0;
+				puts("I2C: success\n");
+			} else {
+				udelay(1000);
+			}
+		} while (--to > 0);
+		/* wait to avoid NACK error spam */
+		udelay(5000);
+	} while (++pos < size);
+
+	init_rtc_rx8801();
+	init_tps65910();
+
+	return 0;
+}
+
 #ifndef CONFIG_SPL_BUILD
 
 /*
