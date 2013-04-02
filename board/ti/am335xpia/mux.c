@@ -438,7 +438,7 @@ static void init_pia_gpios(void)
 	gpio_request(CONFIG_E2_WD_SET1_GPIO, "wd_set1");
 	gpio_direction_output(CONFIG_E2_WD_SET1_GPIO, 1);
 	gpio_request(CONFIG_E2_WD_SET2_GPIO, "wd_set2");
-	gpio_direction_output(CONFIG_E2_WD_SET2_GPIO, 1);
+	gpio_direction_output(CONFIG_E2_WD_SET2_GPIO, 0);
 	gpio_request(CONFIG_E2_24V_FAIL_GPIO, "fail_24v");
 	gpio_direction_input(CONFIG_E2_24V_FAIL_GPIO);
 }
