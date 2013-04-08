@@ -358,24 +358,20 @@ int board_phy_config(struct phy_device *phydev)
 	debug(" master reset done:\n");
 	for (i = 0; i < 5; ++i) {
 		reg = phy_read(phydev, i, 0);
-		debug(" control %d:  0x%04x\n", i, reg);
 		reg = phy_read(phydev, 30, 1);
-		debug(" status  %d:  0x%04x\n", i, reg);
 	}
 
 	/* read IPC mode register */
 	phy_write(phydev, 29, 31, 0x175c);
 	reg = phy_read(phydev, 29, 31);
-	debug("  29:31 == 0x%04x\n", reg);
 
 	/* set port phy 100/FD */
 	phy_write(phydev, 4, 0, 0x2100);
 	/* enable force mode */
 	phy_write(phydev, 29, 22, 0x8420);
 	reg = phy_read(phydev, 29, 22);
-	debug("  force == 0x%04x\n", reg);
 
-	/* resetting ports (ports share regs 0 and 1 */
+	/* resetting ports */
 	for (i = 0; i < 5; ++i) {
 		debug(" resettings ports...\n");
 		phy_write(phydev, i, MII_BMCR, BMCR_RESET);
@@ -387,19 +383,6 @@ int board_phy_config(struct phy_device *phydev)
 		reg = phy_read(phydev, i, MII_BMSR);
 		debug(" P%d status: 0x%04x\n", i, reg);
 	}
-	reg = phy_read(phydev, 29, 22);
-	debug("  port reset done: 0x%04x 0x%04x\n",
-			phy_read(phydev, 0, 0), phy_read(phydev, 0, 1));
-
-	reg = phy_read(phydev, 31, 3);
-	debug("  mii0 mac mode 31:03: 0x%04x\n", reg);
-
-	reg = phy_read(phydev, 31, 5);
-	debug("  mii control   31:05: 0x%04x\n", reg);
-
-	reg = phy_read(phydev, 31, 6);
-	debug("  mii control2  31:06: 0x%04x\n", reg);
-
 	return 0;
 }
 

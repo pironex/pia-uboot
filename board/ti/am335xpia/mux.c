@@ -307,7 +307,7 @@ static struct module_pin_mux mii1_pin_mux[] = {
 #endif
 
 static struct module_pin_mux mii2_pin_mux[] = {
-	{OFFSET(gpmc_wpn), M1 | PIN_INPUT_PULLDOWN}, /* RXER, also GPMC.WPn */
+	/*{OFFSET(gpmc_wpn), M1 | PIN_INPUT_PULLDOWN},  RXER not used! is GPMC.WPn */
 	{OFFSET(gpmc_a0),  M1 | PIN_OUTPUT},         /* RGMII2_TCTL / TXEN */
 	{OFFSET(gpmc_a1),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RCTL / RXDV */
 	{OFFSET(gpmc_a2),  M1 | PIN_OUTPUT},         /* RGMII2_TXD3 */
@@ -441,9 +441,8 @@ static void init_pia_gpios(void)
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
 	debug(">>pia:enable_board_pin_mux()\n");
-	/* Beaglebone pinmux */
 	configure_module_pin_mux(i2c1_pin_mux);
-	configure_module_pin_mux(mii1_pin_mux);
+	configure_module_pin_mux(mii2_pin_mux);
 	configure_module_pin_mux(mmc0_pin_mux);
 	configure_module_pin_mux(e2_supervisor_pin_mux);
 	// TODO use eeprom header spec
