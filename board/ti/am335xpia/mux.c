@@ -32,11 +32,19 @@
 #define P_EN   (0x0 << 3) /* Pull enabled */
 #define P_DIS   (0x1 << 3) /* Pull up disabled */
 
+#if 0
 #define RXACTIVE (0x1 << 5)
 #define PULLUP_EN	(0x1 << 4) /* Pull UP Selection */
 #define PULLUDEN	(0x0 << 3) /* Pull up enabled */
 #define PULLUDDIS	(0x1 << 3) /* Pull up disabled */
 #define MODE(val)	val	/* used for Readability */
+#endif
+
+#define	PIN_OUTPUT          (0)
+#define	PIN_OUTPUT_PULLUP   (P_UP)
+#define	PIN_INPUT           (IEN | P_DIS)
+#define	PIN_INPUT_PULLUP    (IEN | P_UP | P_EN)
+#define	PIN_INPUT_PULLDOWN	(IEN | P_DOWN | P_EN)
 
 /* mux modes */
 #define M0 0
@@ -272,11 +280,12 @@ struct module_pin_mux {
 				(PAD_CTRL_BASE))->x)
 
 static struct module_pin_mux uart0_pin_mux[] = {
-	{OFFSET(uart0_rxd), (M0 | P_UP | IEN)},  /* UART0_RXD */
-	{OFFSET(uart0_txd), (M0 | P_UP | P_EN)}, /* UART0_TXD */
+	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
+	{OFFSET(uart0_txd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_TXD */
 	{-1},
 };
 
+#if 0
 static struct module_pin_mux mii1_pin_mux[] = {
 	{OFFSET(mii1_rxerr), MODE(0) | IEN},	/* MII1_RXERR */
 	{OFFSET(mii1_txen), MODE(0)},			/* MII1_TXEN */
@@ -295,36 +304,24 @@ static struct module_pin_mux mii1_pin_mux[] = {
 	{OFFSET(mdio_clk), MODE(0) | P_DOWN | P_EN},	/* MDIO_CLK */
 	{-1},
 };
-static struct module_pin_mux rgmii2_pin_mux[] = {
-	{OFFSET(gpmc_a0), MODE(1)},             /* RGMII2_TCTL / TXEN */
-	{OFFSET(gpmc_a1), MODE(1) | IEN},       /* RGMII2_RCTL / RXDV */
-	{OFFSET(gpmc_a2), MODE(1)},             /* RGMII2_TXD3 */
-	{OFFSET(gpmc_a3), MODE(1)},             /* RGMII2_TXD2 */
-	{OFFSET(gpmc_a4), MODE(1)},             /* RGMII2_TXD1 */
-	{OFFSET(gpmc_a5), MODE(1)},             /* RGMII2_TXD0 */
-	{OFFSET(gpmc_a6), MODE(1)},             /* RGMII2_TCLK */
-	{OFFSET(gpmc_a7), MODE(1) | IEN},       /* RGMII2_RCLK */
-	{OFFSET(gpmc_a8), MODE(1) | IEN},       /* RGMII2_RXD3 */
-	{OFFSET(gpmc_a9), MODE(1) | IEN},       /* RGMII2_RXD2 */
-	{OFFSET(gpmc_a10), MODE(1) | IEN},      /* RGMII2_RXD1 */
-	{OFFSET(gpmc_a11), MODE(1) | IEN},      /* RGMII2_RXD0 */
-	{OFFSET(mdio_data),MODE(0) | IEN | P_UP},/* MDIO_DATA */
-	{OFFSET(mdio_clk), MODE(0) | P_UP},     /* MDIO_CLK */
-//----
-	{OFFSET(gpmc_a0), MODE(1)},			/* RGMII2_TXEN */
-	{OFFSET(mii1_rxdv), MODE(0) | IEN},	/* MII1_RXDV */
-	{OFFSET(mii1_txd3), MODE(0)},			/* MII1_TXD3 */
-	{OFFSET(mii1_txd2), MODE(0)},			/* MII1_TXD2 */
-	{OFFSET(mii1_txd1), MODE(0)},			/* MII1_TXD1 */
-	{OFFSET(mii1_txd0), MODE(0)},			/* MII1_TXD0 */
-	{OFFSET(mii1_txclk), MODE(0) | IEN},	/* MII1_TXCLK */
-	{OFFSET(mii1_rxclk), MODE(0) | IEN},	/* MII1_RXCLK */
-	{OFFSET(mii1_rxd3), MODE(0) | IEN},	/* MII1_RXD3 */
-	{OFFSET(mii1_rxd2), MODE(0) | IEN},	/* MII1_RXD2 */
-	{OFFSET(mii1_rxd1), MODE(0) | IEN},	/* MII1_RXD1 */
-	{OFFSET(mii1_rxd0), MODE(0) | IEN},	/* MII1_RXD0 */
-	{OFFSET(mdio_data), MODE(0) | IEN | PULLUP_EN}, /* MDIO_DATA */
-	{OFFSET(mdio_clk), MODE(0) | PULLUP_EN},	/* MDIO_CLK */
+#endif
+
+static struct module_pin_mux mii2_pin_mux[] = {
+	{OFFSET(gpmc_wpn), M1 | PIN_INPUT_PULLDOWN}, /* RXER, also GPMC.WPn */
+	{OFFSET(gpmc_a0),  M1 | PIN_OUTPUT},         /* RGMII2_TCTL / TXEN */
+	{OFFSET(gpmc_a1),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RCTL / RXDV */
+	{OFFSET(gpmc_a2),  M1 | PIN_OUTPUT},         /* RGMII2_TXD3 */
+	{OFFSET(gpmc_a3),  M1 | PIN_OUTPUT},         /* RGMII2_TXD2 */
+	{OFFSET(gpmc_a4),  M1 | PIN_OUTPUT},         /* RGMII2_TXD1 */
+	{OFFSET(gpmc_a5),  M1 | PIN_OUTPUT},         /* RGMII2_TXD0 */
+	{OFFSET(gpmc_a6),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_TCLK */
+	{OFFSET(gpmc_a7),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RCLK */
+	{OFFSET(gpmc_a8),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RXD3 */
+	{OFFSET(gpmc_a9),  M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RXD2 */
+	{OFFSET(gpmc_a10), M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RXD1 */
+	{OFFSET(gpmc_a11), M1 | PIN_INPUT_PULLDOWN}, /* RGMII2_RXD0 */
+	{OFFSET(mdio_data),M0 | PIN_INPUT_PULLUP},   /* MDIO_DATA */
+	{OFFSET(mdio_clk), M0 | PIN_OUTPUT_PULLUP},  /* MDIO_CLK */
 	{-1},
 };
 
@@ -332,14 +329,14 @@ static struct module_pin_mux rgmii2_pin_mux[] = {
 #ifndef PIA_ON_BONE
 /* configuration for KM_E2 */
 static struct module_pin_mux mmc0_pin_mux[] = {
-	{OFFSET(mmc0_dat3), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT3 */
-	{OFFSET(mmc0_dat2), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT2 */
-	{OFFSET(mmc0_dat1), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT1 */
-	{OFFSET(mmc0_dat0), (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_DAT0 */
-	{OFFSET(mmc0_clk),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CLK */
-	{OFFSET(mmc0_cmd),  (MODE(0) | IEN | PULLUP_EN)},	/* MMC0_CMD */
-	{OFFSET(mii1_txd2), (MODE(7) | IEN | PULLUP_EN)},	/* MMC0_CD */
-	{OFFSET(mii1_txclk), (MODE(7) | IEN | PULLUP_EN)},  /* MMC0_WP */
+	{OFFSET(mmc0_dat3), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT3 */
+	{OFFSET(mmc0_dat2), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT2 */
+	{OFFSET(mmc0_dat1), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT1 */
+	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
+	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
+	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
+	{OFFSET(mii1_txd2), M0 | PIN_INPUT_PULLUP},	/* MMC0_CD */
+	{OFFSET(mii1_txclk),M0 | PIN_INPUT_PULLUP},  /* MMC0_WP */
 	{-1},
 };
 #else
@@ -366,21 +363,19 @@ static struct module_pin_mux i2c0_pin_mux[] = {
 };
 
 static struct module_pin_mux i2c1_pin_mux[] = {
-	{OFFSET(uart0_ctsn), (MODE(3) | IEN |
-			P_UP | P_EN | SLEWCTRL)},	/* I2C_DATA */
-	{OFFSET(uart0_rtsn), (MODE(3) | IEN |
-			P_UP | P_EN | SLEWCTRL)},	/* I2C_SCLK */
+	{OFFSET(uart0_ctsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
+	{OFFSET(uart0_rtsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
 	{-1},
 };
 
 static struct module_pin_mux e2_supervisor_pin_mux[] = {
-	{OFFSET(lcd_data3), (M7 | P_DOWN)}, /* FlipFlop Clock 2_09 */
-	{OFFSET(gpmc_ad14), (M7 | IEN | P_DOWN | P_EN)}, /* WD_RESET 1_14 */
-	{OFFSET(mii1_col),  (M7 | IEN | P_DOWN | P_EN)}, /* PB_RESET 3_00 */
+	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
+	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
+	{OFFSET(mii1_col),  (M7 | PIN_INPUT_PULLDOWN)}, /* PB_RESET 3_00 */
 	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
-	{OFFSET(lcd_vsync), (M7 | IEN | P_UP | P_EN)},   /* WD_SET1  2_22 */
-	{OFFSET(lcd_hsync), (M7 | IEN | P_DOWN | P_EN)},   /* WD_SET2  2_23 */
-	{OFFSET(lcd_ac_bias_en), (M7 | IEN | P_UP | P_EN)},   /* 24V_Fail  2_25 */
+	{OFFSET(lcd_vsync), (M7 | PIN_INPUT_PULLUP)},   /* WD_SET1  2_22 */
+	{OFFSET(lcd_hsync), (M7 | PIN_INPUT_PULLDOWN)},   /* WD_SET2  2_23 */
+	{OFFSET(lcd_ac_bias_en), (M7 | PIN_INPUT_PULLUP)},   /* 24V_Fail  2_25 */
 };
 
 /*
