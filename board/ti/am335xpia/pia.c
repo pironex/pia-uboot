@@ -302,12 +302,12 @@ static int test_supervisor(void)
 	} else {
 		puts(" None or Soft Reset\n");
 	}
-
+#if 0
 	puts(" Clearing RESET Flags\n");
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 1); /* reset flipflops */
 	mdelay(1);
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 0);
-
+#endif
 	pb = gpio_get_value(CONFIG_E2_24V_FAIL_GPIO);
 	printf("24V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
 
