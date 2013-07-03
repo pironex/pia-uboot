@@ -272,7 +272,7 @@ const omap3_sysinfo sysinfo = {
 /* MCSPI2 */\
 	MUX_VAL(CP(MCSPI2_CLK),		(IEN  | PTU | EN  | M0)) /* mcspi2_clk  H1-22 */\
 	MUX_VAL(CP(MCSPI2_SIMO),	(IEN  | PTU | EN  | M0)) /* mcspi2_simo H1-24 */\
-	MUX_VAL(CP(MCSPI2_SOMI),	(IDIS | PTU | EN  | M0)) /* mcspi2_somi H1-26 */\
+	MUX_VAL(CP(MCSPI2_SOMI),	(IEN  | PTU | EN  | M0)) /* mcspi2_somi H1-26 */\
 	MUX_VAL(CP(MCSPI2_CS0),		(IDIS | PTU | EN  | M0)) /* mcspi2_cs0  H1-28 */\
 	MUX_VAL(CP(MCSPI2_CS1),		(IDIS | PTU | EN  | M0)) /* mcspi2_cs1  H1-30 */\
 	MUX_VAL(CP(SYS_NIRQ),		(IEN  | PTU | EN  | M0)) /* TPS_INT1 SYS_nIRQ */\
