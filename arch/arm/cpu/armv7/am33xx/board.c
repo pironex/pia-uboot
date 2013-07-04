@@ -362,6 +362,11 @@ void __attribute__((weak)) am33xx_spl_board_init(void)
 		}
 	}
 }
+
+int __attribute__((weak)) board_identify(void)
+{
+	return;
+}
 #endif
 
 /*
@@ -434,9 +439,14 @@ void s_init(void)
 	/* Initialize the board header */
 	enable_i2c0_pin_mux();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-#ifndef CONFIG_NOR_BOOT
-	if (read_eeprom() < 0)
+#if (CONFIG_MACH_TYPE != MACH_TYPE_PIA_AM335X)
+	if (board_read_eeprom() < 0)
 		puts("Could not get board ID.\n");
+#else
+#ifndef CONFIG_NOR_BOOT
+	if (board_identify() < 0)
+		puts("Could not get board ID.\n");
+#endif
 #endif
 
 	/* Check if baseboard eeprom is available */

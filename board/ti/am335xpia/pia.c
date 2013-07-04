@@ -228,7 +228,13 @@ static int read_eeprom(void)
 	return 0;
 }
 
-#ifndef CONFIG_SPL_BUILD
+#ifdef CONFIG_SPL_BUILD
+int board_identify(void)
+{
+	return (read_eeprom());
+}
+#endif
+
 #ifdef PIA_TESTING
 
 static int test_rtc_tps(void)
@@ -370,7 +376,6 @@ static inline int test_pia(void) {
 	return 0;
 }
 #endif
-#endif
 
 int board_late_init()
 {
@@ -478,7 +483,6 @@ int board_mmc_getcd(struct mmc* mmc)
 
 /* TODO override weak definition from am33xx/board.c
  * currently identical implementation */
-#if 0
 /*
  * Basic board specific setup
  */
@@ -500,4 +504,3 @@ int board_init(void)
 
 	return 0;
 }
-#endif
