@@ -120,11 +120,16 @@ int am33xx_first_start(void)
 	int size, pos;
 	int to; /* 10 ms timeout */
 
+	debug("(re)write eeprom content\n");
 	/* EUI EEPROM */
 	/* init with default magic number, generic name and version info */
 	header.magic = 0xEE3355AA;
 #if (defined PIA_KM_E2_REV) && (PIA_KM_E2_REV == 1)
 	strncpy((char *)&header.name, "PIA335E2", 8);
+	strncpy((char *)&header.version, "0.01", 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
+#elif (defined PIA_KM_MMI_REV) && (PIA_KM_MMI_REV == 1)
+	strncpy((char *)&header.name, "PIA335MI", 8);
 	strncpy((char *)&header.version, "0.01", 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
 #else
@@ -145,7 +150,6 @@ int am33xx_first_start(void)
 			if (!i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR, pos, 1,
 					&((uchar *)&header)[pos], 1)) {
 				to = 0;
-				puts("I2C: success\n");
 			} else {
 				udelay(1000);
 			}
