@@ -99,7 +99,6 @@ int __attribute__((weak)) am33xx_first_start(void)
  */
 static int read_eeprom(void)
 {
-	int i;
 	debug(">>spl:read_eeprom()\n");
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {

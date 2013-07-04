@@ -547,10 +547,10 @@ void enable_i2c0_pin_mux(void)
 static void init_pia_e2_gpios(void)
 {
 	debug(">>pia:init_pia_e2_gpios()\n");
-#if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
-	gpio_request(CONFIG_MMC_CD_GPIO, "mmc0_cd");
-	gpio_direction_input(CONFIG_MMC_CD_GPIO);
-	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));
+#if defined(CONFIG_MMC) && defined(CONFIG_E2_MMC_CD_GPIO)
+	gpio_request(CONFIG_E2_MMC_CD_GPIO, "mmc0_cd");
+	gpio_direction_input(CONFIG_E2_MMC_CD_GPIO);
+	debug("MMC CD: %d\n", gpio_get_value(CONFIG_E2_MMC_CD_GPIO));
 #endif
 
 	/* Supervisor */
@@ -574,10 +574,11 @@ static void init_pia_e2_gpios(void)
 static void init_pia_mmi_gpios(void)
 {
 	debug(">>pia:init_pia_mmi_gpios()\n");
-#if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
-	gpio_request(CONFIG_MMC_CD_GPIO, "mmc0_cd");
-	gpio_direction_input(CONFIG_MMC_CD_GPIO);
-	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));	//MMC_CD is unused
+#if 0
+	gpio_request(CONFIG_MMI_MMC_CD_GPIO, "mmc0_cd");
+	gpio_direction_input(CONFIG_MMI_MMC_CD_GPIO);
+	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMI_MMC_CD_GPIO));	//MMC_CD is unused
+endif
 #endif
 
 	/* Watchdog config, SET0=SET1=high and SET2=low == WD disabled */

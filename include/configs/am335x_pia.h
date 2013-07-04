@@ -207,7 +207,8 @@
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_OMAP_HSMMC
-#define CONFIG_MMC_CD_GPIO		(17 + (0 << 5))
+#define CONFIG_E2_MMC_CD_GPIO		(17 + (0 << 5))	//gpio0_17
+#define CONFIG_MMI_MMC_CD_GPIO		(3 + (0 << 5))	//gpio0_3	//not used on board MMI
 #define CONFIG_CMD_MMC
 #define CONFIG_DOS_PARTITION
 #define CONFIG_CMD_FAT
@@ -289,9 +290,7 @@
 #define CONFIG_PHY_GIGE
 #endif
 #define CONFIG_PHYLIB
-#if 0
 #define CONFIG_PHY_SMSC
-#endif
 
 #define CONFIG_CMD_MII
 
@@ -459,6 +458,7 @@
 /*
  * USB configuration
  */
+#if 0 /* don't use USB in u-boot */
 #define CONFIG_USB_MUSB_DSPS
 #define CONFIG_ARCH_MISC_INIT
 #define CONFIG_MUSB_GADGET
@@ -466,12 +466,11 @@
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_GADGET_VBUS_DRAW	2
 #define CONFIG_MUSB_HOST
-#if 0 /* todo reanable */
 #define CONFIG_AM335X_USB0
 #define CONFIG_AM335X_USB0_MODE	MUSB_PERIPHERAL
-#endif
 #define CONFIG_AM335X_USB1
 #define CONFIG_AM335X_USB1_MODE MUSB_HOST
+#endif
 
 #ifdef CONFIG_MUSB_HOST
 #define CONFIG_CMD_USB
