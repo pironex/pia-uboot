@@ -395,42 +395,52 @@ int board_late_init()
 
 int board_phy_config(struct phy_device *phydev)
 {
-	int reg, i;
-	debug("+pia:board_phy_config()\n");
-	phy_write(phydev, 30, 0, 0x175c);
-	reg = phy_read(phydev, 30, 0);
-	mdelay(5); /* min 2 ms */
-	debug(" master reset done:\n");
-	for (i = 0; i < 5; ++i) {
-		reg = phy_read(phydev, i, 0);
-		reg = phy_read(phydev, 30, 1);
+	if (board_is_e2()) {
+		int reg, i, eth_cnt = 0;
+		debug("+pia:board_phy_config()\n");
+		phy_write(phydev, 30, 0, 0x175c);
+		reg = phy_read(phydev, 30, 0);
+		mdelay(5); /* min 2 ms */
+		debug(" master reset done:\n");
+		for (i = 0; i < 5; ++i) {
+			reg = phy_read(phydev, i, 0);
+			reg = phy_read(phydev, 30, 1);
+		}
+
+		/* read IPC mode register */
+		phy_write(phydev, 29, 31, 0x175c);
+		reg = phy_read(phydev, 29, 31);
+
+		/* set port phy 100/FD */
+		phy_write(phydev, 4, 0, 0x2100);
+		/* enable force mode */
+		phy_write(phydev, 29, 22, 0x8420);
+		reg = phy_read(phydev, 29, 22);
+
+		if(strncmp(header.name,"PIA335E2",8) == 0) {
+			eth_cnt = 5;
+		} else if(strncmp(header.name,"PIA335MI",8) == 0) {
+			eth_cnt = 1;
+		} else {
+			eth_cnt = 0;	//no board found
+		}
+
+		/* resetting ports */
+		for (i = 0; i < eth_cnt; ++i) {
+			debug(" resettings ports...\n");
+			phy_write(phydev, i, MII_BMCR, BMCR_RESET);
+			reg = phy_read(phydev, i, MII_BMCR);
+			debug(" P%d control: 0x%04x\n", i, reg);
+		}
+		mdelay(2);
+		for (i = 0; i < eth_cnt; ++i) {
+			reg = phy_read(phydev, i, MII_BMSR);
+			debug(" P%d status: 0x%04x\n", i, reg);
+		}
 	}
 
-	/* read IPC mode register */
-	phy_write(phydev, 29, 31, 0x175c);
-	reg = phy_read(phydev, 29, 31);
-
-	/* set port phy 100/FD */
-	phy_write(phydev, 4, 0, 0x2100);
-	/* enable force mode */
-	phy_write(phydev, 29, 22, 0x8420);
-	reg = phy_read(phydev, 29, 22);
-
-	/* resetting ports */
-	for (i = 0; i < 5; ++i) {
-		debug(" resettings ports...\n");
-		phy_write(phydev, i, MII_BMCR, BMCR_RESET);
-		reg = phy_read(phydev, i, MII_BMCR);
-		debug(" P%d control: 0x%04x\n", i, reg);
-	}
-	mdelay(2);
-	for (i = 0; i < 5; ++i) {
-		reg = phy_read(phydev, i, MII_BMSR);
-		debug(" P%d status: 0x%04x\n", i, reg);
-	}
 	return 0;
 }
-
 
 #include "pmic.h"
 #include "asm/arch/clocks_am33xx.h"
