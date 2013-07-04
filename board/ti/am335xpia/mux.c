@@ -279,6 +279,42 @@ struct module_pin_mux {
 #define OFFSET(x)	(unsigned int) (&((struct pad_signals *) \
 				(PAD_CTRL_BASE))->x)
 
+/* Module pin mux for LCDC */
+static struct module_pin_mux lcdc_pin_mux[] = {
+	{OFFSET(lcd_data0),		(M0 | PIN_OUTPUT)},	/* LCD.DATA0 */
+	{OFFSET(lcd_data1),		(M0 | PIN_OUTPUT)}, /* LCD.DATA1 */
+	{OFFSET(lcd_data2),		(M0 | PIN_OUTPUT)}, /* LCD.DATA2 */
+	{OFFSET(lcd_data3),		(M0 | PIN_OUTPUT)}, /* LCD.DATA3 */
+	{OFFSET(lcd_data4),		(M0 | PIN_OUTPUT)}, /* LCD.DATA4 */
+	{OFFSET(lcd_data5),		(M0 | PIN_OUTPUT)}, /* LCD.DATA5 */
+	{OFFSET(lcd_data6),		(M0 | PIN_OUTPUT)}, /* LCD.DATA6 */
+	{OFFSET(lcd_data7),		(M0 | PIN_OUTPUT)}, /* LCD.DATA7 */
+	{OFFSET(lcd_data8),		(M0 | PIN_OUTPUT)}, /* LCD.DATA8 */
+	{OFFSET(lcd_data9),		(M0 | PIN_OUTPUT)}, /* LCD.DATA9 */
+	{OFFSET(lcd_data10),	(M0 | PIN_OUTPUT)}, /* LCD.DATA10 */
+	{OFFSET(lcd_data11),	(M0 | PIN_OUTPUT)}, /* LCD.DATA11 */
+	{OFFSET(lcd_data12),	(M0 | PIN_OUTPUT)}, /* LCD.DATA12 */
+	{OFFSET(lcd_data13),	(M0 | PIN_OUTPUT)}, /* LCD.DATA13 */
+	{OFFSET(lcd_data14),	(M0 | PIN_OUTPUT)}, /* LCD.DATA14 */
+	{OFFSET(lcd_data15),	(M0 | PIN_OUTPUT)}, /* LCD.DATA15 */
+	{OFFSET(gpmc_ad8),		(M1 | PIN_OUTPUT)}, /* LCD.DATA23 */
+	{OFFSET(gpmc_ad9),		(M1 | PIN_OUTPUT)}, /* LCD.DATA22 */
+	{OFFSET(gpmc_ad10),		(M1 | PIN_OUTPUT)}, /* LCD.DATA21 */
+	{OFFSET(gpmc_ad11),		(M1 | PIN_OUTPUT)}, /* LCD.DATA20 */
+	{OFFSET(gpmc_ad12),		(M1 | PIN_OUTPUT)}, /* LCD.DATA19 */
+	{OFFSET(gpmc_ad13),		(M1 | PIN_OUTPUT)}, /* LCD.DATA18 */
+	{OFFSET(gpmc_ad14),		(M1 | PIN_OUTPUT)}, /* LCD.DATA17 */
+	{OFFSET(gpmc_ad15),		(M1 | PIN_OUTPUT)}, /* LCD.DATA16 */
+	{OFFSET(lcd_vsync),		(M0 | PIN_OUTPUT)}, /* LCD.VSYNC */
+	{OFFSET(lcd_hsync),		(M0 | PIN_OUTPUT)}, /* LCD.HSYNC */
+	{OFFSET(lcd_pclk),		(M0 | PIN_OUTPUT)}, /* LCD.PCLK */
+	{OFFSET(lcd_ac_bias_en),(M0 | PIN_OUTPUT)}, /* LCD.AC_BIAS_EN */
+	{OFFSET(gpmc_be1n), 	(M7 | PIN_OUTPUT)},	/* LCD.DISEN */
+	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.DISEN */
+	{-1},
+};
+
+
 static struct module_pin_mux e2_uart0_pin_mux[] = {
 	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
 	{OFFSET(uart0_txd), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_TXD */
@@ -289,26 +325,29 @@ static struct module_pin_mux mmi_uart0_pin_mux_mmi[] = {
 	{OFFSET(uart0_ctsn), (M0 | PIN_INPUT_PULLUP)},  /* UART0_CTSN */
 	{OFFSET(uart0_rtsn), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_RTSN */
 };
-#if 0
-static struct module_pin_mux mii1_pin_mux[] = {
-	{OFFSET(mii1_rxerr), MODE(0) | IEN},	/* MII1_RXERR */
-	{OFFSET(mii1_txen), MODE(0)},			/* MII1_TXEN */
-	{OFFSET(mii1_rxdv), MODE(0) | IEN},	/* MII1_RXDV */
-	{OFFSET(mii1_txd3), MODE(0)},			/* MII1_TXD3 */
-	{OFFSET(mii1_txd2), MODE(0)},			/* MII1_TXD2 */
-	{OFFSET(mii1_txd1), MODE(0)},			/* MII1_TXD1 */
-	{OFFSET(mii1_txd0), MODE(0)},			/* MII1_TXD0 */
-	{OFFSET(mii1_txclk), MODE(0) | IEN},	/* MII1_TXCLK */
-	{OFFSET(mii1_rxclk), MODE(0) | IEN},	/* MII1_RXCLK */
-	{OFFSET(mii1_rxd3), MODE(0) | IEN},	/* MII1_RXD3 */
-	{OFFSET(mii1_rxd2), MODE(0) | IEN},	/* MII1_RXD2 */
-	{OFFSET(mii1_rxd1), MODE(0) | IEN},	/* MII1_RXD1 */
-	{OFFSET(mii1_rxd0), MODE(0) | IEN},	/* MII1_RXD0 */
-	{OFFSET(mdio_data), MODE(0) | IEN | PULLUP_EN}, /* MDIO_DATA */
-	{OFFSET(mdio_clk), MODE(0) | P_DOWN | P_EN},	/* MDIO_CLK */
+
+/* MII pinmux for board PIA-AM335x-MMI */
+static struct module_pin_mux mmi_mii1_pin_mux[] = {
+	{OFFSET(mii1_rxerr),  M0 | PIN_INPUT_PULLDOWN},/* MII1_RXERR */
+	{OFFSET(mii1_txen),  M0 | PIN_OUTPUT},         /* MII1_TXEN */
+	{OFFSET(mii1_rxdv),  M0 | PIN_INPUT_PULLDOWN}, /* MII1_RXDV */
+	{OFFSET(mii1_txd3),  M0 | PIN_OUTPUT},         /* MII1_TXD3 */
+	{OFFSET(mii1_txd2),  M0 | PIN_OUTPUT},         /* MII1_TXD2 */
+	{OFFSET(mii1_txd1),  M0 | PIN_OUTPUT},         /* MII1_TXD1 */
+	{OFFSET(mii1_txd0),  M0 | PIN_OUTPUT},         /* MII1_TXD0 */
+	{OFFSET(mii1_txclk),  M0 | PIN_INPUT_PULLDOWN}, /* MII1_TXCLK */
+	{OFFSET(mii1_rxclk),  M0 | PIN_INPUT_PULLDOWN}, /* MII1_RXCLK */
+	{OFFSET(mii1_rxd3),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_RXD3 */
+	{OFFSET(mii1_rxd2),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_RXD2 */
+	{OFFSET(mii1_rxd1),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_RXD1 */
+	{OFFSET(mii1_rxd0),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_RXD0 */
+	{OFFSET(mdio_data),M0 | PIN_INPUT_PULLUP},   /* MDIO_DATA */
+	{OFFSET(mdio_clk), M0 | PIN_OUTPUT_PULLUP},  /* MDIO_CLK */
+	{OFFSET(mii1_col),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_COL */
+	{OFFSET(mii1_crs),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_CRS DV */
+	{OFFSET(rmii1_refclk),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_REFCLK */
 	{-1},
 };
-#endif
 
 static struct module_pin_mux mii2_pin_mux[] = {
 	/*{OFFSET(gpmc_wpn), M1 | PIN_INPUT_PULLDOWN},  RXER not used! is GPMC.WPn */
@@ -356,8 +395,31 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{-1},
 };
 #endif /* PIA_ON_BONE */
+
+static struct module_pin_mux e2_mmc0_pin_mux[] = {
+	{OFFSET(mmc0_dat3), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT3 */
+	{OFFSET(mmc0_dat2), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT2 */
+	{OFFSET(mmc0_dat1), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT1 */
+	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
+	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
+	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
+	{OFFSET(mii1_txd2), M7| PIN_INPUT_PULLUP},	/* MMC0_CD */
+	{-1},
+};
+
+static struct module_pin_mux mmi_mmc0_pin_mux[] = {
+	{OFFSET(mmc0_dat3), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT3 */
+	{OFFSET(mmc0_dat2), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT2 */
+	{OFFSET(mmc0_dat1), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT1 */
+	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
+	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
+	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
+	//{OFFSET(spi0_d0), M7 | PIN_INPUT_PULLUP},	/* MMC0_CD */	//not used on MMI board
+	{-1},
+};
 #endif
 
+/* I2C0 - piA-AM335x-KM-E2 and piA-AM335x-KM-MMI */
 static struct module_pin_mux i2c0_pin_mux[] = {
 	{OFFSET(i2c0_sda), (M0 | IEN |
 			P_UP | P_EN | SLEWCTRL)}, /* I2C_DATA */
@@ -366,12 +428,21 @@ static struct module_pin_mux i2c0_pin_mux[] = {
 	{-1},
 };
 
+/* I2C1 - piA-AM335x-KM-E2 */
 static struct module_pin_mux i2c1_pin_mux[] = {
 	{OFFSET(uart0_ctsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
 	{OFFSET(uart0_rtsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
 	{-1},
 };
 
+/* I2C1 - piA-AM335x-KM-MMI */
+static struct module_pin_mux mmi_i2c1_pin_mux[] = {
+	{OFFSET(uart1_rxd), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
+	{OFFSET(uart1_txd), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
+	{-1},
+};
+
+/* Supervisor - piA-AM335x-KM-E2 */
 static struct module_pin_mux e2_supervisor_pin_mux[] = {
 	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
 	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
@@ -380,7 +451,54 @@ static struct module_pin_mux e2_supervisor_pin_mux[] = {
 	{OFFSET(lcd_vsync), (M7 | PIN_INPUT_PULLUP)},   /* WD_SET1  2_22 */
 	{OFFSET(lcd_hsync), (M7 | PIN_INPUT_PULLDOWN)},   /* WD_SET2  2_23 */
 	{OFFSET(lcd_ac_bias_en), (M7 | PIN_INPUT_PULLUP)},   /* 24V_Fail  2_25 */
+	{-1},
 };
+
+/* Supervisor - piA-AM335x-KM-MMI */
+static struct module_pin_mux mmi_supervisor_pin_mux[] = {
+	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
+	{OFFSET(gpmc_ad0), (M7 | PIN_OUTPUT)},   		/* WDI   	1_0 */
+	{OFFSET(gpmc_ad1), (M7 | PIN_INPUT_PULLUP)},   	/* WD_SET1  1_1 */
+	{OFFSET(gpmc_ad2), (M7 | PIN_INPUT_PULLDOWN)},	/* WD_SET2	1_2 */
+	{OFFSET(mcasp0_axr1), (M7 | PIN_INPUT_PULLUP)},	/* 3.3V_Fail 3_20 */
+	/* Event_INTR0 as GPIO? */
+	{OFFSET(xdma_event_intr0), (M7 | PIN_INPUT_PULLUP)},	/* XDMA_EVENT_INTR0 0_19 */
+	{OFFSET(xdma_event_intr1), (M3 | PIN_OUTPUT)},			/* XDMA_EVENT_INTR1 CLKOUT2 */
+	{-1},
+};
+
+/* PMIC - piA-AM335x-KM-MMI */
+static struct module_pin_mux mmi_pmic_pin_mux[] = {
+	{OFFSET(gpmc_clk), (M7 | PIN_OUTPUT)},   				/* PMIC INT1 2_1 */
+	{OFFSET(mcasp0_axr0), (M7 | PIN_INPUT_PULLUP)},			/* PMIC SLEEP 3_16 */
+	{-1},
+};
+
+/* Acceleration - piA-AM335x-KM-MMI */
+static struct module_pin_mux mmi_accl_pin_mux[] = {
+	{OFFSET(ecap0_in_pwm0_out), (M7 | PIN_INPUT_PULLUP)},	/* ACC_INT2  0_7 */
+	{OFFSET(mcasp0_fsr), (M7 | PIN_INPUT_PULLUP)},			/* ACC_INT1  3_19 */
+	{OFFSET(gpmc_wait0), (M7 | PIN_OUTPUT)},				/* LED1 	0_30 */
+	{OFFSET(gpmc_wpn), (M7 | PIN_OUTPUT)},					/* LED2 	0_31*/
+	{-1},
+};
+
+/* Audio - piA-AM335x-KM-MMI */
+static struct module_pin_mux mmi_audio_pin_mux[] = {
+	// temp. GPIOs for testing purpose only
+	{OFFSET(mcasp0_aclkx), (M7 | PIN_INPUT_PULLUP)},   		/* Audio.BCLK 3_14 */
+	{OFFSET(mcasp0_fsx), (M7 | PIN_INPUT_PULLUP)},			/* Audio.FSX  3_15 */
+	{OFFSET(mcasp0_aclkr), (M7 | PIN_INPUT_PULLUP)},			/* Audio.DIN  3_18 */
+	{OFFSET(mcasp0_ahclkx), (M7 | PIN_INPUT_PULLUP)},	/* Audio.DOUT 3_32 */
+#if 0
+	{OFFSET(mcasp0_aclkx), (M0 | PIN_OUTPUT)},   		/* Audio.BCLK 3_14 */
+	{OFFSET(mcasp0_fsx), (M0 | PIN_OUTPUT)},			/* Audio.FSX  3_15 */
+	{OFFSET(mcasp0_aclkr), (M7 | PIN_OUTPUT)},			/* Audio.DIN  3_18 */
+	{OFFSET(mcasp0_ahclkx), (M7 | PIN_INPUT_PULLUP)},	/* Audio.DOUT 3_32 */
+#endif
+	{-1},
+};
+
 
 /*
  * Configure the pin mux for the module
@@ -410,7 +528,11 @@ void enable_uart0_pin_mux(void)
 void enable_mmc0_pin_mux(void)
 {
 	debug(">>pia:enable_mmc0_pin_mux()\n");
-	configure_module_pin_mux(mmc0_pin_mux);
+	if (board_is_e2()) {
+		configure_module_pin_mux(mmc0_pin_mux);
+	} else if (board_is_mmi()) {
+		configure_module_pin_mux(mmi_mmc0_pin_mux);
+	}
 }
 #endif
 
@@ -420,14 +542,15 @@ void enable_i2c0_pin_mux(void)
 	configure_module_pin_mux(i2c0_pin_mux);
 }
 
-static void init_pia_gpios(void)
+static void init_pia_e2_gpios(void)
 {
-	debug(">>pia:init_pia_gpios()\n");
+	debug(">>pia:init_pia_e2_gpios()\n");
 #if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
 	gpio_request(CONFIG_MMC_CD_GPIO, "mmc0_cd");
 	gpio_direction_input(CONFIG_MMC_CD_GPIO);
 	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));
 #endif
+
 	/* Supervisor */
 	gpio_request(CONFIG_E2_PB_RESET_GPIO, "pb_reset");
 	gpio_direction_input(CONFIG_E2_PB_RESET_GPIO);
@@ -446,14 +569,57 @@ static void init_pia_gpios(void)
 	gpio_direction_input(CONFIG_E2_24V_FAIL_GPIO);
 }
 
+static void init_pia_mmi_gpios(void)
+{
+	debug(">>pia:init_pia_mmi_gpios()\n");
+#if defined(CONFIG_MMC) && defined(CONFIG_MMC_CD_GPIO)
+	gpio_request(CONFIG_MMC_CD_GPIO, "mmc0_cd");
+	gpio_direction_input(CONFIG_MMC_CD_GPIO);
+	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMC_CD_GPIO));	//MMC_CD is unused
+#endif
+
+	/* Watchdog config, SET0=SET1=high and SET2=low == WD disabled */
+	gpio_request(CONFIG_MMI_WD_SET1_GPIO, "wd_set1");
+	gpio_direction_output(CONFIG_MMI_WD_SET1_GPIO, 1);
+	gpio_request(CONFIG_MMI_WD_SET2_GPIO, "wd_set2");
+	gpio_direction_output(CONFIG_MMI_WD_SET2_GPIO, 0);
+
+	gpio_request(CONFIG_MMI_LED1_GPIO, "LED1");
+	gpio_direction_output(CONFIG_MMI_LED1_GPIO, 0);
+	gpio_request(CONFIG_MMI_LED2_GPIO, "LED2");
+	gpio_direction_output(CONFIG_MMI_LED2_GPIO, 0);
+
+	gpio_request(CONFIG_MMI_ACC_INT1_GPIO, "ACC_INT1");
+	gpio_direction_input(CONFIG_MMI_ACC_INT1_GPIO);
+	gpio_request(CONFIG_MMI_ACC_INT2_GPIO, "ACC_INT2");
+	gpio_direction_input(CONFIG_MMI_ACC_INT2_GPIO);
+
+	gpio_request(CONFIG_MMI_XDMA_EVENT_INTR0_GPIO, "XDMA_EVENT_INTR0");
+	gpio_direction_input(CONFIG_MMI_XDMA_EVENT_INTR0_GPIO);
+}
+
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
-	debug(">>pia:enable_board_pin_mux()\n");
-	configure_module_pin_mux(i2c1_pin_mux);
-	configure_module_pin_mux(mii2_pin_mux);
-	configure_module_pin_mux(mmc0_pin_mux);
-	configure_module_pin_mux(e2_supervisor_pin_mux);
 	// TODO use eeprom header spec
+	debug(">>pia:enable_board_pin_mux() for board %.8s\n",header->name);
+	if (board_is_e2()) {
+		configure_module_pin_mux(i2c1_pin_mux);
+		configure_module_pin_mux(mii2_pin_mux);
+		configure_module_pin_mux(e2_mmc0_pin_mux);
+		configure_module_pin_mux(e2_supervisor_pin_mux);
+		init_pia_e2_gpios();
+	} else if (board_is_mmi()) {
+		configure_module_pin_mux(mmi_i2c1_pin_mux);
+		configure_module_pin_mux(mmi_mii1_pin_mux);
+		configure_module_pin_mux(mmi_mmc0_pin_mux);
+		configure_module_pin_mux(mmi_supervisor_pin_mux);
+		configure_module_pin_mux(mmi_pmic_pin_mux);
+		configure_module_pin_mux(mmi_accl_pin_mux);
+		configure_module_pin_mux(mmi_audio_pin_mux);
+		configure_module_pin_mux(lcdc_pin_mux);
+		init_pia_mmi_gpios();
+	}
+
 	/* There is no hook for additional GPIO initialization */
-	init_pia_gpios();
+	//init_pia_gpios();
 }
