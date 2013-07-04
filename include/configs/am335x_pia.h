@@ -21,7 +21,8 @@
 /*#define PIA_ON_BONE*/
 #define PIA_DEBUG
 #define PIA_TESTING
-#define PIA_KM_E2_REV 1
+#define PIA_KM_E2_REV 0
+#define PIA_KM_MMI_REV 1
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
@@ -56,6 +57,8 @@
 /* commands to include */
 #include <config_cmd_default.h>
 
+/* no NAND on MMI but doesn't hurt to enable anyway */
+#define CONFIG_MTD_DEVICE	/* missing this causes error 'undefined reference to `get_mtd_device_nm' (was defined with SPI) */
 #define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		"nand0=omap2-nand.0"
 #define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:128k(SPL)," \
@@ -216,6 +219,7 @@
 #define CONFIG_FAT_WRITE
 
 /* TODO SPI can be removed completely? */
+#if 0
 #define CONFIG_SPI
 #define CONFIG_OMAP3_SPI
 #define CONFIG_MTD_DEVICE
@@ -224,6 +228,7 @@
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_CMD_SF
 #define CONFIG_SF_DEFAULT_SPEED		(24000000)
+#endif
 #endif
 
 /* TODO no usb gadget on piA */
@@ -294,7 +299,7 @@
 
 #define CONFIG_CMD_MII
 
- /* Physical Memory Map */
+/* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1		/*  1 bank of DRAM */
 #define PHYS_DRAM_1			0x80000000	/* DRAM Bank #1 */
 #if 0 /* FIXME not in EVM config */
@@ -305,7 +310,7 @@
 #define CONFIG_SYS_SDRAM_BASE		PHYS_DRAM_1
 #define CONFIG_SYS_INIT_SP_ADDR         (NON_SECURE_SRAM_END - \
 						GENERATED_GBL_DATA_SIZE)
- /* Platform/Board specific defs */
+/* Platform/Board specific defs */
 #define CONFIG_SYS_TIMERBASE		0x48040000	/* Use Timer2 */
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
 #define CONFIG_SYS_HZ			1000
@@ -363,7 +368,6 @@
 					 34, 35, 36, 37, 38, 39, 40, 41, \
 					 42, 43, 44, 45, 46, 47, 48, 49, \
 					 50, 51, 52, 53, 54, 55, 56, 57, }
-
 
 #define CONFIG_SYS_NAND_ECCSIZE		512
 #define CONFIG_SYS_NAND_ECCBYTES	14
@@ -513,6 +517,7 @@
 							/* CS0 */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND
 							   devices */
+
 #if !defined(CONFIG_SPI_BOOT) && !defined(CONFIG_NOR_BOOT)
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_NAND
@@ -528,6 +533,18 @@
 #define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)
 #define CONFIG_E2_WD_SET1_GPIO  ((2 * 32) + 22)
 #define CONFIG_E2_WD_SET2_GPIO  ((2 * 32) + 23)
+
+/* MMI settings */
+#define CONFIG_MMI_3_3V_FAIL_GPIO	((3 * 32) + 20)	//gpio3_20
+#define CONFIG_MMI_WDI_GPIO  	 	((1 * 32) + 0)	//gpio1_0
+#define CONFIG_MMI_WD_SET1_GPIO  	((1 * 32) + 1)	//gpio1_1
+#define CONFIG_MMI_WD_SET2_GPIO  	((1 * 32) + 2)  //gpio1_2
+#define CONFIG_MMI_LED1_GPIO  	 	((0 * 32) + 30) //gpio0_30
+#define CONFIG_MMI_LED2_GPIO  	 	((0 * 32) + 31) //gpio0_31
+#define CONFIG_MMI_ACC_INT1_GPIO  	((3 * 32) + 19) //gpio3_19
+#define CONFIG_MMI_ACC_INT2_GPIO  	((0 * 32) + 7)	//gpio0_7
+#define CONFIG_MMI_XDMA_EVENT_INTR0_GPIO  	((0 * 32) + 19)	//gpio0_19
+
 /* TODO remove */
 #if 0
 /*
