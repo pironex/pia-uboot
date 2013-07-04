@@ -46,6 +46,17 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TC(t) \
 	t = ((t & 0x0f) + (10 *(t >> 4 && 0xf)))
 
+extern struct am335x_baseboard_id header;
+int board_is_e2(void)
+{
+	return (strncmp(header.name, "PIA335E2", 8) == 0);
+}
+
+int board_is_mmi(void)
+{
+	return (strncmp(header.name, "PIA335MI", 8) == 0);
+}
+
 static int init_rtc_rx8801(void)
 {
 	u8 regval;
@@ -103,8 +114,6 @@ static int init_tps65910(void)
 
 	return 0;
 }
-
-extern struct am335x_baseboard_id header;
 
 int am33xx_first_start(void)
 {
