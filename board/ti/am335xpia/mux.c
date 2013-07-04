@@ -279,12 +279,16 @@ struct module_pin_mux {
 #define OFFSET(x)	(unsigned int) (&((struct pad_signals *) \
 				(PAD_CTRL_BASE))->x)
 
-static struct module_pin_mux uart0_pin_mux[] = {
+static struct module_pin_mux e2_uart0_pin_mux[] = {
 	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
-	{OFFSET(uart0_txd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_TXD */
+	{OFFSET(uart0_txd), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_TXD */
 	{-1},
 };
 
+static struct module_pin_mux mmi_uart0_pin_mux_mmi[] = {
+	{OFFSET(uart0_ctsn), (M0 | PIN_INPUT_PULLUP)},  /* UART0_CTSN */
+	{OFFSET(uart0_rtsn), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_RTSN */
+};
 #if 0
 static struct module_pin_mux mii1_pin_mux[] = {
 	{OFFSET(mii1_rxerr), MODE(0) | IEN},	/* MII1_RXERR */
@@ -395,7 +399,11 @@ static void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 void enable_uart0_pin_mux(void)
 {
 	debug(">>pia:enable_uart0_pin_mux()\n");
-	configure_module_pin_mux(uart0_pin_mux);
+	if (board_is_e2()) {
+		configure_module_pin_mux(e2_uart0_pin_mux);
+	} else if (board_is_mmi()) {
+		configure_module_pin_mux(mmi_uart0_pin_mux_mmi);
+	}
 }
 
 #ifdef CONFIG_MMC
