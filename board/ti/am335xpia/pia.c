@@ -329,7 +329,7 @@ static int test_temp_sensor(void)
 	return 0;
 }
 
-static int test_supervisor(void)
+static int test_supervisor_e2(void)
 {
 	int pb, wd;
 	puts("CHECK RESET...\n");
@@ -360,14 +360,28 @@ static int test_supervisor(void)
 	return 0;
 }
 
+static int test_supervisor_mmi(void)
+{
+	int pb;
+
+	pb = gpio_get_value(CONFIG_MMI_3_3V_FAIL_GPIO);
+	printf("3.3V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
+
+	return 0;
+}
+
 static int test_pia(void)
 {
 	int rc = 0;
 
 	printf("\nRunning board tests on %.8s Rev%.4s\n\n",
 			header.name, header.version);
-	rc |= test_supervisor();
-	rc |= test_rtc_rx8801();
+	if(strncmp(header.name,"PIA335E2",8) == 0) {
+		rc |= test_supervisor_e2();
+		rc |= test_rtc_rx8801();
+	} else if(strncmp(header.name,"PIA335MI",8) == 0) {
+		rc |= test_supervisor_mmi();
+	}
 	rc |= test_rtc_tps();
 	rc |= test_temp_sensor();
 
@@ -488,7 +502,7 @@ void am33xx_spl_board_init(void)
 int board_mmc_getcd(struct mmc* mmc)
 {
 	if (board_is_e2()) {
-		return (1 ^ gpio_get_value(CONFIG_MMC_CD_GPIO));
+		return (1 ^ gpio_get_value(CONFIG_E2_MMC_CD_GPIO));
 	}
 
 	return 1;
