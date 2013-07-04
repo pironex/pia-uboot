@@ -477,11 +477,11 @@ void am33xx_spl_board_init(void)
 
 int board_mmc_getcd(struct mmc* mmc)
 {
-#ifdef CONFIG_MMC_CD_GPIO
-	return (1 ^ gpio_get_value(CONFIG_MMC_CD_GPIO));
-#else
+	if (board_is_e2()) {
+		return (1 ^ gpio_get_value(CONFIG_MMC_CD_GPIO));
+	}
+
 	return 1;
-#endif
 }
 
 
