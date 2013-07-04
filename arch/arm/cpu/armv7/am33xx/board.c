@@ -128,12 +128,18 @@ static int read_eeprom(void)
 			return -EIO;
 		}
 
+#ifdef CONFIG_FIRST_START_INITIALIZATION
+		/* force reinitialization, normally the ID EEPROM is written here */
+		am33xx_first_start();
+#else
+
 		if (header.magic != 0xEE3355AA || header.config[31] != 0) {
 			if (am33xx_first_start()) {
 				puts("Could not initialize EEPROM.\n");
 				return -EIO;
 			}
 		}
+#endif
 
 		if (header.magic != 0xEE3355AA) {
 			printf("Incorrect magic number (0x%x) in EEPROM\n",
@@ -438,7 +444,7 @@ void s_init(void)
 
 #endif
 
-	/* Initalize the board header */
+	/* Initialize the board header */
 	enable_i2c0_pin_mux();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #ifndef CONFIG_NOR_BOOT
