@@ -21,6 +21,8 @@
 #include <asm/gpio.h>
 #include <i2c.h>
 
+#include "am335xpia.h"
+
 #define MUX_CFG(value, offset)	\
 	__raw_writel(value, (CTRL_BASE + offset));
 

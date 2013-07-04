@@ -15,7 +15,7 @@
 #ifndef AM335XPIA_h
 #define AM335XPIA_H
 
-extern int board_is_e2();
-extern int board_is_mmi();
+extern int board_is_e2(void);
+extern int board_is_mmi(void);
 
 #endif
