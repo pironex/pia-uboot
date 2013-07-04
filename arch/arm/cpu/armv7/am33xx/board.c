@@ -128,19 +128,6 @@ static int read_eeprom(void)
 			return -EIO;
 		}
 
-#ifdef CONFIG_FIRST_START_INITIALIZATION
-		/* force reinitialization, normally the ID EEPROM is written here */
-		am33xx_first_start();
-#else
-
-		if (header.magic != 0xEE3355AA || header.config[31] != 0) {
-			if (am33xx_first_start()) {
-				puts("Could not initialize EEPROM.\n");
-				return -EIO;
-			}
-		}
-#endif
-
 		if (header.magic != 0xEE3355AA) {
 			printf("Incorrect magic number (0x%x) in EEPROM\n",
 					header.magic);
@@ -620,7 +607,7 @@ int arch_misc_init(void)
 /*
  * Basic board specific setup.  Pinmux has been handled already.
  */
-int board_init(void)
+int __attribute__((weak)) board_init(void)
 {
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 	if (read_eeprom() < 0)

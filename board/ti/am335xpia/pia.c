@@ -160,14 +160,16 @@ int am33xx_first_start(void)
 	return 0;
 }
 
-#ifndef CONFIG_SPL_BUILD
 
 /*
  * Read header information from EEPROM into global structure.
  */
 static int read_eeprom(void)
 {
+	int i;
+
 	debug(">>pia:read_eeprom()\n");
+
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 		puts("Could not probe the EEPROM; something fundamentally "
@@ -175,6 +177,10 @@ static int read_eeprom(void)
 		return -ENODEV;
 	}
 
+#ifdef CONFIG_FIRST_START_INITIALIZATION
+		/* force reinitialization, normally the ID EEPROM is written here */
+		am33xx_first_start();
+#endif
 	/*
 	 * read the eeprom using i2c again,
 	 * but use only a 1 byte address
@@ -186,22 +192,43 @@ static int read_eeprom(void)
 		return -EIO;
 	}
 
-	if (header.magic != 0xEE3355AA ||
-#if (defined PIA_KM_E2_REV) && (PIA_KM_E2_REV == 1)
-			(strncmp(&header.name[0], "PIA335E2", 8))) {
-#else
-		{
-#endif
+
+	if (header.magic != 0xEE3355AA || header.config[31] != 0) {
 		printf("Incorrect magic number (0x%x) in EEPROM\n",
 				header.magic);
-		am33xx_first_start();
+#ifndef CONFIG_FIRST_START_INITIALIZATION
+		if (am33xx_first_start()) {
+			puts("Could not initialize EEPROM.\n");
+			return -EIO;
+		}
+#else
+		return -EIO;
+#endif
 	}
+
+	debug("Detecting board...");
+	i = 0;
+	if (strncmp(&header.name[0], "PIA335E2", 8) == 0) {
+		debug("PIA335E2 found\n");
+		i++;
+	}
+
+	if (strncmp(&header.name[0], "PIA335MI", 8) == 0) {
+		debug("PIA335MI found\n");
+		i++;
+	}
+
+	if (!i) {
+		debug("board not specified\n");
+	}
+
 	debug("EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
 			header.magic, header.name, header.version, header.serial);
 
 	return 0;
 }
 
+#ifndef CONFIG_SPL_BUILD
 #ifdef PIA_TESTING
 
 static int test_rtc_tps(void)
