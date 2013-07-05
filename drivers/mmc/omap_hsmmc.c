@@ -543,9 +543,40 @@ static void mmc_set_ios(struct mmc *mmc)
 int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max)
 {
 	struct mmc *mmc;
+	int i = 0;
 
 	debug(">>omap_mmc_init()\n");
 	mmc = &hsmmc_dev[dev_index];
+
+#if 0 /* FIXME remove, when boards are working fine */
+	unsigned long *p = (unsigned long *)0x80000400;
+
+	debug("%p: ", p);
+	for (i = 1; i <= 128; ++i) {
+		debug("%08lx ", *p);
+		p++;
+		if ((i % 8) == 0)
+			debug("\n%p: ", p);
+
+	}
+
+	p = (unsigned long *)0x80000400;
+	for (i = 1; i <= 128; ++i) {
+		*p = 0xffffffff;
+		p++;
+	}
+
+	p = (unsigned long *)0x80000400;
+	debug("\n\n%p: ", p);
+	for (i = 1; i <= 128; ++i) {
+		debug("%08lx ", *p);
+		p++;
+		if ((i % 8) == 0)
+			debug("\n%p: ", p);
+
+	}
+#endif
+
 
 	sprintf(mmc->name, "OMAP SD/MMC");
 	mmc->send_cmd = mmc_send_cmd;
