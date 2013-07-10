@@ -44,7 +44,7 @@
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT		"U-Boot# "
 #define CONFIG_SYS_NO_FLASH
-#define MACH_TYPE_PIA_AM335X		10001	/* sync with kernel! */
+#define MACH_TYPE_PIA_AM335X		4706	/* sync with kernel! */
 #define CONFIG_MACH_TYPE		MACH_TYPE_PIA_AM335X
 
 #define CONFIG_OF_LIBFDT
