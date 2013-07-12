@@ -21,8 +21,6 @@
 /*#define PIA_ON_BONE*/
 #define PIA_DEBUG
 #define PIA_TESTING
-#define PIA_KM_E2_REV 0
-#define PIA_KM_MMI_REV 1
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
@@ -436,7 +434,7 @@
 #endif
 
 /* NAND */
-#if defined(PIA_KM_E2_REV)
+#if defined(CONFIG_PIA_E2)
 #define CONFIG_SPL_NAND_AM33XX_BCH
 #define CONFIG_SPL_NAND_SUPPORT
 #define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
@@ -507,6 +505,7 @@
 /* Unsupported features */
 #undef CONFIG_USE_IRQ
 
+#if defined(CONFIG_PIA_E2)
 #define CONFIG_NAND
 /* NAND support */
 #ifdef CONFIG_NAND
@@ -519,12 +518,16 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND
 							   devices */
 
-#if !defined(CONFIG_SPI_BOOT) && !defined(CONFIG_NOR_BOOT)
+#if !defined(CONFIG_SPI_BOOT) && !defined(CONFIG_NOR_BOOT) && defined(CONFIG_NAND)
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x260000 /* environment starts here */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 #endif
+#endif
+#else
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_SIZE			4096	/* 128 KiB */
 #endif
 
 /* E2 settings */
