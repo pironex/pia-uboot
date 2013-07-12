@@ -492,10 +492,7 @@ void am33xx_spl_board_init(void)
 
 	if (!voltage_update(MPU, PMIC_OP_REG_SEL_1_2_6) &&
 			!voltage_update(CORE, PMIC_OP_REG_SEL_1_1_3)) {
-		if (board_is_evm_15_or_later())
-			mpu_pll_config(MPUPLL_M_800);
-		else
-			mpu_pll_config(MPUPLL_M_720);
+		mpu_pll_config(MPUPLL_M_720);
 	}
 }
 
@@ -528,7 +525,8 @@ int board_init(void)
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
 
-	gpmc_init();
+	if (board_is_e2())
+			gpmc_init();
 
 	return 0;
 }

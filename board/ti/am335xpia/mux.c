@@ -324,8 +324,11 @@ static struct module_pin_mux e2_uart0_pin_mux[] = {
 };
 
 static struct module_pin_mux mmi_uart0_pin_mux_mmi[] = {
+	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
+	{OFFSET(uart0_txd), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_TXD */
 	{OFFSET(uart0_ctsn), (M0 | PIN_INPUT_PULLUP)},  /* UART0_CTSN */
 	{OFFSET(uart0_rtsn), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_RTSN */
+	{-1},
 };
 
 /* MII pinmux for board PIA-AM335x-MMI */
@@ -518,12 +521,10 @@ static void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 
 void enable_uart0_pin_mux(void)
 {
-	debug(">>pia:enable_uart0_pin_mux()\n");
-	if (board_is_e2()) {
-		configure_module_pin_mux(e2_uart0_pin_mux);
-	} else if (board_is_mmi()) {
+	configure_module_pin_mux(e2_uart0_pin_mux);
+#if defined(CONFIG_PIA_MMI)
 		configure_module_pin_mux(mmi_uart0_pin_mux_mmi);
-	}
+#endif
 }
 
 #ifdef CONFIG_MMC
