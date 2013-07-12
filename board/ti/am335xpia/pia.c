@@ -124,11 +124,11 @@ int am33xx_first_start(void)
 	/* EUI EEPROM */
 	/* init with default magic number, generic name and version info */
 	header.magic = 0xEE3355AA;
-#if (defined PIA_E2)
+#if (defined CONFIG_PIA_E2)
 	strncpy((char *)&header.name, "PIA335E2", 8);
 	strncpy((char *)&header.version, "0.01", 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
-#elif (defined PIA_MMI)
+#elif (defined CONFIG_PIA_MMI)
 	strncpy((char *)&header.name, "PIA335MI", 8);
 	strncpy((char *)&header.version, "0.01", 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
