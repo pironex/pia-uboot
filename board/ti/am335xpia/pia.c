@@ -525,7 +525,8 @@ int board_init(void)
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
 
-	gpmc_init();
+	if (board_is_e2())
+			gpmc_init();
 
 	return 0;
 }
