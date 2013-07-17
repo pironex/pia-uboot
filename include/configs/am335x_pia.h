@@ -19,7 +19,7 @@
 #define CONFIG_AM33XX
 
 /*#define PIA_ON_BONE*/
-#define PIA_DEBUG
+/* #define PIA_DEBUG */
 #define PIA_TESTING
 /* TODO only for dev */
 #ifdef PIA_DEBUG
