@@ -254,10 +254,8 @@ static int test_rtc_tps(void)
 	/* dummy reads neccessary */
 	ec = i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &fl, 1);
 	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &fl, 1);
-	printf(" CtrlReg: 0x%02x\n", fl);
 	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &fl, 1);
 	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &fl, 1);
-	printf(" Status: 0x%02x\n", fl);
 	if ((fl & 0x02) == 0)
 		init_tps65910();
 

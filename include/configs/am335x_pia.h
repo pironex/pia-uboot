@@ -19,7 +19,7 @@
 #define CONFIG_AM33XX
 
 /*#define PIA_ON_BONE*/
-#define PIA_DEBUG
+/* #define PIA_DEBUG */
 #define PIA_TESTING
 /* TODO only for dev */
 #ifdef PIA_DEBUG
@@ -55,6 +55,7 @@
 /* commands to include */
 #include <config_cmd_default.h>
 
+#if defined(CONFIG_PIA_E2)
 /* no NAND on MMI but doesn't hurt to enable anyway */
 #define CONFIG_MTD_DEVICE	/* missing this causes error 'undefined reference to `get_mtd_device_nm' (was defined with SPI) */
 #define CONFIG_CMD_MTDPARTS
@@ -64,10 +65,13 @@
 				"128k(SPL.backup3),1920k(u-boot)," \
 				"128k(u-boot-env),5m(kernel),-(rootfs)" \
 
+#endif
+
 #define CONFIG_CMD_ASKENV
 #define CONFIG_VERSION_VARIABLE
 
 #if !(defined(CONFIG_USB_SPL) && defined(CONFIG_SPL_BUILD))
+#if defined(CONFIG_PIA_E2)
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
 	"kloadaddr=0x80007fc0\0" \
@@ -138,6 +142,65 @@
 		"run ramargs; " \
 		"bootm ${loadaddr}\0" \
     CONFIG_DFU_ALT
+
+#elif defined(CONFIG_PIA_MMI)
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"loadaddr=0x80200000\0" \
+	"kloadaddr=0x80007fc0\0" \
+	"fdtaddr=0x80F80000\0" \
+	"rdaddr=0x81000000\0" \
+	"bootfile=uImage\0" \
+	"console=ttyO0,115200n8\0" \
+	"optargs=\0" \
+	"mmcdev=0\0" \
+	"mmcroot=/dev/mmcblk0p2 ro\0" \
+	"mmcrootfstype=ext4 rootwait\0" \
+	"rootpath=/export/rootfs\0" \
+	"nfsopts=nolock\0" \
+	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
+	"ramrootfstype=ext2\0" \
+	"ip_method=none\0" \
+	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
+		"::off\0" \
+	"bootargs_defaults=setenv bootargs " \
+		"console=${console} early_printk debug " \
+		"${optargs}\0" \
+	"mmcargs=run bootargs_defaults;" \
+		"setenv bootargs ${bootargs} " \
+		"root=${mmcroot} " \
+		"rootfstype=${mmcrootfstype} ip=${ip_method}\0" \
+	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
+	"ramrootfstype=ext2\0" \
+	"netargs=run bootargs_defaults;" \
+		"setenv bootargs ${bootargs} " \
+		"root=/dev/nfs " \
+		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
+		"ip=dhcp\0" \
+	"bootenv=uEnv.txt\0" \
+	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
+	"importbootenv=echo Importing environment from mmc ...; " \
+		"env import -t $loadaddr $filesize\0" \
+	"ramargs=setenv bootargs console=${console} " \
+		"${optargs} " \
+		"root=${ramroot} " \
+		"rootfstype=${ramrootfstype}\0" \
+	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
+	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
+	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
+	"mmcboot=echo Booting from mmc ...; " \
+		"run mmcargs; " \
+		"bootm ${kloadaddr}\0" \
+	"netboot=echo Booting from network ...; " \
+		"setenv autoload no; " \
+		"dhcp; " \
+		"tftp ${kloadaddr} ${bootfile}; " \
+		"run netargs; " \
+		"bootm ${kloadaddr}\0" \
+	"ramboot=echo Booting from ramdisk ...; " \
+		"run ramargs; " \
+		"bootm ${loadaddr}\0" \
+    CONFIG_DFU_ALT
+#endif
 
 /* set to negative value for no autoboot */
 #define CONFIG_BOOTDELAY		3
