@@ -93,7 +93,7 @@ struct pad_signals {
 	int gpmc_a11;
 	int gpmc_wait0;
 	int gpmc_wpn;
-	int gpmc_ben1;
+	int gpmc_be1n;
 	int gpmc_csn0;
 	int gpmc_csn1;
 	int gpmc_csn2;
@@ -102,7 +102,7 @@ struct pad_signals {
 	int gpmc_advn_ale;
 	int gpmc_oen_ren;
 	int gpmc_wen;
-	int gpmc_ben0_cle;
+	int gpmc_be0n_cle;
 	int lcd_data0;
 	int lcd_data1;
 	int lcd_data2;
@@ -311,8 +311,8 @@ static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(lcd_hsync),		(M0 | PIN_OUTPUT)}, /* LCD.HSYNC */
 	{OFFSET(lcd_pclk),		(M0 | PIN_OUTPUT)}, /* LCD.PCLK */
 	{OFFSET(lcd_ac_bias_en),(M0 | PIN_OUTPUT)}, /* LCD.AC_BIAS_EN */
-	{OFFSET(gpmc_ben1), 	(M7 | PIN_OUTPUT)},	/* LCD.DISEN */
-	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.BACKLIGHTEN*/
+	{OFFSET(gpmc_be1n), 	(M7 | PIN_OUTPUT)},	/* LCD.DISEN */
+	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.DISEN */
 	{-1},
 };
 
