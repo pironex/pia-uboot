@@ -181,7 +181,8 @@ static int read_eeprom(void)
 		return -ENODEV;
 	}
 
-#ifdef CONFIG_FIRST_START_INITIALIZATION
+#ifdef CONFIG_PIA_FIRSTSTART
+		puts("Special FIRSTSTART version\n")
 		/* force reinitialization, normally the ID EEPROM is written here */
 		am33xx_first_start();
 #endif
@@ -200,7 +201,7 @@ static int read_eeprom(void)
 	if (header.magic != 0xEE3355AA || header.config[31] != 0) {
 		printf("Incorrect magic number (0x%x) in EEPROM\n",
 				header.magic);
-#ifndef CONFIG_FIRST_START_INITIALIZATION
+#ifndef CONFIG_PIA_FIRSTSTART
 		if (am33xx_first_start()) {
 			puts("Could not initialize EEPROM.\n");
 			return -EIO;
