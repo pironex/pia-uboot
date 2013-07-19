@@ -120,7 +120,7 @@ int am33xx_first_start(void)
 	int size, pos;
 	int to; /* 10 ms timeout */
 
-	debug("(re)write eeprom content\n");
+	printf("(Re)Writing EEPROM content\n");
 	/* EUI EEPROM */
 	/* init with default magic number, generic name and version info */
 	header.magic = 0xEE3355AA;
@@ -139,7 +139,7 @@ int am33xx_first_start(void)
 #endif
 	memset(&header.config, 0, 32);
 	puts("Missing magic number, assuming first start, init EEPROM.\n");
-	printf("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
+	debug("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			header.magic, header.name, header.version, header.serial);
 	size = sizeof(header);
 	pos = 0;
