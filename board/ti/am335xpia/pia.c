@@ -409,33 +409,41 @@ int board_late_init()
 int board_phy_config(struct phy_device *phydev)
 {
 	if (board_is_e2()) {
-		int reg, i, eth_cnt = 0;
-		debug("+pia:board_phy_config()\n");
+		int reg, i, eth_cnt = 5;
+
+#if 1
+		puts("Initializing ethernet switch\n");
 		phy_write(phydev, 30, 0, 0x175c);
-		reg = phy_read(phydev, 30, 0);
 		mdelay(5); /* min 2 ms */
-		debug(" master reset done:\n");
-		for (i = 0; i < 5; ++i) {
-			reg = phy_read(phydev, i, 0);
-			reg = phy_read(phydev, 30, 1);
-		}
+		reg = phy_read(phydev, 30, 0);
+		debug(" master reset done: 0x%04x\n", reg);
 
 		/* read IPC mode register */
-		phy_write(phydev, 29, 31, 0x175c);
-		reg = phy_read(phydev, 29, 31);
+//		phy_write(phydev, 29, 31, 0x175c);
+//		phy_write(phydev, 29, 22, 0x420);
 
+//		for (i = 0; i < eth_cnt; ++i) {
+//			debug(" resettings ports...\n");
+//			phy_write(phydev, i, MII_BMCR, BMCR_RESET);
+//			reg = phy_read(phydev, i, MII_BMCR);
+//			debug(" P%d control: 0x%04x\n", i, reg);
+//		}
+		for (i = 0; i < eth_cnt; ++i) {
+			reg = phy_read(phydev, i, MII_BMSR);
+			debug(" P%d status: 0x%04x\n", i, reg);
+		}
+		mdelay(2);
+#else
 		/* set port phy 100/FD */
 		phy_write(phydev, 4, 0, 0x2100);
 		/* enable force mode */
 		phy_write(phydev, 29, 22, 0x8420);
 		reg = phy_read(phydev, 29, 22);
 
-		if(strncmp(header.name,"PIA335E2",8) == 0) {
+		if(board_is_e2()) {
 			eth_cnt = 5;
-		} else if(strncmp(header.name,"PIA335MI",8) == 0) {
-			eth_cnt = 1;
 		} else {
-			eth_cnt = 0;	//no board found
+			eth_cnt = 1;
 		}
 
 		/* resetting ports */
@@ -450,6 +458,7 @@ int board_phy_config(struct phy_device *phydev)
 			reg = phy_read(phydev, i, MII_BMSR);
 			debug(" P%d status: 0x%04x\n", i, reg);
 		}
+#endif
 	}
 
 	return 0;

@@ -651,7 +651,7 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	},
 };
 
-#if (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X)
+#if 0
 static struct cpsw_platform_data cpsw_data = {
 	.mdio_base		= AM335X_CPSW_MDIO_BASE,
 	.cpsw_base		= AM335X_CPSW_BASE,
@@ -742,6 +742,10 @@ int board_eth_init(bd_t *bis)
 		writel(RGMII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_RGMII;
+	}
+
+	if (board_is_e2()) {
+		cpsw_data.host_port_num = 1;
 	}
 
 	rv = cpsw_register(&cpsw_data);
