@@ -197,7 +197,7 @@
 	"nandrootfs=jffs2\0" \
 	"quiet=quiet\0" \
 	"displaymode=dvi:1024x768MR-24@60 vram=16M omapfb.vram=0:8M\0" \
-	"mmcargs=setenv bootargs console=${console} ${quiet}" \
+	"mmcargs=setenv bootargs console=${console} ${quiet} " \
 		"root=/dev/mmcblk0p2 ro " \
 		"rootfstype=ext4 rootwait " \
 		"omapdss.def_disp=${display} " \
