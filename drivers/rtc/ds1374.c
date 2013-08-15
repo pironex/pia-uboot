@@ -129,12 +129,17 @@ void rtc_init(void)
 
 	if (ds1374_wd_enable) {
 		// Read Watchdog/Alarm Counter
-		int cnt = 0x0B4000; // 180 s * 4096
+		// this is safe, setting the counter register to 0 turns off the wd
+		int cnt = 4096 * ds1374_wd_enable;
+		int wdto;
 		uchar wd_alm_byte0, wd_alm_byte1, wd_alm_byte2;
 		wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
 		wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
 		wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
-		printf("WD/ALARM Counter (Power-up): %x %x %x\n",wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+		wdto = ((wd_alm_byte2 << 16) + (wd_alm_byte1 << 8) +
+				(wd_alm_byte0)) >> 12;
+		printf("WD/ALARM Counter (Power-up): %x %x %x == %d s\n",
+				wd_alm_byte2, wd_alm_byte1, wd_alm_byte0, wdto);
 
 		// Periodic Alarm
 		//rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_AIE),TRUE);
@@ -147,8 +152,10 @@ void rtc_init(void)
 		wd_alm_byte0 = rtc_read(RTC_WD_ALM_CNT_BYTE0_ADDR);
 		wd_alm_byte1 = rtc_read(RTC_WD_ALM_CNT_BYTE1_ADDR);
 		wd_alm_byte2 = rtc_read(RTC_WD_ALM_CNT_BYTE2_ADDR);
-		printf("Set WD/ALARM Counter to %02x %02x %02x / 4096 s\n",
-				wd_alm_byte2, wd_alm_byte1, wd_alm_byte0);
+		wdto = ((wd_alm_byte2 << 16) + (wd_alm_byte1 << 8) +
+				(wd_alm_byte0)) >> 12;
+		printf("Set WD/ALARM Counter to %02x %02x %02x = %d s\n",
+				wd_alm_byte2, wd_alm_byte1, wd_alm_byte0, wdto);
 
 		//Enable Watchdog Interrupt
 		rtc_write(RTC_CTL_ADDR, (RTC_CTL_BIT_WACE | RTC_CTL_BIT_WD_ALM),TRUE);
