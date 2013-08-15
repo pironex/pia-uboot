@@ -200,7 +200,9 @@ void pia_display_init(void)
 	gpio_set_value(GPIO_LCD_DISP, 0);
 	printf("DISP enabled\n");
 
-	omap3_dss_panel_config(&lcd_cfg_dem);
+	// FIXME this doesn't seem to work reliably after a reboot
+	//omap3_dss_panel_config(&lcd_cfg_dem);
+	//omap3_dss_enable();
 }
 
 #if defined(CONFIG_RTC_DS1374)
@@ -347,7 +349,6 @@ int misc_init_r(void)
 
 	if (strncmp(getenv("display"), "lcd", 3) == 0) {
 		pia_display_init();
-		omap3_dss_enable();
 	}
 
 	return 0;
