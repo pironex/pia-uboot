@@ -651,25 +651,6 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	},
 };
 
-#if 0
-static struct cpsw_platform_data cpsw_data = {
-	.mdio_base		= AM335X_CPSW_MDIO_BASE,
-	.cpsw_base		= AM335X_CPSW_BASE,
-	.mdio_div		= 0xff,
-	.channels		= 8,
-	.cpdma_reg_ofs		= 0x800,
-	.slaves			= 1,
-	.slave_data		= cpsw_slaves,
-	.ale_reg_ofs		= 0xd00,
-	.ale_entries		= 1024,
-	.host_port_reg_ofs	= 0x208,
-	.hw_stats_reg_ofs	= 0x900,
-	.mac_control		= (1 << 5),
-	.control		= cpsw_control,
-	.host_port_num		= 1,
-	.version		= CPSW_CTRL_VERSION_2,
-};
-#else
 static struct cpsw_platform_data cpsw_data = {
 	.mdio_base		= AM335X_CPSW_MDIO_BASE,
 	.cpsw_base		= AM335X_CPSW_BASE,
@@ -688,10 +669,10 @@ static struct cpsw_platform_data cpsw_data = {
 	.version		= CPSW_CTRL_VERSION_2,
 };
 #endif
-#endif
 
 #if defined(CONFIG_DRIVER_TI_CPSW) || \
 	(defined(CONFIG_USB_ETHER) && defined(CONFIG_MUSB_GADGET))
+int board_is_e2(void);
 int board_eth_init(bd_t *bis)
 {
 	int rv, ret = 0;
@@ -745,7 +726,9 @@ int board_eth_init(bd_t *bis)
 	}
 
 	if (board_is_e2()) {
-		cpsw_data.host_port_num = 1;
+		// FIXME we only use slave 2, how to set this up?
+		// setting up slave 1 & 2 works if slave 1 is not muxed
+		cpsw_data.slaves = 2;
 	}
 
 	rv = cpsw_register(&cpsw_data);
