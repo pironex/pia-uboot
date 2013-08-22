@@ -104,6 +104,7 @@ static int init_tps65910(void)
 		puts(" Couldn't write RTC CONTROL register\n");
 		return -EIO;
 	}
+	udelay(10000);
 
 	/* clear powerup and alarm flags */
 	regval = 0xC0;
@@ -111,6 +112,7 @@ static int init_tps65910(void)
 		puts(" Couldn't write RTC STATUS register\n");
 		return -EIO;
 	}
+	udelay(10000);
 
 	return 0;
 }
@@ -229,6 +231,7 @@ static int read_eeprom(void)
 #ifdef CONFIG_SPL_BUILD
 int board_identify(void)
 {
+	debug(">>pia:board_identify\n");
 	return (read_eeprom());
 }
 #endif
