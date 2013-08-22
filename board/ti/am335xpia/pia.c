@@ -526,6 +526,7 @@ int board_init(void)
 
 #ifdef CONFIG_I2C
 	enable_i2c0_pin_mux();
+	timer_init();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 	if (read_eeprom() < 0)
 		puts("Could not get board ID\n");

@@ -436,6 +436,7 @@ void s_init(void)
 #endif
 
 	/* Initialize the board header */
+	timer_init(); /* initialize timer here, we need it in i2c_init */
 	enable_i2c0_pin_mux();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #if (CONFIG_MACH_TYPE != MACH_TYPE_PIA_AM335X)
