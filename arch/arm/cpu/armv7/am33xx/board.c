@@ -439,14 +439,13 @@ void s_init(void)
 	timer_init(); /* initialize timer here, we need it in i2c_init */
 	enable_i2c0_pin_mux();
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-#if (CONFIG_MACH_TYPE != MACH_TYPE_PIA_AM335X)
-	if (board_read_eeprom() < 0)
-		puts("Could not get board ID.\n");
-#else
-#ifndef CONFIG_NOR_BOOT
+#if (CONFIG_MACH_TYPE == MACH_TYPE_PIA_AM335X)
 	if (board_identify() < 0)
 		puts("Could not get board ID.\n");
-#endif
+#else
+#if !defined(CONFIG_NOR_BOOT)
+	if (board_identify() < 0)
+		puts("Could not get board ID.\n");
 #endif
 
 	/* Check if baseboard eeprom is available */
@@ -461,6 +460,7 @@ void s_init(void)
 		puts("Could not read the EEPROM; something fundamentally"
 			" wrong on the I2C bus.\n");
 	}
+#endif
 
 	if (header.magic != 0xEE3355AA) {
 		/*

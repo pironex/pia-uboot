@@ -126,11 +126,11 @@ int am33xx_first_start(void)
 	header.magic = 0xEE3355AA;
 #if (defined CONFIG_PIA_E2)
 	strncpy((char *)&header.name, "PIA335E2", 8);
-	strncpy((char *)&header.version, "0.01", 4);
+	strncpy((char *)&header.version, CONFIG_PIA_FIRSTSTART, 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
 #elif (defined CONFIG_PIA_MMI)
 	strncpy((char *)&header.name, "PIA335MI", 8);
-	strncpy((char *)&header.version, "0.01", 4);
+	strncpy((char *)&header.version, CONFIG_PIA_FIRSTSTART, 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
 #else
 	strncpy((char *)&header.name, "PIA335__", 8);
@@ -138,7 +138,6 @@ int am33xx_first_start(void)
 	strncpy((char *)&header.serial, "000000000000", 12);
 #endif
 	memset(&header.config, 0, 32);
-	puts("Missing magic number, assuming first start, init EEPROM.\n");
 	debug("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			header.magic, header.name, header.version, header.serial);
 	size = sizeof(header);
@@ -148,15 +147,15 @@ int am33xx_first_start(void)
 		/* page size is 8 bytes */
 		do {
 			if (!i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR, pos, 1,
-					&((uchar *)&header)[pos], 1)) {
+					&((uchar *)&header)[pos], 8)) {
 				to = 0;
 			} else {
 				udelay(1000);
 			}
 		} while (--to > 0);
 		/* wait to avoid NACK error spam */
-		udelay(5000);
-	} while (++pos < size);
+		udelay(10000);
+	} while ((pos = pos + 8) < size);
 
 	init_rtc_rx8801();
 	init_tps65910();
@@ -182,9 +181,9 @@ static int read_eeprom(void)
 	}
 
 #ifdef CONFIG_PIA_FIRSTSTART
-		puts("Special FIRSTSTART version\n")
-		/* force reinitialization, normally the ID EEPROM is written here */
-		am33xx_first_start();
+	puts("Special FIRSTSTART version\n");
+	/* force reinitialization, normally the ID EEPROM is written here */
+	am33xx_first_start();
 #endif
 	/*
 	 * read the eeprom using i2c again,
@@ -201,14 +200,7 @@ static int read_eeprom(void)
 	if (header.magic != 0xEE3355AA || header.config[31] != 0) {
 		printf("Incorrect magic number (0x%x) in EEPROM\n",
 				header.magic);
-#ifndef CONFIG_PIA_FIRSTSTART
-		if (am33xx_first_start()) {
-			puts("Could not initialize EEPROM.\n");
-			return -EIO;
-		}
-#else
 		return -EIO;
-#endif
 	}
 
 	debug("Detecting board...");
