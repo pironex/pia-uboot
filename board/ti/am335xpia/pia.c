@@ -117,6 +117,7 @@ static int init_tps65910(void)
 	return 0;
 }
 
+#ifdef CONFIG_PIA_FIRSTSTART
 int am33xx_first_start(void)
 {
 	int size, pos;
@@ -128,11 +129,11 @@ int am33xx_first_start(void)
 	header.magic = 0xEE3355AA;
 #if (defined CONFIG_PIA_E2)
 	strncpy((char *)&header.name, "PIA335E2", 8);
-	strncpy((char *)&header.version, CONFIG_PIA_FIRSTSTART, 4);
+	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
 #elif (defined CONFIG_PIA_MMI)
 	strncpy((char *)&header.name, "PIA335MI", 8);
-	strncpy((char *)&header.version, CONFIG_PIA_FIRSTSTART, 4);
+	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
 #else
 	strncpy((char *)&header.name, "PIA335__", 8);
@@ -164,7 +165,7 @@ int am33xx_first_start(void)
 
 	return 0;
 }
-
+#endif
 
 /*
  * Read header information from EEPROM into global structure.

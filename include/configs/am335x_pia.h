@@ -29,6 +29,12 @@
 #endif /* DEBUG */
 #endif /* PIA_DEBUG */
 
+#ifdef CONFIG_PIA_FIRSTSTART
+#define CONFIG_PIA_REVISION CONFIG_PIA_FIRSTSTART
+#else
+#define CONFIG_PIA_REVISION "0.00"
+#endif
+
 #define CONFIG_BOARD_LATE_INIT
 
 #include <asm/arch/cpu.h>
