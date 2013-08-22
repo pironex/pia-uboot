@@ -86,6 +86,7 @@ static void mmc_load_image_fat(struct mmc *mmc)
 				(u8 *)header, sizeof(struct image_header));
 	if (err <= 0)
 		goto end;
+	header->ih_name[IH_NMLEN-1] = 0;
 
 	spl_parse_image_header(header);
 
