@@ -271,7 +271,9 @@
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_OMAP_HSMMC
+#if (CONFIG_PIA_E2 == 1)
 #define CONFIG_E2_MMC_CD_GPIO		(17 + (0 << 5))	//gpio0_17
+#endif
 #define CONFIG_MMI_MMC_CD_GPIO		(3 + (0 << 5))	//gpio0_3	//not used on board MMI
 #define CONFIG_CMD_MMC
 #define CONFIG_DOS_PARTITION
@@ -594,7 +596,11 @@
 #endif
 
 /* E2 settings */
+#if (CONFIG_PIA_E2 == 1)
 #define CONFIG_E2_FF_CLOCK_GPIO ((2 * 32) + 9)
+#else
+#define CONFIG_E2_FF_CLOCK_GPIO ((3 * 32) + 10)
+#endif
 #define CONFIG_E2_24V_FAIL_GPIO ((2 * 32) + 25)
 #define CONFIG_E2_WD_RESET_GPIO ((1 * 32) + 14)
 #define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)

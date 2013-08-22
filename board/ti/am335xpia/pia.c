@@ -344,10 +344,12 @@ static int test_supervisor_e2(void)
 		puts(" None or Soft Reset\n");
 	}
 #if 0
+#ifdef CONFIG_E2_FF_CLOCK_GPIO
 	puts(" Clearing RESET Flags\n");
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 1); /* reset flipflops */
 	mdelay(1);
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 0);
+#endif
 #endif
 	pb = gpio_get_value(CONFIG_E2_24V_FAIL_GPIO);
 	printf("24V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
@@ -502,9 +504,12 @@ void am33xx_spl_board_init(void)
 
 int board_mmc_getcd(struct mmc* mmc)
 {
+#if (CONFIG_PIA_E2 == 1)
+	/* only used on prototype E2 board */
 	if (board_is_e2()) {
 		return (1 ^ gpio_get_value(CONFIG_E2_MMC_CD_GPIO));
 	}
+#endif
 
 	return 1;
 }

@@ -41,7 +41,6 @@
 #define PULLUDDIS	(0x1 << 3) /* Pull up disabled */
 #define MODE(val)	val	/* used for Readability */
 #endif
-
 #define	PIN_OUTPUT          (0)
 #define	PIN_OUTPUT_PULLUP   (P_UP)
 #define	PIN_INPUT           (IEN | P_DIS)
@@ -383,8 +382,10 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
 	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
 	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
+#if (CONFIG_PIA_E2 == 1)
 	{OFFSET(mii1_txd2), M0 | PIN_INPUT_PULLUP},	/* MMC0_CD */
 	{OFFSET(mii1_txclk),M0 | PIN_INPUT_PULLUP},  /* MMC0_WP */
+#endif
 	{-1},
 };
 #else
@@ -408,7 +409,9 @@ static struct module_pin_mux e2_mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
 	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
 	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
-	{OFFSET(mii1_txd2), M7| PIN_INPUT_PULLUP},	/* MMC0_CD */
+	// dedicated CD pin was not used in Rev 0.01 and is not present in newer
+	// hw revisions
+	//{OFFSET(mii1_txd2), M7| PIN_INPUT_PULLUP},	/* MMC0_CD */
 	{-1},
 };
 
@@ -449,7 +452,11 @@ static struct module_pin_mux mmi_i2c1_pin_mux[] = {
 
 /* Supervisor - piA-AM335x-KM-E2 */
 static struct module_pin_mux e2_supervisor_pin_mux[] = {
+#if (CONFIG_PIA_E2 == 1)
 	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
+#else
+	{OFFSET(mii1_rxclk), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 3_10 */
+#endif
 	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
 	{OFFSET(mii1_col),  (M7 | PIN_INPUT_PULLDOWN)}, /* PB_RESET 3_00 */
 	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
