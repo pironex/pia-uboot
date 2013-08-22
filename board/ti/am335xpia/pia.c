@@ -172,6 +172,7 @@ static int read_eeprom(void)
 	int i;
 
 	debug(">>pia:read_eeprom()\n");
+	i2c_set_bus_num(0);
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {

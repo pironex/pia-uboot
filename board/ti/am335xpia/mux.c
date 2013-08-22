@@ -543,6 +543,17 @@ void enable_i2c0_pin_mux(void)
 {
 	debug(">>pia:enable_i2c0_pin_mux()\n");
 	configure_module_pin_mux(i2c0_pin_mux);
+
+#if defined CONFIG_PIA_FIRSTSTART
+	/* for first start config, we need the second i2c bus in MLO */
+#if defined(CONFIG_PIA_E2)
+	debug(">>pia:enable_i2c1_pin_mux()\n");
+	configure_module_pin_mux(i2c1_pin_mux);
+#elif defined(CONFIG_PIA_MMI)
+	debug(">>pia:enable_i2c1_pin_mux()\n");
+	configure_module_pin_mux(mmi_i2c1_pin_mux);
+#endif
+#endif
 }
 
 static void init_pia_e2_gpios(void)
