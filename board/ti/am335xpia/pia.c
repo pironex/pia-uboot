@@ -57,6 +57,7 @@ int board_is_mmi(void)
 	return (strncmp(header.name, "PIA335MI", 8) == 0);
 }
 
+#if defined(PIA_FIRSTSTART)
 static int init_rtc_rx8801(void)
 {
 	u8 regval;
@@ -85,7 +86,9 @@ static int init_rtc_rx8801(void)
 
 	return 0;
 }
+#endif
 
+#if defined(PIA_FIRSTSTART) || defined(PIA_TESTING)
 static int init_tps65910(void)
 {
 	u8 regval;
@@ -116,6 +119,7 @@ static int init_tps65910(void)
 
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_PIA_FIRSTSTART
 int am33xx_first_start(void)
