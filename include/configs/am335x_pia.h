@@ -19,8 +19,9 @@
 #define CONFIG_AM33XX
 
 /*#define PIA_ON_BONE*/
-/* #define PIA_DEBUG */
+#define nPIA_DEBUG
 #define PIA_TESTING
+#define CONFIG_DISPLAY_CPUINFO
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
