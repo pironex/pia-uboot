@@ -335,12 +335,15 @@ static int test_supervisor_e2(void)
 	puts("CHECK RESET...\n");
 	pb = gpio_get_value(CONFIG_E2_PB_RESET_GPIO);
 	wd = gpio_get_value(CONFIG_E2_WD_RESET_GPIO);
-	puts(" last reset was: ");
-	if (wd == 0 && pb == 0) {
+	printf(" reset lines: (w%d p%d)\n", pb, wd);
+	if (wd == 1 && pb == 1) {
 		puts(" Cold Boot\n");
 		puts(" Enabling Watchdog, wait for RESET\n");
-		gpio_set_value(CONFIG_E2_WD_SET1_GPIO, 0); /* will reset in 300 ms */
+		gpio_set_value(CONFIG_E2_WD_SET1_GPIO, 0);
+		/* the WD has an initial timeout of >60s, so it would take at least
+		 * 1 min for the board to restart after poweron */
 		mdelay(1000);
+		//hang();
 	} else if (wd == 0) {
 		puts(" WatchDog Reset\n");
 	} else if (pb == 0) {
