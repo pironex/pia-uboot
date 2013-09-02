@@ -455,7 +455,7 @@ static struct module_pin_mux e2_supervisor_pin_mux[] = {
 #if (CONFIG_PIA_E2 == 1)
 	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
 #else
-	{OFFSET(mii1_rxclk), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 3_10 */
+	{OFFSET(mii1_rxclk), (M7 | PIN_INPUT_PULLUP)}, /* FlipFlop Clock 3_10 */
 #endif
 	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
 	{OFFSET(mii1_col),  (M7 | PIN_INPUT_PULLDOWN)}, /* PB_RESET 3_00 */
@@ -579,7 +579,7 @@ static void init_pia_e2_gpios(void)
 	gpio_direction_input(CONFIG_E2_WD_RESET_GPIO);
 	/* reset clock for supervisor flip flops */
 	gpio_request(CONFIG_E2_FF_CLOCK_GPIO, "ff_clock");
-	gpio_direction_output(CONFIG_E2_FF_CLOCK_GPIO, 0);
+	gpio_direction_output(CONFIG_E2_FF_CLOCK_GPIO, 1);
 
 	/* Watchdog config, both high = WD disabled */
 	gpio_request(CONFIG_E2_WD_SET1_GPIO, "wd_set1");
