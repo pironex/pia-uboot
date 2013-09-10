@@ -512,14 +512,7 @@ void am33xx_spl_board_init(void)
 
 int board_mmc_getcd(struct mmc* mmc)
 {
-#if (CONFIG_PIA_E2 == 1)
-	/* only used on prototype E2 board */
-	if (board_is_e2()) {
-		return (1 ^ gpio_get_value(CONFIG_E2_MMC_CD_GPIO));
-	}
-#endif
-
-	return 1;
+	return 1; // ignore CD only present on prototype board
 }
 
 

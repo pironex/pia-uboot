@@ -382,10 +382,6 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
 	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
 	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
-#if (CONFIG_PIA_E2 == 1)
-	{OFFSET(mii1_txd2), M0 | PIN_INPUT_PULLUP},	/* MMC0_CD */
-	{OFFSET(mii1_txclk),M0 | PIN_INPUT_PULLUP},  /* MMC0_WP */
-#endif
 	{-1},
 };
 #else
