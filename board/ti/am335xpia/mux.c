@@ -448,11 +448,17 @@ static struct module_pin_mux mmi_i2c1_pin_mux[] = {
 
 /* Supervisor - piA-AM335x-KM-E2 */
 static struct module_pin_mux e2_supervisor_pin_mux[] = {
-#if (CONFIG_PIA_E2 == 1)
 	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
-#else
+	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
+	{OFFSET(mii1_col),  (M7 | PIN_INPUT_PULLDOWN)}, /* PB_RESET 3_00 */
+	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
+	{OFFSET(lcd_vsync), (M7 | PIN_INPUT_PULLUP)},   /* WD_SET1  2_22 */
+	{OFFSET(lcd_hsync), (M7 | PIN_INPUT_PULLDOWN)},   /* WD_SET2  2_23 */
+	{OFFSET(lcd_ac_bias_en), (M7 | PIN_INPUT_PULLUP)},   /* 24V_Fail  2_25 */
+	{-1},
+};
+static struct module_pin_mux e2_r2_supervisor_pin_mux[] = {
 	{OFFSET(mii1_rxclk), (M7 | PIN_INPUT_PULLUP)}, /* FlipFlop Clock 3_10 */
-#endif
 	{OFFSET(gpmc_ad14), (M7 | PIN_INPUT_PULLDOWN)}, /* WD_RESET 1_14 */
 	{OFFSET(mii1_col),  (M7 | PIN_INPUT_PULLDOWN)}, /* PB_RESET 3_00 */
 	/* SET0 = HIGH, SET1 = HIGH, SET2 = LOW default off for Watchdog */
@@ -624,7 +630,10 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(i2c1_pin_mux);
 		configure_module_pin_mux(mii2_pin_mux);
 		configure_module_pin_mux(e2_mmc0_pin_mux);
-		configure_module_pin_mux(e2_supervisor_pin_mux);
+		if (0 == strncmp(header->version, "0.01", 4))
+			configure_module_pin_mux(e2_supervisor_pin_mux);
+		else
+			configure_module_pin_mux(e2_r2_supervisor_pin_mux);
 		init_pia_e2_gpios();
 	} else if (board_is_mmi()) {
 		configure_module_pin_mux(mmi_i2c1_pin_mux);
