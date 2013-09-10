@@ -211,20 +211,20 @@ static int read_eeprom(void)
 		return -EIO;
 	}
 
-	debug("Detecting board...");
+	printf("Detecting board...");
 	i = 0;
 	if (strncmp(&header.name[0], "PIA335E2", 8) == 0) {
-		debug("PIA335E2 found\n");
+		printf("PIA335E2 found\n");
 		i++;
 	}
 
 	if (strncmp(&header.name[0], "PIA335MI", 8) == 0) {
-		debug("PIA335MI found\n");
+		printf("PIA335MI found\n");
 		i++;
 	}
 
 	if (!i) {
-		debug("board not specified\n");
+		printf("board not specified\n");
 	}
 
 	debug("EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
