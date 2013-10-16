@@ -67,11 +67,17 @@
 #define CONFIG_MTD_DEVICE	/* missing this causes error 'undefined reference to `get_mtd_device_nm' (was defined with SPI) */
 #define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		"nand0=omap2-nand.0"
+#ifdef NAND_4K_PAGES
+#define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:256k(SPL)," \
+				"256k(SPL.backup1),256k(SPL.backup2)," \
+				"256k(SPL.backup3),1280k(u-boot)," \
+				"256k(u-boot-env),5m(kernel),-(rootfs)"
+#else
 #define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:128k(SPL)," \
 				"128k(SPL.backup1),128k(SPL.backup2)," \
 				"128k(SPL.backup3),1920k(u-boot)," \
-				"128k(u-boot-env),5m(kernel),-(rootfs)" \
-
+				"128k(u-boot-env),5m(kernel),-(rootfs)"
+#endif
 #endif
 
 #define CONFIG_CMD_ASKENV
@@ -421,6 +427,7 @@
 
 #define CONFIG_ENV_IS_NOWHERE
 
+#ifndef NAND_4K_PAGES
 /* NAND Configuration.
  * Page  2K + 64 Bytes
  * Block 64 Pages = 128K + 4K */
@@ -444,7 +451,36 @@
 #define CONFIG_SYS_NAND_ECCSTEPS	4
 #define	CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * \
 						CONFIG_SYS_NAND_ECCSTEPS)
+#else
+#define CONFIG_SYS_NAND_5_ADDR_CYCLE
+#define CONFIG_SYS_NAND_PAGE_COUNT	(CONFIG_SYS_NAND_BLOCK_SIZE / \
+					 CONFIG_SYS_NAND_PAGE_SIZE)
+#define CONFIG_SYS_NAND_PAGE_SIZE	4096
+#define CONFIG_SYS_NAND_OOBSIZE		224
+#define CONFIG_SYS_NAND_BLOCK_SIZE	(256*1024)
+#define CONFIG_SYS_NAND_BAD_BLOCK_POS	NAND_LARGE_BADBLOCK_POS
+#define CONFIG_SYS_NAND_ECCPOS		{ 2, 3, 4, 5, 6, 7, 8, 9, \
+					 10, 11, 12, 13, 14, 15, 16, 17, \
+					 18, 19, 20, 21, 22, 23, 24, 25, \
+					 26, 27, 28, 29, 30, 31, 32, 33, \
+					 34, 35, 36, 37, 38, 39, 40, 41, \
+					 42, 43, 44, 45, 46, 47, 48, 49, \
+					 50, 51, 52, 53, 54, 55, 56, 57, \
+					 58, 59, 60, 61, 62, 63, 64, 65, \
+					 66, 67, 68, 69, 70, 71, 72, 73, \
+					 74, 75, 76, 77, 78, 79, 80, 81, \
+					 82, 83, 84, 85, 86, 87, 88, 89, \
+					 90, 91, 82, 93, 94, 95, 96, 97, \
+					 98, 99,100,101,102,103,104,105, \
+					106,107,108,109,110,111,112,113, \
+	}
 
+#define CONFIG_SYS_NAND_ECCSIZE		512
+#define CONFIG_SYS_NAND_ECCBYTES	14
+#define CONFIG_SYS_NAND_ECCSTEPS	8
+#define	CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * \
+						CONFIG_SYS_NAND_ECCSTEPS)
+#endif
 /* Defines for SPL */
 #define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
