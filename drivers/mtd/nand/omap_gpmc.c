@@ -689,11 +689,23 @@ void omap_nand_switch_ecc(int32_t hardware)
  *   nand_scan about special functionality. See the defines for further
  *   explanation
  */
+#ifdef CONFIG_AM33XX
+#include "asm/arch/sys_proto.h"
+extern struct am335x_baseboard_id header;
+#endif
 int board_nand_init(struct nand_chip *nand)
 {
 	int32_t gpmc_config = 0;
 	cs = 0;
 
+#ifdef CONFIG_AM33XX
+	/* ignore NAND init here, as it breaks boot process */
+	printf("%s: checking board...%p\n", __func__, header.name);
+	if (strncmp(header.name, "PIA335MI", 8) == 0) {
+		puts("No NAND on MMI\n");
+		return 0;
+	}
+#endif
 	/*
 	 * xloader/Uboot's gpmc configuration would have configured GPMC for
 	 * nand type of memory. The following logic scans and latches on to the
