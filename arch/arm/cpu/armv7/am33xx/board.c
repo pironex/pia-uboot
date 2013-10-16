@@ -364,7 +364,7 @@ void __attribute__((weak)) am33xx_spl_board_init(void)
 
 int __attribute__((weak)) board_identify(void)
 {
-	return;
+	return -1;
 }
 #endif
 
