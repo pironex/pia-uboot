@@ -211,15 +211,15 @@ static int read_eeprom(void)
 		return -EIO;
 	}
 
-	printf("Detecting board...");
+	printf("Detecting board... %p\n", header.name);
 	i = 0;
 	if (strncmp(&header.name[0], "PIA335E2", 8) == 0) {
-		printf("PIA335E2 found\n");
+		puts("  PIA335E2 found\n");
 		i++;
 	}
 
 	if (strncmp(&header.name[0], "PIA335MI", 8) == 0) {
-		printf("PIA335MI found\n");
+		puts("  PIA335MI found\n");
 		i++;
 	}
 
