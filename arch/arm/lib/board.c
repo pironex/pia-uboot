@@ -543,10 +543,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #if defined(CONFIG_CMD_NAND)
-	if (!board_is_mmi()) {
-		puts("NAND:  ");
-		nand_init();		/* go init the NAND */
-	}
+	puts("NAND:  ");
+	nand_init();		/* go init the NAND */
 #endif
 
 #if defined(CONFIG_CMD_ONENAND)
