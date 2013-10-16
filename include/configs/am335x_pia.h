@@ -20,6 +20,7 @@
 
 /*#define PIA_ON_BONE*/
 #define nPIA_DEBUG
+#undef CONFIG_USB_SPL
 #define PIA_TESTING
 #define CONFIG_DISPLAY_CPUINFO
 /* TODO only for dev */
@@ -503,16 +504,13 @@
 #define CONFIG_PANIC_HANG		/* Do not call do_reset() */
 #endif
 
-/* Core network SPL (USB and CPSW). */
-#if 0
-#define CONFIG_SPL_NET_SUPPORT
-#define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"
-#endif
 
 /* USB (RNDIS) SPL */
 #ifdef CONFIG_USB_SPL
 #define CONFIG_SPL_MUSB_GADGET_SUPPORT
 #define CONFIG_SPL_USB_ETH_SUPPORT
+#define CONFIG_SPL_NET_SUPPORT
+#define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"
 #ifdef CONFIG_SPL_BUILD
 #undef CONFIG_PHYLIB			/* Only needed on CPSW */
 #endif
