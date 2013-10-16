@@ -241,6 +241,7 @@ int board_identify(void)
 }
 #endif
 
+#ifndef CONFIG_SPL_BUILD
 #ifdef PIA_TESTING
 
 static int test_rtc_tps(void)
@@ -469,6 +470,8 @@ int board_phy_config(struct phy_device *phydev)
 
 	return 0;
 }
+#endif /* CONFIG_SPL_BUILD */
+
 
 #include "pmic.h"
 #include "asm/arch/clocks_am33xx.h"
