@@ -195,11 +195,12 @@
 	"mmcdev=0\0" \
 	"nandroot=/dev/mtdblock4\0" \
 	"nandrootfs=jffs2\0" \
+	"mmcrootfs=ext4\0" \
 	"quiet=\0" \
 	"displaymode=dvi:1024x768MR-24@60 vram=16M omapfb.vram=0:8M\0" \
 	"mmcargs=setenv bootargs console=${console} ${quiet} " \
 		"root=/dev/mmcblk0p2 ro " \
-		"rootfstype=ext4 rootwait " \
+		"rootfstype=${mmcrootfs} rootwait " \
 		"omapdss.def_disp=${display} " \
 		"omapfb.mode=${displaymode} " \
 		"buddy_lcd=${buddy_lcd} " \
