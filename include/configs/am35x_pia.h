@@ -197,12 +197,14 @@
 	"nandrootfs=jffs2\0" \
 	"mmcrootfs=ext4\0" \
 	"quiet=\0" \
+	"extraargs=usbcore.autosuspend=-1 \0" \
 	"displaymode=dvi:1024x768MR-24@60 vram=16M omapfb.vram=0:8M\0" \
 	"mmcargs=setenv bootargs console=${console} ${quiet} " \
 		"root=/dev/mmcblk0p2 ro " \
 		"rootfstype=${mmcrootfs} rootwait " \
 		"omapdss.def_disp=${display} " \
 		"omapfb.mode=${displaymode} " \
+		"${extraargs} " \
 		"buddy_lcd=${buddy_lcd} " \
 		"buddy=${buddy}\0" \
 	"nandargs=setenv bootargs console=${console} " \
@@ -210,6 +212,7 @@
 		"rootfstype=${nandrootfs} " \
 		"omapdss.def_disp=${display} " \
 		"omapfb.mode=${displaymode} " \
+		"${extraargs} " \
 		"buddy_lcd=${buddy_lcd} " \
 		"buddy=${buddy}\0" \
 	"loadbootscript=fatload mmc ${mmcdev} ${loadaddr} boot.scr\0" \
