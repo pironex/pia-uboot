@@ -647,6 +647,8 @@
 #define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)
 #define CONFIG_E2_WD_SET1_GPIO  ((2 * 32) + 22)
 #define CONFIG_E2_WD_SET2_GPIO  ((2 * 32) + 23)
+#define CONFIG_E2_POE_POE_PS_SD_GPIO ((3 * 32) + 9)
+#define CONFIG_E2_POE_PSE_SD_GPIO ((3 * 32) + 20)
 
 /* MMI settings */
 #define CONFIG_MMI_3_3V_FAIL_GPIO	((3 * 32) + 20)	//gpio3_20
