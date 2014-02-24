@@ -311,7 +311,7 @@ static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(lcd_pclk),		(M0 | PIN_OUTPUT)}, /* LCD.PCLK */
 	{OFFSET(lcd_ac_bias_en),(M0 | PIN_OUTPUT)}, /* LCD.AC_BIAS_EN */
 	{OFFSET(gpmc_be1n), 	(M7 | PIN_OUTPUT)},	/* LCD.DISEN */
-	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.DISEN */
+	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.BACKLIGHTEN */
 	{-1},
 };
 
@@ -349,7 +349,6 @@ static struct module_pin_mux mmi_mii1_pin_mux[] = {
 	{OFFSET(mdio_clk), M0 | PIN_OUTPUT_PULLUP},  /* MDIO_CLK */
 	{OFFSET(mii1_col),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_COL */
 	{OFFSET(mii1_crs),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_CRS DV */
-	{OFFSET(rmii1_refclk),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_REFCLK */
 	{-1},
 };
 
