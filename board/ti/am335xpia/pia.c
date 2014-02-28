@@ -139,6 +139,13 @@ int am33xx_first_start(void)
 	strncpy((char *)&header.name, "PIA335MI", 8);
 	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
 	strncpy((char *)&header.serial, "000000000000", 12);
+#if (defined CONFIG_MMI_EXTENDED)
+#if (CONFIG_MMI_EXTENDED == 0)
+	header.config[0] = 'B';
+#else
+	header.config[0] = 'X';
+#endif
+#endif /* CONFIG_MMI_EXTENDED */
 #else
 	strncpy((char *)&header.name, "PIA335__", 8);
 	strncpy((char *)&header.version, "0.00", 4);
