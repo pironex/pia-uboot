@@ -400,6 +400,64 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ -1 },
 };
 
+/* EB_TFT_Baseboard: only changes based on pia335x_pm */
+static struct module_pin_mux pia335x_eb_tft[] = {
+	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLDOWN) }, /* LCD BACKLIGHT EN */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLDOWN) }, /* LCD ON/OFF */
+	{ OFFSET(gpmc_ad8),         (M1 | PIN_OUTPUT) }, /* LCD D23 */
+	{ OFFSET(gpmc_ad9),         (M1 | PIN_OUTPUT) }, /* LCD D22 */
+	{ OFFSET(gpmc_ad10),        (M1 | PIN_OUTPUT) }, /* LCD D21 */
+	{ OFFSET(gpmc_ad11),        (M1 | PIN_OUTPUT) }, /* LCD D20 */
+	{ OFFSET(gpmc_ad12),        (M1 | PIN_OUTPUT) }, /* LCD D19 */
+	{ OFFSET(gpmc_ad13),        (M1 | PIN_OUTPUT) }, /* LCD D18 */
+	{ OFFSET(gpmc_ad14),        (M1 | PIN_OUTPUT) }, /* LCD D17 */
+	{ OFFSET(gpmc_ad15),        (M1 | PIN_OUTPUT) }, /* LCD D16 */
+	{ OFFSET(lcd_data0),        (M0 | PIN_OUTPUT) }, /* LCD D0 */
+	{ OFFSET(lcd_data1),        (M0 | PIN_OUTPUT) }, /* LCD D1 */
+	{ OFFSET(lcd_data2),        (M0 | PIN_OUTPUT) }, /* LCD D2 */
+	{ OFFSET(lcd_data3),        (M0 | PIN_OUTPUT) }, /* LCD D3 */
+	{ OFFSET(lcd_data4),        (M0 | PIN_OUTPUT) }, /* LCD D4 */
+	{ OFFSET(lcd_data5),        (M0 | PIN_OUTPUT) }, /* LCD D5 */
+	{ OFFSET(lcd_data6),        (M0 | PIN_OUTPUT) }, /* LCD D6 */
+	{ OFFSET(lcd_data7),        (M0 | PIN_OUTPUT) }, /* LCD D7 */
+	{ OFFSET(lcd_data8),        (M0 | PIN_OUTPUT) }, /* LCD D8 */
+	{ OFFSET(lcd_data9),        (M0 | PIN_OUTPUT) }, /* LCD D9 */
+	{ OFFSET(lcd_data10),       (M0 | PIN_OUTPUT) }, /* LCD D10 */
+	{ OFFSET(lcd_data11),       (M0 | PIN_OUTPUT) }, /* LCD D11 */
+	{ OFFSET(lcd_data12),       (M0 | PIN_OUTPUT) }, /* LCD D12 */
+	{ OFFSET(lcd_data13),       (M0 | PIN_OUTPUT) }, /* LCD D13 */
+	{ OFFSET(lcd_data14),       (M0 | PIN_OUTPUT) }, /* LCD D14 */
+	{ OFFSET(lcd_data15),       (M0 | PIN_OUTPUT) }, /* LCD D15 */
+	{ OFFSET(lcd_vsync),        (M0 | PIN_OUTPUT) }, /* LCD VSYNC */
+	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
+	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
+	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
+	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
+	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
+	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
+	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
+	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
+	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
+	{ OFFSET(mii1_col),         (M7 | PIN_INPUT_PULLDOWN) }, /* RFID.POW_EN */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* RFID.IRQ */
+	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) }, /* CAN0 TX */
+	{ OFFSET(mii1_txd2),        (M1 | PIN_INPUT) },  /* CAN0 RX */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT_PULLUP) }, /* CAN0 TERM */
+	{ OFFSET(rmii1_refclk),     (M2 | PIN_INPUT_PULLUP) }, /* SPI1 CS0 (RFID) */
+	{ OFFSET(spi0_cs1),         (M2 | PIN_OUTPUT) }, /* Buzzer O */
+	{ OFFSET(mcasp0_aclkx),     (M3 | PIN_INPUT_PULLUP) }, /* SPI1 CLK */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* LED1 GPIO 3_17 */
+	{ OFFSET(mcasp0_fsx),       (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MOSI */
+	{ OFFSET(mcasp0_axr0),      (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MISO */
+	{ OFFSET(xdma_event_intr0), (M6 | PIN_INPUT) }, /* JTAG.EMU2 */
+	{ OFFSET(xdma_event_intr1), (M6 | PIN_INPUT) }, /* JTAG.EMU3 */
+	{ OFFSET(emu0),             (M0 | PIN_INPUT) }, /* JTAG.EMU0 */
+	{ OFFSET(emu1),             (M0 | PIN_INPUT) }, /* JTAG.EMU1 */
+	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0 DRVVBUS */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1 DRVVBUS */
+	{ -1 },
+};
+
 /* Module pin mux for LCDC */
 static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(lcd_data0),		(M0 | PIN_OUTPUT)},	/* LCD.DATA0 */
