@@ -311,22 +311,14 @@ static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(lcd_pclk),		(M0 | PIN_OUTPUT)}, /* LCD.PCLK */
 	{OFFSET(lcd_ac_bias_en),(M0 | PIN_OUTPUT)}, /* LCD.AC_BIAS_EN */
 	{OFFSET(gpmc_be1n), 	(M7 | PIN_OUTPUT)},	/* LCD.DISEN */
-	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.DISEN */
+	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.BACKLIGHTEN */
 	{-1},
 };
 
 
-static struct module_pin_mux e2_uart0_pin_mux[] = {
+static struct module_pin_mux uart0_pin_mux[] = {
 	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
 	{OFFSET(uart0_txd), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_TXD */
-	{-1},
-};
-
-static struct module_pin_mux mmi_uart0_pin_mux_mmi[] = {
-	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
-	{OFFSET(uart0_txd), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_TXD */
-	{OFFSET(uart0_ctsn), (M0 | PIN_INPUT_PULLUP)},  /* UART0_CTSN */
-	{OFFSET(uart0_rtsn), (M0 | PIN_OUTPUT_PULLUP)},  /* UART0_RTSN */
 	{-1},
 };
 
@@ -349,7 +341,6 @@ static struct module_pin_mux mmi_mii1_pin_mux[] = {
 	{OFFSET(mdio_clk), M0 | PIN_OUTPUT_PULLUP},  /* MDIO_CLK */
 	{OFFSET(mii1_col),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_COL */
 	{OFFSET(mii1_crs),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_CRS DV */
-	{OFFSET(rmii1_refclk),  M0 | PIN_INPUT_PULLDOWN},  /* MII1_REFCLK */
 	{-1},
 };
 
@@ -536,10 +527,7 @@ static void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 
 void enable_uart0_pin_mux(void)
 {
-	configure_module_pin_mux(e2_uart0_pin_mux);
-#if defined(CONFIG_PIA_MMI)
-		configure_module_pin_mux(mmi_uart0_pin_mux_mmi);
-#endif
+	configure_module_pin_mux(uart0_pin_mux);
 }
 
 #ifdef CONFIG_MMC
