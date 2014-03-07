@@ -834,6 +834,9 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(mmi_audio_pin_mux);
 		configure_module_pin_mux(lcdc_pin_mux);
 		init_pia_mmi_gpios();
+	} else if (board_is_ebtft()) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(pia335x_eb_tft);
 	}
 
 	/* There is no hook for additional GPIO initialization */
