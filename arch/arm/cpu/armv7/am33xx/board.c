@@ -80,7 +80,8 @@ static inline int board_is_evm_sk(void)
 static inline int board_is_pia(void)
 {
 	debug("name:%8s\n", header.name);
-	return !strncmp(header.name, "PIA335", 6);
+	return (!strncmp(header.name, "PIA335", 6) ||
+			strncmp(header.name, "P335B", 5));
 }
 
 int board_is_evm_15_or_later(void)
