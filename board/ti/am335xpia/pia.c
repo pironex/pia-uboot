@@ -117,10 +117,19 @@ static int init_tps65910(void)
 	/* clear powerup and alarm flags */
 	regval = 0xC0;
 	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
-		puts(" Couldn't write RTC STATUS register\n");
+		puts(" FAIL: Couldn't write RTC STATUS register\n");
 		return -EIO;
 	}
 	udelay(10000);
+	if (board_is_ebtft()) {
+		puts("Initializing TPS Battery Charger...\n");
+		// BBCHG 3.15V enable charge
+		regval = ((0x2 << 1) | 1);
+		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
+			puts(" FAIL: Couldn't enable battery charger!\n");
+			return -EIO;
+		}
+	}
 
 	return 0;
 }
