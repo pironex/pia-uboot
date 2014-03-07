@@ -739,6 +739,8 @@ void enable_i2c0_pin_mux(void)
 
 static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 {
+	unsigned int gpio_ffclock = 0;
+
 	debug(">>pia:init_pia_e2_gpios()\n");
 #if defined(CONFIG_MMC) && defined(CONFIG_E2_MMC_CD_GPIO)
 	gpio_request(CONFIG_E2_MMC_CD_GPIO, "mmc0_cd");
@@ -752,8 +754,13 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 	gpio_request(CONFIG_E2_WD_RESET_GPIO, "wd_reset");
 	gpio_direction_input(CONFIG_E2_WD_RESET_GPIO);
 	/* reset clock for supervisor flip flops */
-	gpio_request(CONFIG_E2_FF_CLOCK_GPIO, "ff_clock");
-	gpio_direction_output(CONFIG_E2_FF_CLOCK_GPIO, 1);
+	if (strncmp(header->version, "0.01", 4) == 0) {
+		gpio_ffclock = (2 * 32) + 9;
+	} else {
+		gpio_ffclock = (3 * 32) + 10;
+	}
+	gpio_request(gpio_ffclock, "ff_clock");
+	gpio_direction_output(gpio_ffclock, 1);
 
 	/* Watchdog config, both high = WD disabled */
 	gpio_request(CONFIG_E2_WD_SET1_GPIO, "wd_set1");

@@ -63,7 +63,7 @@
 /* commands to include */
 #include <config_cmd_default.h>
 
-#if defined(CONFIG_PIA_E2)
+#if defined(CONFIG_PIA_NAND)
 /* no NAND on MMI but doesn't hurt to enable anyway */
 #define CONFIG_MTD_DEVICE	/* missing this causes error 'undefined reference to `get_mtd_device_nm' (was defined with SPI) */
 #define CONFIG_CMD_MTDPARTS
@@ -85,7 +85,7 @@
 #define CONFIG_VERSION_VARIABLE
 
 #if !(defined(CONFIG_USB_SPL) && defined(CONFIG_SPL_BUILD))
-#if defined(CONFIG_PIA_E2)
+#if defined(CONFIG_PIA_NAND)
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
 	"kloadaddr=0x80007fc0\0" \
@@ -285,9 +285,6 @@
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_OMAP_HSMMC
-#if (CONFIG_PIA_E2 == 1)
-#define CONFIG_E2_MMC_CD_GPIO		(17 + (0 << 5))	//gpio0_17
-#endif
 #define CONFIG_MMI_MMC_CD_GPIO		(3 + (0 << 5))	//gpio0_3	//not used on board MMI
 #define CONFIG_CMD_MMC
 #define CONFIG_DOS_PARTITION
@@ -540,7 +537,7 @@
 #endif
 
 /* NAND */
-#if defined(CONFIG_PIA_E2)
+#if defined(CONFIG_PIA_NAND)
 #define CONFIG_SPL_NAND_AM33XX_BCH
 #define CONFIG_SPL_NAND_SUPPORT
 #define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
@@ -611,7 +608,7 @@
 /* Unsupported features */
 #undef CONFIG_USE_IRQ
 
-#if defined(CONFIG_PIA_E2)
+#if defined(CONFIG_PIA_NAND)
 #define CONFIG_NAND
 /* NAND support */
 #ifdef CONFIG_NAND
@@ -637,11 +634,7 @@
 #endif
 
 /* E2 settings */
-#if (CONFIG_PIA_E2 == 1)
-#define CONFIG_E2_FF_CLOCK_GPIO ((2 * 32) + 9)
-#else
-#define CONFIG_E2_FF_CLOCK_GPIO ((3 * 32) + 10)
-#endif
+
 #define CONFIG_E2_24V_FAIL_GPIO ((2 * 32) + 25)
 #define CONFIG_E2_WD_RESET_GPIO ((1 * 32) + 14)
 #define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)
