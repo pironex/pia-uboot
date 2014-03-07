@@ -183,9 +183,13 @@ static int read_eeprom(void)
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
-		puts("Could not probe the EEPROM; something fundamentally "
-			"wrong on the I2C bus.\n");
-		return -ENODEV;
+		puts("Could not probe the EEPROM on I2C0; trying I2C1...\n");
+		i2c_set_bus_num(1);
+		if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
+			puts("Could not probe the EEPROM; something fundamentally "
+					"wrong on the I2C bus.\n");
+			return -ENODEV;
+		}
 	}
 
 #ifdef CONFIG_PIA_FIRSTSTART
