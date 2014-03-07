@@ -52,6 +52,11 @@ int board_is_e2(void)
 	return (strncmp(header.name, "PIA335E2", 8) == 0);
 }
 
+int board_is_ebtft(void)
+{
+	return (strncmp(header.name, "P335BEBT", 8) == 0);
+}
+
 int board_is_mmi(void)
 {
 	return (strncmp(header.name, "PIA335MI", 8) == 0);
@@ -112,10 +117,19 @@ static int init_tps65910(void)
 	/* clear powerup and alarm flags */
 	regval = 0xC0;
 	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
-		puts(" Couldn't write RTC STATUS register\n");
+		puts(" FAIL: Couldn't write RTC STATUS register\n");
 		return -EIO;
 	}
 	udelay(10000);
+	if (board_is_ebtft()) {
+		puts("Initializing TPS Battery Charger...\n");
+		// BBCHG 3.15V enable charge
+		regval = ((0x2 << 1) | 1);
+		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
+			puts(" FAIL: Couldn't enable battery charger!\n");
+			return -EIO;
+		}
+	}
 
 	return 0;
 }
