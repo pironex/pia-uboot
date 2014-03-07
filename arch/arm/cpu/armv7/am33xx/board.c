@@ -671,6 +671,7 @@ static struct cpsw_platform_data cpsw_data = {
 #if defined(CONFIG_DRIVER_TI_CPSW) || \
 	(defined(CONFIG_USB_ETHER) && defined(CONFIG_MUSB_GADGET))
 int board_is_e2(void);
+int board_is_ebtft(void);
 int board_eth_init(bd_t *bis)
 {
 	int rv, ret = 0;
@@ -723,7 +724,7 @@ int board_eth_init(bd_t *bis)
 				PHY_INTERFACE_MODE_RGMII;
 	}
 
-	if (board_is_e2()) {
+	if (board_is_e2() || board_is_ebtft()) {
 		// FIXME we only use slave 2, how to set this up?
 		// setting up slave 1 & 2 works if slave 1 is not muxed
 		cpsw_data.slaves = 2;
