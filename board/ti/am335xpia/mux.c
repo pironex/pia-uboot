@@ -280,6 +280,184 @@ struct module_pin_mux {
 #define OFFSET(x)	(unsigned int) (&((struct pad_signals *) \
 				(PAD_CTRL_BASE))->x)
 
+/* piA-AM335x-PM base configuration for fixed and "most likely" fixed pin
+ * configs. This includes I2C, SPI busses, MII */
+static struct module_pin_mux pia335x_pm[] = {
+	{ OFFSET(gpmc_ad0),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D0 */
+	{ OFFSET(gpmc_ad1),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D1 */
+	{ OFFSET(gpmc_ad2),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D2*/
+	{ OFFSET(gpmc_ad3),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D3 */
+	{ OFFSET(gpmc_ad4),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D4 */
+	{ OFFSET(gpmc_ad5),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D5 */
+	{ OFFSET(gpmc_ad6),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D6 */
+	{ OFFSET(gpmc_ad7),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D7 */
+	{ OFFSET(gpmc_ad8),         (M7 | PIN_INPUT) }, /* GPIO 0_22 */
+	{ OFFSET(gpmc_ad9),         (M7 | PIN_INPUT) }, /* GPIO 0_23 */
+	{ OFFSET(gpmc_ad10),        (M7 | PIN_INPUT) }, /* GPIO 0_26 */
+	{ OFFSET(gpmc_ad11),        (M7 | PIN_INPUT) }, /* GPIO 0_27 */
+	{ OFFSET(gpmc_ad12),        (M7 | PIN_INPUT) }, /* GPIO 1_12 */
+	{ OFFSET(gpmc_ad13),        (M7 | PIN_INPUT) }, /* GPIO 1_13 */
+	{ OFFSET(gpmc_ad14),        (M7 | PIN_INPUT) }, /* GPIO 1_14 */
+	{ OFFSET(gpmc_ad15),        (M7 | PIN_INPUT) }, /* GPIO 1_15 */
+	{ OFFSET(gpmc_a0),          (M1 | PIN_OUTPUT) }, /* MII2 TXEN */
+	{ OFFSET(gpmc_a1),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXDV */
+	{ OFFSET(gpmc_a2),          (M1 | PIN_OUTPUT) }, /* MII2 TXD3 */
+	{ OFFSET(gpmc_a3),          (M1 | PIN_OUTPUT) }, /* MII2 TXD2 */
+	{ OFFSET(gpmc_a4),          (M1 | PIN_OUTPUT) }, /* MII2 TXD1 */
+	{ OFFSET(gpmc_a5),          (M1 | PIN_OUTPUT) }, /* MII2 TXD0 */
+	{ OFFSET(gpmc_a6),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 TXCLK */
+	{ OFFSET(gpmc_a7),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXCLK */
+	{ OFFSET(gpmc_a8),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD3 */
+	{ OFFSET(gpmc_a9),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD2 */
+	{ OFFSET(gpmc_a10),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD1 */
+	{ OFFSET(gpmc_a11),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD0 */
+	{ OFFSET(gpmc_wait0),       (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 CRS */
+	{ OFFSET(gpmc_wpn),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXER */
+	{ OFFSET(gpmc_be1n),        (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 COL */
+	{ OFFSET(gpmc_csn0),        (M7 | PIN_INPUT) }, /* GPIO 1_29 LED1*/
+	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
+	{ OFFSET(gpmc_csn2),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CMD */
+	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* GPIO 2_0 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_1 */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 */
+	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT) }, /* GPIO 2_5 */
+	{ OFFSET(lcd_data0),        (M7 | PIN_INPUT) }, /* GPIO 2_6 */
+	{ OFFSET(lcd_data1),        (M7 | PIN_INPUT) }, /* GPIO 2_7 */
+	{ OFFSET(lcd_data2),        (M7 | PIN_INPUT) }, /* GPIO 2_8 */
+	{ OFFSET(lcd_data3),        (M7 | PIN_INPUT) }, /* GPIO 2_9 */
+	{ OFFSET(lcd_data4),        (M7 | PIN_INPUT) }, /* GPIO 2_10 */
+	{ OFFSET(lcd_data5),        (M7 | PIN_INPUT) }, /* GPIO 2_11 */
+	{ OFFSET(lcd_data6),        (M7 | PIN_INPUT) }, /* GPIO 2_12 */
+	{ OFFSET(lcd_data7),        (M7 | PIN_INPUT) }, /* GPIO 2_13 */
+	{ OFFSET(lcd_data8),        (M7 | PIN_INPUT) }, /* GPIO 2_14 */
+	{ OFFSET(lcd_data9),        (M7 | PIN_INPUT) }, /* GPIO 2_15 */
+	{ OFFSET(lcd_data10),       (M7 | PIN_INPUT) }, /* GPIO 2_16 */
+	{ OFFSET(lcd_data11),       (M7 | PIN_INPUT) }, /* GPIO 2_17 */
+	{ OFFSET(lcd_data12),       (M7 | PIN_INPUT) }, /* GPIO 0_8 */
+	{ OFFSET(lcd_data13),       (M7 | PIN_INPUT) }, /* GPIO 0_9 */
+	{ OFFSET(lcd_data14),       (M7 | PIN_INPUT) }, /* GPIO 0_10 */
+	{ OFFSET(lcd_data15),       (M7 | PIN_INPUT) }, /* GPIO 0_11 */
+	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT) }, /* GPIO 2_22 */
+	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT) }, /* GPIO 2_24 */
+	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT) }, /* GPIO 2_24 */
+	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_INPUT) }, /* GPIO 2_25 */
+	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT) }, /* GPIO 2_26 */
+	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT) }, /* GPIO 2_27 */
+	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT) }, /* GPIO 2_28 */
+	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT) }, /* GPIO 2_29 */
+	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_30 */
+	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT) }, /* GPIO 2_31 */
+	{ OFFSET(mii1_col),         (M7 | PIN_INPUT) }, /* GPIO 3_0 */
+	{ OFFSET(mii1_crs),         (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SDA */
+	{ OFFSET(mii1_rxerr),       (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SCL */
+	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* GPIO 3_3 */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT) }, /* GPIO 3_4 */
+	{ OFFSET(mii1_txd3),        (M7 | PIN_INPUT) }, /* GPIO 0_16 */
+	{ OFFSET(mii1_txd2),        (M7 | PIN_INPUT) }, /* GPIO 0_17 */
+	{ OFFSET(mii1_txd1),        (M7 | PIN_INPUT) }, /* GPIO 0_21 */
+	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* GPIO 0_28 */
+	{ OFFSET(mii1_txclk),       (M7 | PIN_INPUT) }, /* GPIO 3_9 */
+	{ OFFSET(mii1_rxclk),       (M7 | PIN_INPUT) }, /* GPIO 3_10 */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT) }, /* GPIO 2_18 */
+	{ OFFSET(mii1_rxd2),        (M7 | PIN_INPUT) }, /* GPIO 2_19 */
+	{ OFFSET(mii1_rxd1),        (M7 | PIN_INPUT) }, /* GPIO 2_20 */
+	{ OFFSET(mii1_rxd0),        (M7 | PIN_INPUT) }, /* GPIO 2_21 */
+	{ OFFSET(rmii1_refclk),     (M7 | PIN_INPUT) }, /* GPIO 0_29 */
+	{ OFFSET(mdio_data),        (M0 | PIN_INPUT_PULLUP) }, /* MDIO data */
+	{ OFFSET(mdio_clk),         (M0 | PIN_OUTPUT_PULLUP) }, /* MDIO CLK */
+	{ OFFSET(spi0_sclk),        (M0 | PIN_INPUT_PULLUP) }, /* SPI0 CLK */
+	{ OFFSET(spi0_d0),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D0 */
+	{ OFFSET(spi0_d1),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D1 */
+	{ OFFSET(spi0_cs0),         (M0 | PIN_INPUT_PULLUP) }, /* SPI0 CS0 */
+	{ OFFSET(spi0_cs1),         (M7 | PIN_INPUT) }, /* GPIO 0_6 */
+	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT) }, /* GPIO 0_7 */
+	{ OFFSET(uart0_ctsn),       (M7 | PIN_INPUT) }, /* GPIO 1_8 */
+	{ OFFSET(uart0_rtsn),       (M7 | PIN_INPUT) }, /* GPIO 1_9 */
+	{ OFFSET(uart0_rxd),        (M0 | PIN_INPUT) }, /* UART0 RX */
+	{ OFFSET(uart0_txd),        (M0 | PIN_OUTPUT) },/* UART0 TX */
+	{ OFFSET(uart1_ctsn),       (M7 | PIN_INPUT) }, /* GPIO 0_12 */
+	{ OFFSET(uart1_rtsn),       (M7 | PIN_INPUT) }, /* GPIO 0_13 */
+	{ OFFSET(uart1_rxd),        (M7 | PIN_INPUT) }, /* GPIO 0_14 */
+	{ OFFSET(uart1_txd),        (M7 | PIN_INPUT) }, /* GPIO 0_15 */
+	{ OFFSET(i2c0_sda),         (M0 | PIN_INPUT_PULLUP) }, /* I2C0 SDA */
+	{ OFFSET(i2c0_scl),         (M0 | PIN_INPUT_PULLUP) }, /* I2C0 SCL */
+	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_INPUT) }, /* GPIO 3_14 */
+	{ OFFSET(mcasp0_fsx),       (M7 | PIN_INPUT) }, /* GPIO 3_15 */
+	{ OFFSET(mcasp0_axr0),      (M7 | PIN_INPUT) }, /* GPIO 3_16 */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT) }, /* GPIO 3_17 LED1 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT) }, /* GPIO 3_18 */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT) }, /* GPIO 3_19 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT) }, /* GPIO 3_20 */
+	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT) }, /* GPIO 3_21 */
+	{ OFFSET(xdma_event_intr0), (M7 | PIN_INPUT) }, /* GPIO 0_19 */
+	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT) }, /* GPIO 0_20 */
+	{ OFFSET(emu0),             (M7 | PIN_INPUT) }, /* GPIO 3_7 */
+	{ OFFSET(emu1),             (M7 | PIN_INPUT) }, /* GPIO 3_8 */
+	{ OFFSET(usb0_drvvbus),     (M7 | PIN_INPUT) }, /* GPIO 0_18 */
+	{ OFFSET(usb1_drvvbus),     (M7 | PIN_INPUT) }, /* GPIO 3_13 */
+	{ -1 },
+};
+
+/* EB_TFT_Baseboard: only changes based on pia335x_pm */
+static struct module_pin_mux pia335x_eb_tft[] = {
+	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLDOWN) }, /* LCD BACKLIGHT EN */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLDOWN) }, /* LCD ON/OFF */
+	{ OFFSET(gpmc_ad8),         (M1 | PIN_OUTPUT) }, /* LCD D23 */
+	{ OFFSET(gpmc_ad9),         (M1 | PIN_OUTPUT) }, /* LCD D22 */
+	{ OFFSET(gpmc_ad10),        (M1 | PIN_OUTPUT) }, /* LCD D21 */
+	{ OFFSET(gpmc_ad11),        (M1 | PIN_OUTPUT) }, /* LCD D20 */
+	{ OFFSET(gpmc_ad12),        (M1 | PIN_OUTPUT) }, /* LCD D19 */
+	{ OFFSET(gpmc_ad13),        (M1 | PIN_OUTPUT) }, /* LCD D18 */
+	{ OFFSET(gpmc_ad14),        (M1 | PIN_OUTPUT) }, /* LCD D17 */
+	{ OFFSET(gpmc_ad15),        (M1 | PIN_OUTPUT) }, /* LCD D16 */
+	{ OFFSET(lcd_data0),        (M0 | PIN_OUTPUT) }, /* LCD D0 */
+	{ OFFSET(lcd_data1),        (M0 | PIN_OUTPUT) }, /* LCD D1 */
+	{ OFFSET(lcd_data2),        (M0 | PIN_OUTPUT) }, /* LCD D2 */
+	{ OFFSET(lcd_data3),        (M0 | PIN_OUTPUT) }, /* LCD D3 */
+	{ OFFSET(lcd_data4),        (M0 | PIN_OUTPUT) }, /* LCD D4 */
+	{ OFFSET(lcd_data5),        (M0 | PIN_OUTPUT) }, /* LCD D5 */
+	{ OFFSET(lcd_data6),        (M0 | PIN_OUTPUT) }, /* LCD D6 */
+	{ OFFSET(lcd_data7),        (M0 | PIN_OUTPUT) }, /* LCD D7 */
+	{ OFFSET(lcd_data8),        (M0 | PIN_OUTPUT) }, /* LCD D8 */
+	{ OFFSET(lcd_data9),        (M0 | PIN_OUTPUT) }, /* LCD D9 */
+	{ OFFSET(lcd_data10),       (M0 | PIN_OUTPUT) }, /* LCD D10 */
+	{ OFFSET(lcd_data11),       (M0 | PIN_OUTPUT) }, /* LCD D11 */
+	{ OFFSET(lcd_data12),       (M0 | PIN_OUTPUT) }, /* LCD D12 */
+	{ OFFSET(lcd_data13),       (M0 | PIN_OUTPUT) }, /* LCD D13 */
+	{ OFFSET(lcd_data14),       (M0 | PIN_OUTPUT) }, /* LCD D14 */
+	{ OFFSET(lcd_data15),       (M0 | PIN_OUTPUT) }, /* LCD D15 */
+	{ OFFSET(lcd_vsync),        (M0 | PIN_OUTPUT) }, /* LCD VSYNC */
+	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
+	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
+	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
+	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
+	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
+	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
+	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
+	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
+	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
+	{ OFFSET(mii1_col),         (M7 | PIN_INPUT_PULLDOWN) }, /* RFID.POW_EN */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* RFID.IRQ */
+	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) }, /* CAN0 TX */
+	{ OFFSET(mii1_txd2),        (M1 | PIN_INPUT) },  /* CAN0 RX */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT_PULLUP) }, /* CAN0 TERM */
+	{ OFFSET(rmii1_refclk),     (M2 | PIN_INPUT_PULLUP) }, /* SPI1 CS0 (RFID) */
+	{ OFFSET(spi0_cs1),         (M2 | PIN_OUTPUT) }, /* Buzzer O */
+	{ OFFSET(mcasp0_aclkx),     (M3 | PIN_INPUT_PULLUP) }, /* SPI1 CLK */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* LED1 GPIO 3_17 */
+	{ OFFSET(mcasp0_fsx),       (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MOSI */
+	{ OFFSET(mcasp0_axr0),      (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MISO */
+	{ OFFSET(xdma_event_intr0), (M6 | PIN_INPUT) }, /* JTAG.EMU2 */
+	{ OFFSET(xdma_event_intr1), (M6 | PIN_INPUT) }, /* JTAG.EMU3 */
+	{ OFFSET(emu0),             (M0 | PIN_INPUT) }, /* JTAG.EMU0 */
+	{ OFFSET(emu1),             (M0 | PIN_INPUT) }, /* JTAG.EMU1 */
+	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0 DRVVBUS */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1 DRVVBUS */
+	{ -1 },
+};
+
 /* Module pin mux for LCDC */
 static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(lcd_data0),		(M0 | PIN_OUTPUT)},	/* LCD.DATA0 */
@@ -561,6 +739,8 @@ void enable_i2c0_pin_mux(void)
 
 static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 {
+	unsigned int gpio_ffclock = 0;
+
 	debug(">>pia:init_pia_e2_gpios()\n");
 #if defined(CONFIG_MMC) && defined(CONFIG_E2_MMC_CD_GPIO)
 	gpio_request(CONFIG_E2_MMC_CD_GPIO, "mmc0_cd");
@@ -574,8 +754,13 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 	gpio_request(CONFIG_E2_WD_RESET_GPIO, "wd_reset");
 	gpio_direction_input(CONFIG_E2_WD_RESET_GPIO);
 	/* reset clock for supervisor flip flops */
-	gpio_request(CONFIG_E2_FF_CLOCK_GPIO, "ff_clock");
-	gpio_direction_output(CONFIG_E2_FF_CLOCK_GPIO, 1);
+	if (strncmp(header->version, "0.01", 4) == 0) {
+		gpio_ffclock = (2 * 32) + 9;
+	} else {
+		gpio_ffclock = (3 * 32) + 10;
+	}
+	gpio_request(gpio_ffclock, "ff_clock");
+	gpio_direction_output(gpio_ffclock, 1);
 
 	/* Watchdog config, both high = WD disabled */
 	gpio_request(CONFIG_E2_WD_SET1_GPIO, "wd_set1");

@@ -698,12 +698,12 @@ int board_nand_init(struct nand_chip *nand)
 	int32_t gpmc_config = 0;
 	cs = 0;
 
-#ifdef CONFIG_AM33XX
+#ifdef CONFIG_PIA
 	/* ignore NAND init here, as it breaks boot process */
 	printf("%s: checking board...%p\n", __func__, header.name);
-	if (strncmp(header.name, "PIA335MI", 8) == 0) {
-		puts("No NAND on MMI\n");
-		return 0;
+	if (header.config[1] != 'N') {
+		puts("No NAND on board\n");
+		return -1;
 	}
 #endif
 	/*

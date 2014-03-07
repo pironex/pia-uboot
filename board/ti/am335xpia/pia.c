@@ -131,14 +131,6 @@ int am33xx_first_start(void)
 	/* EUI EEPROM */
 	/* init with default magic number, generic name and version info */
 	header.magic = 0xEE3355AA;
-#if (defined CONFIG_PIA_E2)
-	strncpy((char *)&header.name, "PIA335E2", 8);
-	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
-	strncpy((char *)&header.serial, "000000000000", 12);
-#elif (defined CONFIG_PIA_MMI)
-	strncpy((char *)&header.name, "PIA335MI", 8);
-	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
-	strncpy((char *)&header.serial, "000000000000", 12);
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
 	header.config[0] = 'B';
@@ -146,11 +138,12 @@ int am33xx_first_start(void)
 	header.config[0] = 'X';
 #endif
 #endif /* CONFIG_MMI_EXTENDED */
-#else
-	strncpy((char *)&header.name, "PIA335__", 8);
-	strncpy((char *)&header.version, "0.00", 4);
-	strncpy((char *)&header.serial, "000000000000", 12);
+#if (defined CONFIG_PIA_E2)
+	header.config[1] = 'N'; // NAND present
 #endif
+	strncpy((char *)&header.name, CONFIG_BOARD_NAME, 8);
+	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
 	memset(&header.config, 0, 32);
 	debug("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			header.magic, header.name, header.version, header.serial);
@@ -190,9 +183,13 @@ static int read_eeprom(void)
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
-		puts("Could not probe the EEPROM; something fundamentally "
-			"wrong on the I2C bus.\n");
-		return -ENODEV;
+		puts("Could not probe the EEPROM on I2C0; trying I2C1...\n");
+		i2c_set_bus_num(1);
+		if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
+			puts("Could not probe the EEPROM; something fundamentally "
+					"wrong on the I2C bus.\n");
+			return -ENODEV;
+		}
 	}
 
 #ifdef CONFIG_PIA_FIRSTSTART
