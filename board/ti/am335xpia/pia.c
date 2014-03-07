@@ -52,6 +52,11 @@ int board_is_e2(void)
 	return (strncmp(header.name, "PIA335E2", 8) == 0);
 }
 
+int board_is_ebtft(void)
+{
+	return (strncmp(header.name, "P335BEBT", 8) == 0);
+}
+
 int board_is_mmi(void)
 {
 	return (strncmp(header.name, "PIA335MI", 8) == 0);
