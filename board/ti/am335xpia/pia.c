@@ -237,13 +237,14 @@ static int read_eeprom(void)
 
 	printf("Detecting board... %p\n", header.name);
 	i = 0;
-	if (strncmp(&header.name[0], "PIA335E2", 8) == 0) {
+	if (strncmp(board_is_e2()) == 0) {
 		puts("  PIA335E2 found\n");
 		i++;
-	}
-
-	if (strncmp(&header.name[0], "PIA335MI", 8) == 0) {
+	} else if (board_is_mmi()) {
 		puts("  PIA335MI found\n");
+		i++;
+	} else if (board_is_ebtft()) {
+		puts("  EB_TFT_Baseboard found\n");
 		i++;
 	}
 
