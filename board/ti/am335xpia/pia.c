@@ -163,6 +163,11 @@ int am33xx_first_start(void)
 			header.magic, header.name, header.version, header.serial);
 	size = sizeof(header);
 	pos = 0;
+#if (defined CONFIG_PIA_EBTFT)
+	i2c_set_bus_num(1);
+#else
+	i2c_set_bus_num(0);
+#endif
 	do {
 		to = 10;
 		/* page size is 8 bytes */
