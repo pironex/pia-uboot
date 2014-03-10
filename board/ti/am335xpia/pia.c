@@ -183,8 +183,9 @@ int am33xx_first_start(void)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
-	init_rtc_rx8801();
 	init_tps65910();
+	if (board_is_e2())
+		init_rtc_rx8801();
 
 	return 0;
 }
