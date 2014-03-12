@@ -318,7 +318,7 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
 	{ OFFSET(gpmc_csn2),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CMD */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* GPIO 2_0 */
-	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_1 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* optional Cap Touch Int */
 	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 */
