@@ -237,7 +237,7 @@ static int read_eeprom(void)
 
 	printf("Detecting board... %p\n", header.name);
 	i = 0;
-	if (strncmp(board_is_e2()) == 0) {
+	if (board_is_e2()) {
 		puts("  PIA335E2 found\n");
 		i++;
 	} else if (board_is_mmi()) {
