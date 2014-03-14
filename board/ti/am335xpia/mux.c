@@ -318,7 +318,7 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
 	{ OFFSET(gpmc_csn2),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CMD */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* GPIO 2_0 */
-	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_1 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* optional Cap Touch Int */
 	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 */
@@ -835,6 +835,9 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(mmi_audio_pin_mux);
 		configure_module_pin_mux(lcdc_pin_mux);
 		init_pia_mmi_gpios();
+	} else if (board_is_ebtft()) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(pia335x_eb_tft);
 	}
 
 	/* There is no hook for additional GPIO initialization */

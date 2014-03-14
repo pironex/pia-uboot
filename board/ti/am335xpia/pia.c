@@ -163,6 +163,11 @@ int am33xx_first_start(void)
 			header.magic, header.name, header.version, header.serial);
 	size = sizeof(header);
 	pos = 0;
+#if (defined CONFIG_PIA_EBTFT)
+	i2c_set_bus_num(1);
+#else
+	i2c_set_bus_num(0);
+#endif
 	do {
 		to = 10;
 		/* page size is 8 bytes */
@@ -178,8 +183,9 @@ int am33xx_first_start(void)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
-	init_rtc_rx8801();
 	init_tps65910();
+	if (board_is_e2())
+		init_rtc_rx8801();
 
 	return 0;
 }
@@ -235,13 +241,14 @@ static int read_eeprom(void)
 
 	printf("Detecting board... %p\n", header.name);
 	i = 0;
-	if (strncmp(&header.name[0], "PIA335E2", 8) == 0) {
+	if (board_is_e2()) {
 		puts("  PIA335E2 found\n");
 		i++;
-	}
-
-	if (strncmp(&header.name[0], "PIA335MI", 8) == 0) {
+	} else if (board_is_mmi()) {
 		puts("  PIA335MI found\n");
+		i++;
+	} else if (board_is_ebtft()) {
+		puts("  EB_TFT_Baseboard found\n");
 		i++;
 	}
 
