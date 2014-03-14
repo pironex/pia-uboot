@@ -638,7 +638,7 @@ static struct module_pin_mux e2_r2_supervisor_pin_mux[] = {
 };
 /* additional PoE pins - piA-AM335x-KM-E2 Rev 0.3 */
 static struct module_pin_mux e2_r3_poe_pin_mux[] = {
-	{OFFSET(mii1_txclk),  (M7 | PIN_INPUT_PULLUP)},   /* PoE_PS_Shutdown 3_09 */
+	{OFFSET(mii1_txclk),  (M7 | PIN_INPUT_PULLDOWN)},   /* PoE_PS_Shutdown 3_09 */
 	{OFFSET(mcasp0_axr1), (M7 | PIN_INPUT_PULLDOWN)}, /* PSE_Shutdown 3_20 */
 	{-1},
 };
@@ -773,7 +773,8 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 	/* PoE - disable DCDC and outputs */
 	if (header && 0 == strncmp(header->version, "0.03", 4)) {
 		gpio_request(CONFIG_E2_POE_POE_PS_SD_GPIO, "poe_ps_shutdown");
-		gpio_direction_output(CONFIG_E2_POE_POE_PS_SD_GPIO, 1);
+		// shutdown
+		gpio_direction_output(CONFIG_E2_POE_POE_PS_SD_GPIO, 0);
 		gpio_request(CONFIG_E2_POE_PSE_SD_GPIO, "pse_shutdown");
 		gpio_direction_output(CONFIG_E2_POE_PSE_SD_GPIO, 0);
 	}
