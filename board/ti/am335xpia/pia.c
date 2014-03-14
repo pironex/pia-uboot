@@ -191,14 +191,16 @@ int am33xx_first_start(void)
 static int read_eeprom(void)
 {
 	int i;
+	int i2cbus = 0;
 
 	debug(">>pia:read_eeprom()\n");
-	i2c_set_bus_num(0);
+	i2c_set_bus_num(i2cbus);
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 		puts("Could not probe the EEPROM on I2C0; trying I2C1...\n");
-		i2c_set_bus_num(1);
+		i2cbus = 1;
+		i2c_set_bus_num(i2cbus);
 		if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 			puts("Could not probe the EEPROM; something fundamentally "
 					"wrong on the I2C bus.\n");
@@ -211,6 +213,8 @@ static int read_eeprom(void)
 	/* force reinitialization, normally the ID EEPROM is written here */
 	am33xx_first_start();
 #endif
+
+	i2c_set_bus_num(i2cbus);
 	/*
 	 * read the eeprom using i2c again,
 	 * but use only a 1 byte address
@@ -443,16 +447,6 @@ int board_phy_config(struct phy_device *phydev)
 		reg = phy_read(phydev, 30, 0);
 		debug(" master reset done: 0x%04x\n", reg);
 
-		/* read IPC mode register */
-//		phy_write(phydev, 29, 31, 0x175c);
-//		phy_write(phydev, 29, 22, 0x420);
-
-//		for (i = 0; i < eth_cnt; ++i) {
-//			debug(" resettings ports...\n");
-//			phy_write(phydev, i, MII_BMCR, BMCR_RESET);
-//			reg = phy_read(phydev, i, MII_BMCR);
-//			debug(" P%d control: 0x%04x\n", i, reg);
-//		}
 		for (i = 0; i < eth_cnt; ++i) {
 			reg = phy_read(phydev, i, MII_BMSR);
 			debug(" P%d status: 0x%04x\n", i, reg);
