@@ -23,12 +23,11 @@
 #undef CONFIG_USB_SPL
 #define PIA_TESTING
 #define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_CMD_GPIO
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
 #define DEBUG
-#ifdef DEBUG
-#endif /* DEBUG */
 #endif /* PIA_DEBUG */
 
 #ifdef CONFIG_PIA_FIRSTSTART
@@ -157,7 +156,7 @@
 		"bootm ${loadaddr}\0" \
     CONFIG_DFU_ALT
 
-#elif defined(CONFIG_PIA_MMI)
+#else /*if defined(CONFIG_PIA_MMI)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
 	"kloadaddr=0x80007fc0\0" \
