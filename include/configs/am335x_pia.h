@@ -110,7 +110,7 @@
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
 	"bootargs_defaults=setenv bootargs " \
-		"console=${console} early_printk debug " \
+		"console=${console} early_printk " \
 		"${optargs}\0" \
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
