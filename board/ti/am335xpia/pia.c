@@ -145,6 +145,11 @@ int am33xx_first_start(void)
 	/* EUI EEPROM */
 	/* init with default magic number, generic name and version info */
 	header.magic = 0xEE3355AA;
+	strncpy((char *)&header.name, CONFIG_BOARD_NAME, 8);
+	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
+	strncpy((char *)&header.serial, "000000000000", 12);
+	memset(&header.config, 0, 32);
+	/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
 	header.config[0] = 'B';
@@ -155,10 +160,7 @@ int am33xx_first_start(void)
 #if (defined CONFIG_PIA_E2)
 	header.config[1] = 'N'; // NAND present
 #endif
-	strncpy((char *)&header.name, CONFIG_BOARD_NAME, 8);
-	strncpy((char *)&header.version, CONFIG_PIA_REVISION, 4);
-	strncpy((char *)&header.serial, "000000000000", 12);
-	memset(&header.config, 0, 32);
+
 	debug("Using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			header.magic, header.name, header.version, header.serial);
 	size = sizeof(header);
