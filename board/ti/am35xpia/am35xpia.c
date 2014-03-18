@@ -253,7 +253,9 @@ int misc_init_r(void)
 	/* RTC Initialization */
 #if defined(CONFIG_CMD_DATE) && defined(CONFIG_RTC_DS1374)
 #ifdef CONFIG_RTC_DS1374_ENABLEWD
-	ds1374_wd_enable = 1;
+	ds1374_wd_enable = 300; // 5 min default timeout
+#else
+	ds1374_wd_enable = 0;
 #endif
 	rtc_init();
 #endif
