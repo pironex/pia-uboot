@@ -432,12 +432,12 @@ static struct module_pin_mux pia335x_eb_tft[] = {
 	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
 	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
 	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
-	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
-	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
-	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
-	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
-	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
-	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
+	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
+	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
+	{ OFFSET(mmc0_dat1),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
+	{ OFFSET(mmc0_dat0),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
+	{ OFFSET(mmc0_clk),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
+	{ OFFSET(mmc0_cmd),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
 	{ OFFSET(mii1_col),         (M7 | PIN_INPUT_PULLDOWN) }, /* RFID.POW_EN */
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* RFID.IRQ */
 	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) }, /* CAN0 TX */
