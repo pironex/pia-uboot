@@ -2669,6 +2669,9 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 
 	chip->chipsize = (uint64_t)type->chipsize << 20;
 
+	debug("NAND ID 0:%02x 1:%02x 2:%02x 3:%02x 4:%02x\n",
+			id_data[0], id_data[1], id_data[2], id_data[3], id_data[4]);
+
 	if (!type->pagesize && chip->init_size) {
 		/* set the pagesize, oobsize, erasesize by the driver*/
 		busw = chip->init_size(mtd, chip, id_data);
