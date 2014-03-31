@@ -93,7 +93,6 @@ static int init_rtc_rx8801(void)
 }
 #endif
 
-#if defined(CONFIG_PIA_FIRSTSTART) || defined(PIA_TESTING)
 static int init_tps65910(void)
 {
 	u8 regval;
@@ -106,14 +105,9 @@ static int init_tps65910(void)
 		return -ENODEV;
 	}
 
-	/* start clock */
-	regval = 0x01; /* 24 hour, direct reg access, rtc running */
-	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
-		puts(" Couldn't write RTC CONTROL register\n");
-		return -EIO;
-	}
-	udelay(10000);
-
+	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1); /* dummy */
+	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1);
+	printf(" TPS status: 0x%x\n", regval);
 	/* clear powerup and alarm flags */
 	regval = 0xC0;
 	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
@@ -122,6 +116,14 @@ static int init_tps65910(void)
 	}
 	udelay(10000);
 	if (board_is_ebtft()) {
+		/* start clock, safe to set again */
+		regval = 0x01; /* 24 hour, direct reg access, rtc running */
+		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
+			puts(" Couldn't write RTC CONTROL register\n");
+			return -EIO;
+		}
+		udelay(10000);
+
 		puts("Initializing TPS Battery Charger...\n");
 		// BBCHG 3.15V enable charge
 		regval = ((0x2 << 1) | 1);
@@ -133,7 +135,6 @@ static int init_tps65910(void)
 
 	return 0;
 }
-#endif
 
 #ifdef CONFIG_PIA_FIRSTSTART
 int am33xx_first_start(void)
@@ -559,6 +560,8 @@ int board_init(void)
 #endif
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
+
+	init_tps65910();
 
 	if (board_is_e2())
 			gpmc_init();
