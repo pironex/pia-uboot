@@ -115,7 +115,7 @@ static int init_tps65910(void)
 		return -EIO;
 	}
 	udelay(10000);
-	if (board_is_ebtft()) {
+	if (board_is_ebtft() || board_is_mmi()) {
 		/* start clock, safe to set again */
 		regval = 0x01; /* 24 hour, direct reg access, rtc running */
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
