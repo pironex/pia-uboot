@@ -259,7 +259,14 @@ static int read_eeprom(void)
 		printf("board not specified\n");
 	}
 
-	debug("EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
+	puts("  Options: ");
+	for (i = 0; i < 32; ++i) {
+		if (header.config[i]) {
+			putc(header.config[i]);
+		}
+	}
+	putc('\n');
+	printf("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
 			header.magic, header.name, header.version, header.serial);
 
 	return 0;
