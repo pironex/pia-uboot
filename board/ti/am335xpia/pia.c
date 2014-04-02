@@ -98,7 +98,7 @@ static int init_tps65910(void)
 	u8 regval;
 
 	/* RTC on TPS65910 */
-	puts("Initializing TPS RTC (clearing flags and starting RTC)\n");
+	puts("Initializing TPS\n");
 	i2c_set_bus_num(0);
 	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
 		puts(" FAIL: Could not probe RTC device\n");
@@ -123,10 +123,14 @@ static int init_tps65910(void)
 			return -EIO;
 		}
 		udelay(10000);
+		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
+				((regval & 0x02) == 0)) {
+			puts(" WARN: RTC not running!");
+		}
 
-		puts("Initializing TPS Battery Charger...\n");
+		puts("Initializing TPS Battery Charger... 3.15V\n");
 		// BBCHG 3.15V enable charge
-		regval = ((0x2 << 1) | 1);
+		regval = ((0x02 << 1) | 0x01);
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
 			puts(" FAIL: Couldn't enable battery charger!\n");
 			return -EIO;
@@ -186,7 +190,6 @@ int am33xx_first_start(void)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
-	init_tps65910();
 	if (board_is_e2())
 		init_rtc_rx8801();
 
