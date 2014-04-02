@@ -245,7 +245,7 @@ static int read_eeprom(void)
 		return -EIO;
 	}
 
-	printf("Detecting board... %p\n", header.name);
+	printf("Detecting board... %p", header.name);
 	i = 0;
 	if (board_is_e2()) {
 		puts("  PIA335E2 found\n");
@@ -424,14 +424,20 @@ static int test_pia(void)
 
 	printf("\nRunning board tests on %.8s Rev%.4s\n\n",
 			header.name, header.version);
-	if(strncmp(header.name,"PIA335E2",8) == 0) {
+	if (board_is_e2()) {
 		rc |= test_supervisor_e2();
 		rc |= test_rtc_rx8801();
-	} else if(strncmp(header.name,"PIA335MI",8) == 0) {
+		puts("Enabling POE output\n");
+		gpio_request(105, "poe_ps");
+		gpio_request(116, "pse");
+		gpio_direction_output(105, 1);
+		gpio_direction_output(116, 1);
+	} else if (board_is_mmi()) {
 		rc |= test_supervisor_mmi();
+		rc |= test_rtc_tps();
 	}
-	rc |= test_rtc_tps();
 	rc |= test_temp_sensor();
+
 
 	return rc;
 }
