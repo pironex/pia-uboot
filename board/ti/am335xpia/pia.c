@@ -188,13 +188,17 @@ static int init_eeprom(int expansion)
 #endif
 	}
 
-	printf("Writing EEPROM 0x%02x@%d using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
-			addr, bus,
-			config->magic, config->name, config->version, config->serial);
 	size = sizeof(struct am335x_baseboard_id);
 	pos = 0;
 
 	i2c_set_bus_num(bus);
+	if (i2c_probe(addr)) {
+		printf(" WARN: No EEPROM on I2C %d:%02x\n", bus, addr);
+		return -ENODEV;
+	}
+	printf("Writing EEPROM %d:0x%02x using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
+			bus, addr,
+			config->magic, config->name, config->version, config->serial);
 	do {
 		to = 10;
 		/* page size is 8 bytes */
@@ -275,7 +279,7 @@ static int read_eeprom(void)
 		return -EIO;
 	}
 
-	printf("Detecting board... %p", header.name);
+	puts("Detecting board... ");
 	i = 0;
 	if (board_is_e2()) {
 		puts("  PIA335E2 found\n");
@@ -458,8 +462,6 @@ static int test_pia(void)
 		rc |= test_supervisor_e2();
 		rc |= test_rtc_rx8801();
 		puts("Enabling POE output\n");
-		gpio_request(105, "poe_ps");
-		gpio_request(116, "pse");
 		gpio_direction_output(105, 1);
 		gpio_direction_output(116, 1);
 	} else if (board_is_mmi()) {
