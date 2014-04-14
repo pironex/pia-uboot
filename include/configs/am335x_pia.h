@@ -21,7 +21,7 @@
 /*#define PIA_ON_BONE*/
 #define nPIA_DEBUG
 #undef CONFIG_USB_SPL
-#define PIA_TESTING
+#define PIA_TESTINGn
 #define CONFIG_DISPLAY_CPUINFO
 /* TODO only for dev */
 #ifdef PIA_DEBUG
