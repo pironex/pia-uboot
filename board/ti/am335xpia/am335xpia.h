@@ -17,5 +17,6 @@
 
 extern int board_is_e2(void);
 extern int board_is_mmi(void);
+extern int board_is_ebtft(void);
 
 #endif

@@ -318,7 +318,7 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
 	{ OFFSET(gpmc_csn2),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CMD */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* GPIO 2_0 */
-	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_1 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* optional Cap Touch Int */
 	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 */
@@ -432,12 +432,12 @@ static struct module_pin_mux pia335x_eb_tft[] = {
 	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
 	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
 	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
-	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
-	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
-	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
-	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
-	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
-	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
+	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
+	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
+	{ OFFSET(mmc0_dat1),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
+	{ OFFSET(mmc0_dat0),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
+	{ OFFSET(mmc0_clk),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
+	{ OFFSET(mmc0_cmd),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
 	{ OFFSET(mii1_col),         (M7 | PIN_INPUT_PULLDOWN) }, /* RFID.POW_EN */
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* RFID.IRQ */
 	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) }, /* CAN0 TX */
@@ -638,7 +638,7 @@ static struct module_pin_mux e2_r2_supervisor_pin_mux[] = {
 };
 /* additional PoE pins - piA-AM335x-KM-E2 Rev 0.3 */
 static struct module_pin_mux e2_r3_poe_pin_mux[] = {
-	{OFFSET(mii1_txclk),  (M7 | PIN_INPUT_PULLUP)},   /* PoE_PS_Shutdown 3_09 */
+	{OFFSET(mii1_txclk),  (M7 | PIN_INPUT_PULLDOWN)},   /* PoE_PS_Shutdown 3_09 */
 	{OFFSET(mcasp0_axr1), (M7 | PIN_INPUT_PULLDOWN)}, /* PSE_Shutdown 3_20 */
 	{-1},
 };
@@ -773,7 +773,8 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 	/* PoE - disable DCDC and outputs */
 	if (header && 0 == strncmp(header->version, "0.03", 4)) {
 		gpio_request(CONFIG_E2_POE_POE_PS_SD_GPIO, "poe_ps_shutdown");
-		gpio_direction_output(CONFIG_E2_POE_POE_PS_SD_GPIO, 1);
+		// shutdown
+		gpio_direction_output(CONFIG_E2_POE_POE_PS_SD_GPIO, 0);
 		gpio_request(CONFIG_E2_POE_PSE_SD_GPIO, "pse_shutdown");
 		gpio_direction_output(CONFIG_E2_POE_PSE_SD_GPIO, 0);
 	}
@@ -834,6 +835,9 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(mmi_audio_pin_mux);
 		configure_module_pin_mux(lcdc_pin_mux);
 		init_pia_mmi_gpios();
+	} else if (board_is_ebtft()) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(pia335x_eb_tft);
 	}
 
 	/* There is no hook for additional GPIO initialization */

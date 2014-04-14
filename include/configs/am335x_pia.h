@@ -23,16 +23,19 @@
 #undef CONFIG_USB_SPL
 #define PIA_TESTINGn
 #define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_CMD_GPIO
 /* TODO only for dev */
 #ifdef PIA_DEBUG
 #define CONFIG_DISPLAY_CPUINFO
 #define DEBUG
-#ifdef DEBUG
-#endif /* DEBUG */
 #endif /* PIA_DEBUG */
 
 #ifdef CONFIG_PIA_FIRSTSTART
 #define CONFIG_PIA_REVISION CONFIG_PIA_FIRSTSTART
+#if defined(CONFIG_MMI_EXTENDED) || defined(CONFIG_MMI_BASIC)
+#define CONFIG_EXP_NAME "LCDKMMMI"
+#define CONFIG_EXP_REV "0.01"
+#endif
 #else
 #define CONFIG_PIA_REVISION "0.00"
 #endif
@@ -111,7 +114,7 @@
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
 	"bootargs_defaults=setenv bootargs " \
-		"console=${console} early_printk debug " \
+		"console=${console} early_printk " \
 		"${optargs}\0" \
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
@@ -157,7 +160,7 @@
 		"bootm ${loadaddr}\0" \
     CONFIG_DFU_ALT
 
-#elif defined(CONFIG_PIA_MMI)
+#else /*if defined(CONFIG_PIA_MMI)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
 	"kloadaddr=0x80007fc0\0" \
