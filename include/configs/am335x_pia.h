@@ -113,9 +113,9 @@
 	"ip_method=none\0" \
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
+	"debug=early_printk debug\0" \
 	"bootargs_defaults=setenv bootargs " \
-		"console=${console} early_printk " \
-		"${optargs}\0" \
+		"console=${console} ${debug} ${optargs}\0" \
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
 		"root=${mmcroot} " \
@@ -179,9 +179,9 @@
 	"ip_method=none\0" \
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
+	"debug=early_printk debug\0" \
 	"bootargs_defaults=setenv bootargs " \
-		"console=${console} early_printk debug " \
-		"${optargs}\0" \
+		"console=${console} ${debug} ${optargs}\0" \
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
 		"root=${mmcroot} " \
