@@ -615,6 +615,13 @@ static struct module_pin_mux mmi_i2c1_pin_mux[] = {
 	{-1},
 };
 
+/* I2C1 - piA-AM335x-PM with baseboard */
+static struct module_pin_mux pm_i2c1_pin_mux[] = {
+	{OFFSET(mii1_crs), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
+	{OFFSET(mii1_rxerr), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
+	{-1},
+};
+
 /* Supervisor - piA-AM335x-KM-E2 */
 static struct module_pin_mux e2_supervisor_pin_mux[] = {
 	{OFFSET(lcd_data3), (M7 | PIN_INPUT_PULLDOWN)}, /* FlipFlop Clock 2_09 */
@@ -724,16 +731,21 @@ void enable_i2c0_pin_mux(void)
 {
 	debug(">>pia:enable_i2c0_pin_mux()\n");
 	configure_module_pin_mux(i2c0_pin_mux);
+}
 
-#if defined CONFIG_PIA_FIRSTSTART
+void enable_i2c1_pin_mux(void)
+{
+	debug(">>pia:enable_i2c1_pin_mux()\n");
+#if defined CONFIG_PIA_FIRSTSTART && !defined(CONFIG_PIA_EBTFT)
 	/* for first start config, we need the second i2c bus in MLO */
 #if defined(CONFIG_PIA_E2)
-	debug(">>pia:enable_i2c1_pin_mux()\n");
 	configure_module_pin_mux(i2c1_pin_mux);
 #elif defined(CONFIG_PIA_MMI)
-	debug(">>pia:enable_i2c1_pin_mux()\n");
 	configure_module_pin_mux(mmi_i2c1_pin_mux);
 #endif
+#else
+	/* special case for PM without EEPROM */
+	configure_module_pin_mux(pm_i2c1_pin_mux);
 #endif
 }
 

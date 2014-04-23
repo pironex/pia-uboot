@@ -161,6 +161,7 @@ static int init_eeprom(int expansion)
 	strncpy((char *)&config->serial, "000000000000", 12);
 	memset(&config->config, 0, 32);
 	if (expansion) {
+#if defined (CONFIG_EXP_NAME)
 		printf("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config->name, CONFIG_EXP_NAME, 8);
@@ -170,7 +171,9 @@ static int init_eeprom(int expansion)
 		addr = 0x51; /* LCD-EEPROM on 0x51 */
 		config->config[2] = 'C';
 #endif
+#endif /* CONFIG_EXP_NAME */
 	} else {
+#if defined (CONFIG_BOARD_NAME)
 		printf("(Re)Writing EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config->name, CONFIG_BOARD_NAME, 8);
@@ -186,6 +189,7 @@ static int init_eeprom(int expansion)
 #if (defined CONFIG_PIA_E2)
 		config->config[1] = 'N'; // NAND present
 #endif
+#endif /* CONFIG_BOARD_NAME */
 	}
 
 	size = sizeof(struct am335x_baseboard_id);
@@ -220,9 +224,7 @@ static int init_eeprom(int expansion)
 int am33xx_first_start(void)
 {
 	init_eeprom(0);
-#if defined(CONFIG_EXP_NAME)
 	init_eeprom(1);
-#endif
 
 	if (board_is_e2())
 		init_rtc_rx8801();
@@ -234,6 +236,7 @@ int am33xx_first_start(void)
 /*
  * Read header information from EEPROM into global structure.
  */
+void enable_i2c1_pin_mux(void);
 static int read_eeprom(void)
 {
 	int i;
@@ -245,6 +248,7 @@ static int read_eeprom(void)
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
 		puts("Could not probe the EEPROM on I2C0; trying I2C1...\n");
+		enable_i2c1_pin_mux();
 		i2cbus = 1;
 		i2c_set_bus_num(i2cbus);
 		if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
