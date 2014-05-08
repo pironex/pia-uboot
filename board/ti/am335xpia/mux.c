@@ -822,6 +822,12 @@ endif
 	gpio_direction_input(CONFIG_MMI_XDMA_EVENT_INTR0_GPIO);
 }
 
+static void init_pia_ebtft_gpios(void)
+{
+	gpio_request(69, "emmc_reset");
+	gpio_direction_output(69, 1);
+}
+
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
 	// TODO use eeprom header spec
@@ -850,6 +856,7 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	} else if (board_is_ebtft()) {
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(pia335x_eb_tft);
+		init_pia_ebtft_gpios();
 	}
 
 	/* There is no hook for additional GPIO initialization */
