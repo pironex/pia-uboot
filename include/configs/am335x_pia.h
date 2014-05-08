@@ -36,7 +36,7 @@
   #define CONFIG_EXP_NAME "LCDKMMMI"
   #define CONFIG_EXP_REV "0.01"
  #elif defined(CONFIG_PIA_EBTFT)
-  #define CONFIG_EXP_NAME CONFIG_BOARD_NAME
+/*  #define CONFIG_EXP_NAME CONFIG_BOARD_NAME */
   #define CONFIG_EXP_REV "0.01"
  #endif
 #else
@@ -223,7 +223,7 @@
 #endif
 
 /* set to negative value for no autoboot */
-#define CONFIG_BOOTDELAY		3
+#define CONFIG_BOOTDELAY		1
 
 #define CONFIG_BOOTCOMMAND \
 	"if mmc rescan ${mmcdev}; then " \
