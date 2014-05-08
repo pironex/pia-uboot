@@ -634,6 +634,12 @@
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 #endif
 #endif
+#elif defined(CONFIG_EMMC_BOOT)
+#undef CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		1 /* eMMC device */
+#define CONFIG_SYS_MMC_ENV_PART		2 /* eMMC Boot 2*/
+#define CONFIG_ENV_SIZE			4096	/* 128 KiB */
 #else
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE			4096	/* 128 KiB */
