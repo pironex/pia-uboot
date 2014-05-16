@@ -585,7 +585,7 @@ void am33xx_spl_board_init(void)
 
 	debug("PMIC DEVCTRL: %02x\n", buf[0]);
 	buf[0] |= PMIC_DEVCTRL_REG_SR_CTL_I2C_SEL_CTL_I2C;
-	buf[0] |= 0x20; /* CK32K_CTRL internal 32k */
+	buf[0] &= (~0x20); /* CK32K_CTRL internal 32k */
 	buf[0] &= (~0x40); /* enable RTC */
 
 	if (i2c_write(PMIC_CTRL_I2C_ADDR, PMIC_DEVCTRL_REG, 1, buf, 1))
