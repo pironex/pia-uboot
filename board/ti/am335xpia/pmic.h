@@ -26,6 +26,7 @@
 #define PMIC_VDD1_OP_REG		0x22
 #define PMIC_VDD2_REG			0x24
 #define PMIC_VDD2_OP_REG		0x25
+#define PMIC_VDIG1_REG			0x30
 #define PMIC_DEVCTRL_REG		0x3f
 
 /* VDD2 & VDD1 control register (VDD2_REG & VDD1_REG) */

@@ -591,6 +591,15 @@ void am33xx_spl_board_init(void)
 	if (i2c_write(PMIC_CTRL_I2C_ADDR, PMIC_DEVCTRL_REG, 1, buf, 1))
 		return;
 
+	/* disable VDIG1, it's not used on PM module */
+	if (board_is_ebtft()) {
+		i2c_read(PMIC_CTRL_I2C_ADDR, PMIC_VDIG1_REG, 1, buf, 1);
+		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
+		buf[0] = 0;
+		if (i2c_write(PMIC_CTRL_I2C_ADDR, PMIC_VDIG1_REG, 1, buf, 1))
+			return;
+	}
+
 	if (!voltage_update(MPU, PMIC_OP_REG_SEL_1_2_6) &&
 			!voltage_update(CORE, PMIC_OP_REG_SEL_1_1_3)) {
 		if (board_is_800mhz()) {
