@@ -163,6 +163,28 @@
 		"bootm ${loadaddr}\0" \
     CONFIG_DFU_ALT
 
+#define CONFIG_BOOTCOMMAND \
+	"if mmc rescan ${mmcdev}; then " \
+		"echo SD/MMC found on device ${mmcdev};" \
+		"if run loadbootenv; then " \
+			"echo Loaded environment from ${bootenv};" \
+			"run importbootenv;" \
+		"fi;" \
+		"if test -n $uenvcmd; then " \
+			"echo Running uenvcmd ...;" \
+			"run uenvcmd;" \
+		"fi;" \
+		"if run loaduimagefat; then " \
+			"run mmcboot;" \
+		"elif run loaduimage; then " \
+			"run mmcboot;" \
+		"else " \
+			"echo Cound not find ${bootfile} ;" \
+		"fi;" \
+	"else " \
+		"run nandboot;" \
+	"fi;"
+
 #else /*if defined(CONFIG_PIA_MMI)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
@@ -220,10 +242,6 @@
 		"run ramargs; " \
 		"bootm ${loadaddr}\0" \
     CONFIG_DFU_ALT
-#endif
-
-/* set to negative value for no autoboot */
-#define CONFIG_BOOTDELAY		1
 
 #define CONFIG_BOOTCOMMAND \
 	"if mmc rescan ${mmcdev}; then " \
@@ -243,9 +261,11 @@
 		"else " \
 			"echo Cound not find ${bootfile} ;" \
 		"fi;" \
-	"else " \
-		"run nandboot;" \
-	"fi;" \
+	"fi;"
+#endif /* no NAND */
+
+/* set to negative value for no autoboot */
+#define CONFIG_BOOTDELAY		1
 
 #else
 #define CONFIG_BOOTDELAY		0
@@ -614,6 +634,7 @@
 /* Unsupported features */
 #undef CONFIG_USE_IRQ
 
+/*#undef CONFIG_EMMC_BOOT*/
 #if defined(CONFIG_PIA_NAND)
 #define CONFIG_NAND
 /* NAND support */
@@ -634,12 +655,14 @@
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 #endif
 #endif
-#elif defined(CONFIG_EMMC_BOOT)
+#elif 0 /*defined(CONFIG_EMMC_BOOT)*/
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1 /* eMMC device */
 #define CONFIG_SYS_MMC_ENV_PART		2 /* eMMC Boot 2*/
+/* #define CONFIG_EMMC_RESET */
 #define CONFIG_ENV_SIZE			4096	/* 128 KiB */
+#define CONFIG_CMD_SAVEENV
 #else
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE			4096	/* 128 KiB */
