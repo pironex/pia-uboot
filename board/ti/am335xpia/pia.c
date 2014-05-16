@@ -36,6 +36,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <i2c.h>
 #include <mmc.h>
 #include <phy.h>
+#include <asm/io.h>
 
 #define PIA_RX8801_BUS 		1
 #define PIA_RX8801_ADDRESS	0x32
@@ -60,6 +61,17 @@ int board_is_ebtft(void)
 int board_is_mmi(void)
 {
 	return (strncmp(header.name, "PIA335MI", 8) == 0);
+}
+
+static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
+#define DEVICE_ID_REVSHIFT 28
+static inline int board_is_800mhz(void)
+{
+	/* Silicon Revisions 2.x (rev 1+) support 800 MHz */
+	int rev = (readl(&cdev->deviceid) >> DEVICE_ID_REVSHIFT) & 0x3;
+	printf("Device Revision: %d\n", rev);
+
+	return (rev > 0);
 }
 
 #if defined(CONFIG_PIA_FIRSTSTART)
@@ -558,11 +570,10 @@ void am33xx_spl_board_init(void)
 {
 	debug(">>pia:am33xx_spl_board_init()\n");
 	uchar buf[4];
-	/*
-	 * TODO check
-	 * EVM PMIC code.  All boards currently want an MPU voltage
-	 * of 1.2625V and CORE voltage of 1.1375V to operate at
-	 * 720MHz.
+
+	/* MPU voltage 1.2625V, CORE voltage 1.1375V.
+	 * Correct for 720 and 800 MHz variants
+	 * REVISIT update for future 1GHz variants
 	 */
 	i2c_set_bus_num(0);
 	if (i2c_probe(PMIC_CTRL_I2C_ADDR))
@@ -582,7 +593,13 @@ void am33xx_spl_board_init(void)
 
 	if (!voltage_update(MPU, PMIC_OP_REG_SEL_1_2_6) &&
 			!voltage_update(CORE, PMIC_OP_REG_SEL_1_1_3)) {
-		mpu_pll_config(MPUPLL_M_720);
+		if (board_is_800mhz()) {
+ 			mpu_pll_config(MPUPLL_M_800);
+			puts("MPU PLL initialized for 800 MHz\n");
+		} else {
+ 			mpu_pll_config(MPUPLL_M_720);
+			puts("MPU PLL initialized for 720 MHz\n");
+		}
 	}
 }
 
