@@ -497,17 +497,6 @@ static inline int test_pia(void) {
 }
 #endif
 
-int board_late_init()
-{
-	/* use this as testing function, ETH is not initialized here */
-	debug("+pia:board_late_init()\n");
-
-	/* read_eeprom(); */
-
-	test_pia();
-	return 0;
-}
-
 int board_phy_config(struct phy_device *phydev)
 {
 	if (board_is_e2()) {
@@ -553,6 +542,17 @@ int board_phy_config(struct phy_device *phydev)
 #endif
 	}
 
+	return 0;
+}
+
+int board_late_init()
+{
+	/* use this as testing function, ETH is not initialized here */
+	debug("+pia:board_late_init()\n");
+
+#ifdef PIA_TESTING
+	test_pia();
+#endif
 	return 0;
 }
 #endif /* CONFIG_SPL_BUILD */
