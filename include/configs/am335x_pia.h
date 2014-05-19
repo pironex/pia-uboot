@@ -244,6 +244,14 @@
     CONFIG_DFU_ALT
 
 #define CONFIG_BOOTCOMMAND \
+	"mmc dev 0;" \
+	"if mmc rescan ;" \
+		"then echo MMC found on mmc0; " \
+		"setenv mmcdev 0; " \
+	"else echo no MMC found on mmc0, trying mmc1; " \
+		"setenv mmcdev 1; " \
+	"fi; " \
+	"mmc dev ${mmcdev} ;" \
 	"if mmc rescan ${mmcdev}; then " \
 		"echo SD/MMC found on device ${mmcdev};" \
 		"if run loadbootenv; then " \
