@@ -914,12 +914,6 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 static void init_pia_mmi_gpios(void)
 {
 	debug(">>pia:init_pia_mmi_gpios()\n");
-#if 0
-	gpio_request(CONFIG_MMI_MMC_CD_GPIO, "mmc0_cd");
-	gpio_direction_input(CONFIG_MMI_MMC_CD_GPIO);
-	debug("MMC CD: %d\n", gpio_get_value(CONFIG_MMI_MMC_CD_GPIO));	//MMC_CD is unused
-endif
-#endif
 
 	/* Watchdog config, SET0=SET1=high and SET2=low == WD disabled */
 	gpio_request(CONFIG_MMI_WD_SET1_GPIO, "wd_set1");
