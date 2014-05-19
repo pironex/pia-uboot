@@ -667,7 +667,16 @@ void am33xx_spl_board_init(void)
 
 	/* disable VDIG1, it's not used on PM module */
 	if (board_is_ebtft(header)) {
-		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1);
+#ifdef CONFIG_EMMC_BOOT
+		/* use BCK1 register to store the boot device */
+		i2c_read(PMIC_CTRL_I2C_ADDR, PMIC_BCK1_REG, 1, buf, 1) {
+			if (buf[0] != boot_params.omap_bootdevice) {
+				buf[0] = boot_params.omap_bootdevice;
+				i2c_write(PMIC_CTRL_I2C_ADDR, PMIC_BCK1_REG, 1, buf, 1);
+			}
+		}
+#endif
+		i2c_read(PMIC_CTRL_I2C_ADDR, PMIC_VDIG1_REG, 1, buf, 1);
 		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
 		buf[0] = 0;
 		if (i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1))
