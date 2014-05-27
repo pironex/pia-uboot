@@ -7,23 +7,7 @@
  *
  * (C) Copyright 2008 Atmel Corporation
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <environment.h>
@@ -79,7 +63,7 @@ int saveenv(void)
 	}
 
 	res = (char *)&env_new.data;
-	len = hexport_r(&env_htab, '\0', &res, ENV_SIZE, 0, NULL);
+	len = hexport_r(&env_htab, '\0', 0, &res, ENV_SIZE, 0, NULL);
 	if (len < 0) {
 		error("Cannot export environment: errno = %d\n", errno);
 		return 1;
@@ -277,7 +261,7 @@ int saveenv(void)
 	}
 
 	res = (char *)&env_new.data;
-	len = hexport_r(&env_htab, '\0', &res, ENV_SIZE, 0, NULL);
+	len = hexport_r(&env_htab, '\0', 0, &res, ENV_SIZE, 0, NULL);
 	if (len < 0) {
 		error("Cannot export environment: errno = %d\n", errno);
 		goto done;
@@ -315,13 +299,16 @@ int saveenv(void)
 
 void env_relocate_spec(void)
 {
-	char buf[CONFIG_ENV_SIZE];
 	int ret;
+	char *buf = NULL;
 
+	buf = (char *)malloc(CONFIG_ENV_SIZE);
 	env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
 			CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE);
 	if (!env_flash) {
 		set_default_env("!spi_flash_probe() failed");
+		if (buf)
+			free(buf);
 		return;
 	}
 
@@ -337,6 +324,8 @@ void env_relocate_spec(void)
 		gd->env_valid = 1;
 out:
 	spi_flash_free(env_flash);
+	if (buf)
+		free(buf);
 	env_flash = NULL;
 }
 #endif

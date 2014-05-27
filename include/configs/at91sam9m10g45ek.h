@@ -5,23 +5,7 @@
  *
  * Configuation settings for the AT91SAM9M10G45EK board(and AT91SAM9G45EKES).
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -29,13 +13,13 @@
 
 #include <asm/hardware.h>
 
-#define CONFIG_AT91_LEGACY
+#define CONFIG_SYS_TEXT_BASE		0x73f00000
+
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_SLOW_CLOCK      32768
 #define CONFIG_SYS_AT91_MAIN_CLOCK      12000000 /* from 12 MHz crystal */
-#define CONFIG_SYS_HZ		        1000
 
 #define CONFIG_AT91SAM9M10G45EK
 #define CONFIG_AT91FAMILY
@@ -47,6 +31,7 @@
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
 
+#define CONFIG_CMD_BOOTZ
 #define CONFIG_OF_LIBFDT
 
 /* general purpose I/O */
@@ -91,6 +76,10 @@
 /*
  * Command line configuration.
  */
+
+/* No NOR flash */
+#define CONFIG_SYS_NO_FLASH
+
 #include <config_cmd_default.h>
 #undef CONFIG_CMD_BDI
 #undef CONFIG_CMD_FPGA
@@ -110,9 +99,6 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_SDRAM_BASE + 4 * 1024 - GENERATED_GBL_DATA_SIZE)
-
-/* No NOR flash */
-#define CONFIG_SYS_NO_FLASH
 
 /* NAND flash */
 #ifdef CONFIG_CMD_NAND
@@ -134,6 +120,7 @@
 #define CONFIG_RMII
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R
+#define CONFIG_AT91_WANTS_COMMON_PHY
 
 /* USB */
 #define CONFIG_USB_EHCI
@@ -149,19 +136,19 @@
 
 /* bootstrap + u-boot + env in nandflash */
 #define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET		0x60000
-#define CONFIG_ENV_OFFSET_REDUND	0x80000
+#define CONFIG_ENV_OFFSET		0xc0000
+#define CONFIG_ENV_OFFSET_REDUND	0x100000
 #define CONFIG_ENV_SIZE			0x20000
 
-#define CONFIG_BOOTCOMMAND	"nand read 0x70000000 0x100000 0x200000;" \
+#define CONFIG_BOOTCOMMAND						\
+	"nand read 0x70000000 0x200000 0x300000;"			\
 	"bootm 0x70000000"
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
-	"root=/dev/mtdblock5 "						\
-	"mtdparts=atmel_nand:128k(bootstrap)ro,"			\
-	"256k(uboot)ro,128k(env1)ro,128k(env2)ro,"			\
-	"2M@1M(linux),-(root) "						\
-	"rw rootfstype=jffs2"
+	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
+	"256k(env),256k(env_redundant),256k(spare),"			\
+	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
+	"root=/dev/mtdblock7 rw rootfstype=jffs2"
 
 #define CONFIG_BAUDRATE			115200
 

@@ -5,23 +5,7 @@
  * (C) Copyright 2004-2008
  * Matrix-Vision GmbH, andre.schwarz@matrix-vision.de
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -29,7 +13,6 @@
 
 #include <version.h>
 
-#define CONFIG_MPC5xxx	1
 #define CONFIG_MPC5200 	1
 
 #ifndef CONFIG_SYS_TEXT_BASE
@@ -121,6 +104,7 @@
 #define CONFIG_BOOTP_NTPSERVER
 #define CONFIG_BOOTP_RANDOM_DELAY
 #define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_LIB_RAND
 
 /*
  * Autoboot
@@ -139,9 +123,6 @@
 #define CONFIG_BOOTARGS		"root=/dev/ram ro rootfstype=squashfs"
 #define CONFIG_ENV_OVERWRITE
 
-#define XMK_STR(x)      #x
-#define MK_STR(x)       XMK_STR(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS				\
 	"console_nr=0\0"					\
 	"console=yes\0"						\
@@ -149,23 +130,23 @@
 	"stdout=serial\0"					\
 	"stderr=serial\0"					\
 	"fpga=0\0"						\
-	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"			\
-	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"		\
-	"script_addr=" MK_STR(MV_SCRIPT_ADDR) "\0"		\
-	"script_addr2=" MK_STR(MV_SCRIPT_ADDR2) "\0"		\
-	"mv_kernel_addr=" MK_STR(MV_KERNEL_ADDR) "\0"		\
-	"mv_kernel_addr_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"	\
-	"mv_initrd_addr=" MK_STR(MV_INITRD_ADDR) "\0"		\
-	"mv_initrd_addr_ram=" MK_STR(MV_INITRD_ADDR_RAM) "\0"	\
-	"mv_initrd_length=" MK_STR(MV_INITRD_LENGTH) "\0"	\
-	"mv_dtb_addr=" MK_STR(MV_DTB_ADDR) "\0"			\
-	"mv_dtb_addr_ram=" MK_STR(MV_DTB_ADDR_RAM) "\0"		\
-	"dtb_name=" MK_STR(MV_DTB_NAME) "\0"			\
-	"mv_scratch_addr=" MK_STR(MV_SCRATCH_ADDR) "\0"		\
-	"mv_scratch_length=" MK_STR(MV_SCRATCH_LENGTH) "\0"	\
+	"fpgadata=" __stringify(MV_FPGA_DATA) "\0"			\
+	"fpgadatasize=" __stringify(MV_FPGA_SIZE) "\0"		\
+	"script_addr=" __stringify(MV_SCRIPT_ADDR) "\0"		\
+	"script_addr2=" __stringify(MV_SCRIPT_ADDR2) "\0"		\
+	"mv_kernel_addr=" __stringify(MV_KERNEL_ADDR) "\0"		\
+	"mv_kernel_addr_ram=" __stringify(MV_KERNEL_ADDR_RAM) "\0"	\
+	"mv_initrd_addr=" __stringify(MV_INITRD_ADDR) "\0"		\
+	"mv_initrd_addr_ram=" __stringify(MV_INITRD_ADDR_RAM) "\0"	\
+	"mv_initrd_length=" __stringify(MV_INITRD_LENGTH) "\0"	\
+	"mv_dtb_addr=" __stringify(MV_DTB_ADDR) "\0"			\
+	"mv_dtb_addr_ram=" __stringify(MV_DTB_ADDR_RAM) "\0"		\
+	"dtb_name=" __stringify(MV_DTB_NAME) "\0"			\
+	"mv_scratch_addr=" __stringify(MV_SCRATCH_ADDR) "\0"		\
+	"mv_scratch_length=" __stringify(MV_SCRATCH_LENGTH) "\0"	\
 	"mv_version=" U_BOOT_VERSION "\0"			\
-	"dhcp_client_id=" MK_STR(MV_CI) "\0"			\
-	"dhcp_vendor-class-identifier=" MK_STR(MV_VCI) "\0"	\
+	"dhcp_client_id=" __stringify(MV_CI) "\0"			\
+	"dhcp_vendor-class-identifier=" __stringify(MV_VCI) "\0"	\
 	"netretry=no\0"						\
 	"use_static_ipaddr=no\0"				\
 	"static_ipaddr=192.168.90.10\0"				\
@@ -186,9 +167,6 @@
 	"watchdog=1\0"						\
 	"sensor_cnt=1\0"					\
 	""
-
-#undef XMK_STR
-#undef MK_STR
 
 /*
  * IPB Bus clocking configuration.
@@ -275,7 +253,6 @@
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_CMDLINE_EDITING
 #undef 	CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT		"=> "
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_SYS_CBSIZE		1024
 #else
@@ -287,8 +264,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0x00800000
 #define CONFIG_SYS_MEMTEST_END		0x02f00000
-
-#define CONFIG_SYS_HZ			1000
 
 /* default load address */
 #define CONFIG_SYS_LOAD_ADDR		0x02000000
@@ -316,7 +291,7 @@
 
 #undef FPGA_DEBUG
 #undef CONFIG_SYS_FPGA_PROG_FEEDBACK
-#define CONFIG_FPGA		CONFIG_SYS_ALTERA_CYCLON2
+#define CONFIG_FPGA
 #define CONFIG_FPGA_ALTERA	1
 #define CONFIG_FPGA_CYCLON2	1
 #define CONFIG_FPGA_COUNT	1

@@ -1,12 +1,9 @@
 #ifndef _LINUX_TYPES_H
 #define _LINUX_TYPES_H
 
-#ifdef	__KERNEL__
-#include <linux/config.h>
-#endif
-
 #include <linux/posix_types.h>
 #include <asm/types.h>
+#include <stdbool.h>
 
 #ifndef __KERNEL_STRICT_NAMES
 

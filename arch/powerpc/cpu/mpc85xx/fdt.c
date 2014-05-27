@@ -4,23 +4,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -47,8 +31,8 @@ extern void ft_srio_setup(void *blob);
 void ft_fixup_cpu(void *blob, u64 memory_limit)
 {
 	int off;
-	ulong spin_tbl_addr = get_spin_phys_addr();
-	u32 bootpg = determine_mp_bootpg();
+	phys_addr_t spin_tbl_addr = get_spin_phys_addr();
+	u32 bootpg = determine_mp_bootpg(NULL);
 	u32 id = get_my_id();
 	const char *enable_method;
 
@@ -97,7 +81,32 @@ void ft_fixup_cpu(void *blob, u64 memory_limit)
 	if ((u64)bootpg < memory_limit) {
 		off = fdt_add_mem_rsv(blob, bootpg, (u64)4096);
 		if (off < 0)
-			printf("%s: %s\n", __FUNCTION__, fdt_strerror(off));
+			printf("Failed to reserve memory for bootpg: %s\n",
+				fdt_strerror(off));
+	}
+
+#ifndef CONFIG_MPC8xxx_DISABLE_BPTR
+	/*
+	 * Reserve the default boot page so OSes dont use it.
+	 * The default boot page is always mapped to bootpg above using
+	 * boot page translation.
+	 */
+	if (0xfffff000ull < memory_limit) {
+		off = fdt_add_mem_rsv(blob, 0xfffff000ull, (u64)4096);
+		if (off < 0) {
+			printf("Failed to reserve memory for 0xfffff000: %s\n",
+				fdt_strerror(off));
+		}
+	}
+#endif
+
+	/* Reserve spin table page */
+	if (spin_tbl_addr < memory_limit) {
+		off = fdt_add_mem_rsv(blob,
+			(spin_tbl_addr & ~0xffful), 4096);
+		if (off < 0)
+			printf("Failed to reserve memory for spin table: %s\n",
+				fdt_strerror(off));
 	}
 }
 #endif
@@ -220,12 +229,19 @@ static inline void ft_fixup_l2cache(void *blob)
 
 	/* we dont bother w/L3 since no platform of this type has one */
 }
-#elif defined(CONFIG_BACKSIDE_L2_CACHE)
+#elif defined(CONFIG_BACKSIDE_L2_CACHE) || \
+	defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2)
 static inline void ft_fixup_l2cache(void *blob)
 {
 	int off, l2_off, l3_off = -1;
 	u32 *ph;
+#ifdef	CONFIG_BACKSIDE_L2_CACHE
 	u32 l2cfg0 = mfspr(SPRN_L2CFG0);
+#else
+	struct ccsr_cluster_l2 *l2cache =
+		(struct ccsr_cluster_l2 __iomem *)(CONFIG_SYS_FSL_CLUSTER_1_L2);
+	u32 l2cfg0 = in_be32(&l2cache->l2cfg0);
+#endif
 	u32 size, line_size, num_ways, num_sets;
 	int has_l2 = 1;
 
@@ -257,7 +273,12 @@ static inline void ft_fixup_l2cache(void *blob)
 		if (has_l2) {
 #ifdef CONFIG_SYS_CACHE_STASHING
 			u32 *reg = (u32 *)fdt_getprop(blob, off, "reg", 0);
+#if defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2) && defined(CONFIG_E6500)
+			/* Only initialize every eighth thread */
+			if (reg && !((*reg) % 8))
+#else
 			if (reg)
+#endif
 				fdt_setprop_cell(blob, l2_off, "cache-stash-id",
 					 (*reg * 2) + 32 + 1);
 #endif
@@ -382,17 +403,22 @@ static void ft_fixup_dpaa_clks(void *blob)
 	get_sys_info(&sysinfo);
 #ifdef CONFIG_SYS_DPAA_FMAN
 	ft_fixup_clks(blob, "fsl,fman", CONFIG_SYS_FSL_FM1_OFFSET,
-			sysinfo.freqFMan[0]);
+			sysinfo.freq_fman[0]);
 
 #if (CONFIG_SYS_NUM_FMAN == 2)
 	ft_fixup_clks(blob, "fsl,fman", CONFIG_SYS_FSL_FM2_OFFSET,
-			sysinfo.freqFMan[1]);
+			sysinfo.freq_fman[1]);
 #endif
+#endif
+
+#ifdef CONFIG_SYS_DPAA_QBMAN
+	do_fixup_by_compat_u32(blob, "fsl,qman",
+			"clock-frequency", sysinfo.freq_qman, 1);
 #endif
 
 #ifdef CONFIG_SYS_DPAA_PME
 	do_fixup_by_compat_u32(blob, "fsl,pme",
-		"clock-frequency", sysinfo.freqPME, 1);
+		"clock-frequency", sysinfo.freq_pme, 1);
 #endif
 }
 #else
@@ -450,7 +476,7 @@ void fdt_fixup_fman_firmware(void *blob)
 	if (!p)
 		return;
 
-	fmanfw = (struct qe_firmware *) simple_strtoul(p, NULL, 0);
+	fmanfw = (struct qe_firmware *) simple_strtoul(p, NULL, 16);
 	if (!fmanfw)
 		return;
 
@@ -560,25 +586,38 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 {
 	int off;
 	int val;
+	int len;
 	sys_info_t sysinfo;
 
 	/* delete crypto node if not on an E-processor */
 	if (!IS_E_PROCESSOR(get_svr()))
 		fdt_fixup_crypto_node(blob, 0);
+#if CONFIG_SYS_FSL_SEC_COMPAT >= 4
+	else {
+		ccsr_sec_t __iomem *sec;
+
+		sec = (void __iomem *)CONFIG_SYS_FSL_SEC_ADDR;
+		fdt_fixup_crypto_node(blob, in_be32(&sec->secvid_ms));
+	}
+#endif
 
 	fdt_fixup_ethernet(blob);
 
 	fdt_add_enet_stashing(blob);
 
+#ifndef CONFIG_FSL_TBCLK_EXTRA_DIV
+#define CONFIG_FSL_TBCLK_EXTRA_DIV 1
+#endif
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
-		"timebase-frequency", get_tbclk(), 1);
+		"timebase-frequency", get_tbclk() / CONFIG_FSL_TBCLK_EXTRA_DIV,
+		1);
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
 		"bus-frequency", bd->bi_busfreq, 1);
 	get_sys_info(&sysinfo);
 	off = fdt_node_offset_by_prop_value(blob, -1, "device_type", "cpu", 4);
 	while (off != -FDT_ERR_NOTFOUND) {
-		u32 *reg = (u32 *)fdt_getprop(blob, off, "reg", 0);
-		val = cpu_to_fdt32(sysinfo.freqProcessor[*reg]);
+		u32 *reg = (u32 *)fdt_getprop(blob, off, "reg", &len);
+		val = cpu_to_fdt32(sysinfo.freq_processor[(*reg) / (len / 4)]);
 		fdt_setprop(blob, off, "clock-frequency", &val, 4);
 		off = fdt_node_offset_by_prop_value(blob, off, "device_type",
 							"cpu", 4);
@@ -587,9 +626,9 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 		"bus-frequency", bd->bi_busfreq, 1);
 
 	do_fixup_by_compat_u32(blob, "fsl,pq3-localbus",
-		"bus-frequency", gd->lbc_clk, 1);
+		"bus-frequency", gd->arch.lbc_clk, 1);
 	do_fixup_by_compat_u32(blob, "fsl,elbc",
-		"bus-frequency", gd->lbc_clk, 1);
+		"bus-frequency", gd->arch.lbc_clk, 1);
 #ifdef CONFIG_QE
 	ft_qe_setup(blob);
 	ft_fixup_qe_snum(blob);
@@ -613,6 +652,13 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 #ifdef CONFIG_FSL_CORENET
 	do_fixup_by_compat_u32(blob, "fsl,qoriq-clockgen-1.0",
 		"clock-frequency", CONFIG_SYS_CLK_FREQ, 1);
+	do_fixup_by_compat_u32(blob, "fsl,qoriq-clockgen-2.0",
+		"clock-frequency", CONFIG_SYS_CLK_FREQ, 1);
+	do_fixup_by_compat_u32(blob, "fsl,mpic",
+		"clock-frequency", get_bus_freq(0)/2, 1);
+#else
+	do_fixup_by_compat_u32(blob, "fsl,mpic",
+		"clock-frequency", get_bus_freq(0), 1);
 #endif
 
 	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
@@ -761,7 +807,7 @@ int ft_verify_fdt(void *fdt)
 #ifdef CONFIG_SYS_LBC_ADDR
 	off = fdt_node_offset_by_compatible(fdt, -1, "fsl,elbc");
 	if (off > 0) {
-		const u32 *reg = fdt_getprop(fdt, off, "reg", NULL);
+		const fdt32_t *reg = fdt_getprop(fdt, off, "reg", NULL);
 		if (reg) {
 			uint64_t uaddr = CCSR_VIRT_TO_PHYS(CONFIG_SYS_LBC_ADDR);
 

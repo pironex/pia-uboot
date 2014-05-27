@@ -5,20 +5,7 @@
  * based on the Sequoia board configuration by
  * Stefan Roese, Jacqueline Pira-Ferriol and Alain Saurel
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -34,7 +21,6 @@
  */
 #define CONFIG_DU440		1		/* Board is esd DU440	*/
 #define CONFIG_440EPX		1		/* Specific PPC440EPx	*/
-#define CONFIG_4xx		1		/* ... PPC4xx family	*/
 #define CONFIG_SYS_CLK_FREQ	33333400	/* external freq to pll	*/
 
 #ifndef CONFIG_SYS_TEXT_BASE
@@ -93,7 +79,6 @@
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #undef CONFIG_SYS_EXT_SERIAL_CLOCK
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SERIAL_MULTI     1
 
 #define CONFIG_SYS_BAUDRATE_TABLE						\
 	{300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200}
@@ -171,19 +156,20 @@
 /*
  * I2C
  */
-#define CONFIG_HARD_I2C		1	/* I2C with hardware support    */
-#undef	CONFIG_SOFT_I2C			/* I2C bit-banged	        */
-#define CONFIG_PPC4XX_I2C		/* use PPC4xx driver		*/
-#define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address  */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_I2C_MULTI_BUS    1
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_PPC4XX
+#define CONFIG_SYS_I2C_PPC4XX_CH0
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		100000
+#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
+#define CONFIG_SYS_I2C_PPC4XX_CH1
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_1		100000
+#define CONFIG_SYS_I2C_PPC4XX_SLAVE_1		0x7F
 
 #define CONFIG_SYS_SPD_BUS_NUM         0
 #define IIC1_MCP3021_ADDR	0x4d
 #define IIC1_USB2507_ADDR	0x2c
-#ifdef CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_NOPROBES        {{1, IIC1_USB2507_ADDR}}
-#endif
+#define CONFIG_SYS_I2C_NOPROBES		{ {1, IIC1_USB2507_ADDR} }
+
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x54
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 2
@@ -236,7 +222,7 @@
 	"flash_self=run ramargs addip addtty optargs;"			\
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"net_nfs=tftp 200000 ${img};run nfsargs addip addtty optargs;"	\
-	        "bootm\0"						\
+		"bootm\0"						\
 	"rootpath=/tftpboot/du440/target_root_du440\0"			\
 	"img=/tftpboot/du440/uImage\0"					\
 	"kernel_addr=FFC00000\0"					\
@@ -323,7 +309,6 @@ int du440_phy_addr(int devnum);
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP			/* undef to save memory		*/
-#define CONFIG_SYS_PROMPT	        "=> "	/* Monitor Command Prompt	*/
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	        1024	/* Console I/O Buffer Size	*/
 #else
@@ -339,8 +324,6 @@ int du440_phy_addr(int devnum);
 
 #define CONFIG_SYS_LOAD_ADDR		0x100000  /* default load address	*/
 #define CONFIG_SYS_EXTBDINFO		1	/* To use extended board_into (bd_t) */
-
-#define CONFIG_SYS_HZ		        1000	/* decrementer freq: 1 ms ticks	*/
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
 #define CONFIG_LOOPW            1       /* enable loopw command         */
@@ -358,6 +341,7 @@ int du440_phy_addr(int devnum);
  * PCI stuff
  */
 #define CONFIG_PCI			/* include pci support	        */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			/* do (not) pci plug-and-play   */
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup  */
 #define CONFIG_SYS_PCI_TARGBASE       0x80000000 /* PCIaddr mapped to CONFIG_SYS_PCI_MEMBASE*/
@@ -421,7 +405,6 @@ int du440_phy_addr(int devnum);
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 #define CONFIG_SOURCE		1

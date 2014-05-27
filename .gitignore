@@ -5,16 +5,22 @@
 #
 # Normal rules
 #
-
-*.rej
-*.orig
-*.a
+.*
 *.o
+*.o.*
+*.a
+*.s
 *.su
-*~
+*.mod.c
+*.i
+*.lst
+*.order
+*.elf
 *.swp
-*.patch
 *.bin
+*.patch
+*.cfgtmp
+*.dts.tmp
 
 # Build tree
 /build-*
@@ -22,39 +28,36 @@
 #
 # Top-level generic files
 #
-
-/MLO
+/MLO*
+/SPL
 /System.map
-/u-boot
-/u-boot.hex
-/u-boot.imx
-/u-boot.map
-/u-boot.srec
-/u-boot.ldr
-/u-boot.ldr.hex
-/u-boot.ldr.srec
-/u-boot.img
-/u-boot.kwb
-/u-boot.sha1
-/u-boot.dis
-/u-boot.lds
-/u-boot.ubl
-/u-boot.ais
-/u-boot.dtb
-/u-boot.sb
-/u-boot.geany
+/u-boot*
+
+#
+# git files that we don't want to ignore even it they are dot-files
+#
+!.gitignore
+!.mailmap
 
 #
 # Generated files
 #
 
-*.depend*
 /LOG
 /errlog
 /reloc_off
 
+!/spl/Makefile
+/spl/*
+/tpl/
+
+#
+# Generated include files
+#
+/include/config/
 /include/generated/
-asm-offsets.s
+/include/spl-autoconf.mk
+/include/tpl-autoconf.mk
 
 # stgit generated dirs
 patches-*
@@ -75,8 +78,15 @@ cscope.*
 /ctags
 /etags
 
-# spl ais files
-/spl/*.ais
+# gnu global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
+*.orig
+*~
+\#*#
 
 # local ignores
 /build.sh

@@ -170,8 +170,6 @@ static void dsps_musb_enable(struct musb *musb)
 	void __iomem *reg_base = musb->ctrl_base;
 	u32 epmask, coremask;
 
-	debug("musb_dsps: enable %d %d %d\n",
-			musb->address, musb->board_mode, musb->is_host);
 	/* Workaround: setup IRQs through both register sets. */
 	epmask = ((musb->epmask & wrp->txep_mask) << wrp->txep_shift) |
 	       ((musb->epmask & wrp->rxep_mask) << wrp->rxep_shift);
@@ -435,7 +433,6 @@ static int dsps_musb_init(struct musb *musb)
 	u32 rev, val;
 	int status;
 
-	debug("musb_dsps: init\n");
 	/* mentor core register starts at offset of 0x400 from musb base */
 	musb->mregs += wrp->musb_core_offset;
 
@@ -503,7 +500,6 @@ static int dsps_musb_exit(struct musb *musb)
 		del_timer_sync(&glue->timer);
 #endif
 
-	debug("musb_dsps: exit\n");
 	/* Shutdown the on-chip PHY and its PLL. */
 	if (data->set_phy_power)
 		data->set_phy_power(0);

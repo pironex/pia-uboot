@@ -3,26 +3,15 @@
  * Copyright (c) 2011
  * Qi Hardware, Xiangfu Liu <xiangfu@sharism.cc>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
 #include <common.h>
 #include <asm/io.h>
 #include <asm/jz4740.h>
+#include <serial.h>
+#include <linux/compiler.h>
 
 /*
  * serial_init - initialize a channel
@@ -35,7 +24,7 @@
  */
 struct jz4740_uart *uart = (struct jz4740_uart *)CONFIG_SYS_UART_BASE;
 
-int serial_init(void)
+static int jz_serial_init(void)
 {
 	/* Disable port interrupts while changing hardware */
 	writeb(0, &uart->dlhr_ier);
@@ -62,7 +51,7 @@ int serial_init(void)
 	return 0;
 }
 
-void serial_setbrg(void)
+static void jz_serial_setbrg(void)
 {
 	u32 baud_div, tmp;
 
@@ -79,7 +68,7 @@ void serial_setbrg(void)
 	writeb(tmp, &uart->lcr);
 }
 
-int serial_tstc(void)
+static int jz_serial_tstc(void)
 {
 	if (readb(&uart->lsr) & UART_LSR_DR)
 		return 1;
@@ -87,7 +76,7 @@ int serial_tstc(void)
 	return 0;
 }
 
-void serial_putc(const char c)
+static void jz_serial_putc(const char c)
 {
 	if (c == '\n')
 		serial_putc('\r');
@@ -99,7 +88,7 @@ void serial_putc(const char c)
 	writeb((u8)c, &uart->rbr_thr_dllr);
 }
 
-int serial_getc(void)
+static int jz_serial_getc(void)
 {
 	while (!serial_tstc())
 		;
@@ -107,8 +96,23 @@ int serial_getc(void)
 	return readb(&uart->rbr_thr_dllr);
 }
 
-void serial_puts(const char *s)
+static struct serial_device jz_serial_drv = {
+	.name	= "jz_serial",
+	.start	= jz_serial_init,
+	.stop	= NULL,
+	.setbrg	= jz_serial_setbrg,
+	.putc	= jz_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= jz_serial_getc,
+	.tstc	= jz_serial_tstc,
+};
+
+void jz_serial_initialize(void)
 {
-	while (*s)
-		serial_putc(*s++);
+	serial_register(&jz_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &jz_serial_drv;
 }

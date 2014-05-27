@@ -1,19 +1,7 @@
 /*
  * Copyright (C) 2011 Freescale Semiconductor, Inc. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __ASM_ARCH_MX6_IMX_REGS_H__
@@ -25,6 +13,13 @@
 
 #define ROMCP_ARB_BASE_ADDR             0x00000000
 #define ROMCP_ARB_END_ADDR              0x000FFFFF
+
+#ifdef CONFIG_MX6SL
+#define GPU_2D_ARB_BASE_ADDR            0x02200000
+#define GPU_2D_ARB_END_ADDR             0x02203FFF
+#define OPENVG_ARB_BASE_ADDR            0x02204000
+#define OPENVG_ARB_END_ADDR             0x02207FFF
+#else
 #define CAAM_ARB_BASE_ADDR              0x00100000
 #define CAAM_ARB_END_ADDR               0x00103FFF
 #define APBH_DMA_ARB_BASE_ADDR          0x00110000
@@ -37,9 +32,19 @@
 #define GPU_2D_ARB_END_ADDR             0x00137FFF
 #define DTCP_ARB_BASE_ADDR              0x00138000
 #define DTCP_ARB_END_ADDR               0x0013BFFF
+#endif	/* CONFIG_MX6SL */
+
+#define MXS_APBH_BASE			APBH_DMA_ARB_BASE_ADDR
+#define MXS_GPMI_BASE			(APBH_DMA_ARB_BASE_ADDR + 0x02000)
+#define MXS_BCH_BASE			(APBH_DMA_ARB_BASE_ADDR + 0x04000)
 
 /* GPV - PL301 configuration ports */
+#ifdef CONFIG_MX6SL
+#define GPV2_BASE_ADDR                  0x00D00000
+#else
 #define GPV2_BASE_ADDR			0x00200000
+#endif
+
 #define GPV3_BASE_ADDR			0x00300000
 #define GPV4_BASE_ADDR			0x00800000
 #define IRAM_BASE_ADDR			0x00900000
@@ -48,6 +53,7 @@
 #define GLOBAL_TIMER_BASE_ADDR          0x00A00200
 #define PRIVATE_TIMERS_WD_BASE_ADDR     0x00A00600
 #define IC_DISTRIBUTOR_BASE_ADDR        0x00A01000
+#define L2_PL310_BASE			0x00A02000
 #define GPV0_BASE_ADDR                  0x00B00000
 #define GPV1_BASE_ADDR                  0x00C00000
 #define PCIE_ARB_BASE_ADDR              0x01000000
@@ -70,10 +76,17 @@
 #define WEIM_ARB_BASE_ADDR              0x08000000
 #define WEIM_ARB_END_ADDR               0x0FFFFFFF
 
+#ifdef CONFIG_MX6SL
+#define MMDC0_ARB_BASE_ADDR             0x80000000
+#define MMDC0_ARB_END_ADDR              0xFFFFFFFF
+#define MMDC1_ARB_BASE_ADDR             0xC0000000
+#define MMDC1_ARB_END_ADDR              0xFFFFFFFF
+#else
 #define MMDC0_ARB_BASE_ADDR             0x10000000
 #define MMDC0_ARB_END_ADDR              0x7FFFFFFF
 #define MMDC1_ARB_BASE_ADDR             0x80000000
 #define MMDC1_ARB_END_ADDR              0xFFFFFFFF
+#endif
 
 #define IPU_SOC_BASE_ADDR		IPU1_ARB_BASE_ADDR
 #define IPU_SOC_OFFSET			0x00200000
@@ -89,6 +102,16 @@
 #define ECSPI2_BASE_ADDR            (ATZ1_BASE_ADDR + 0x0C000)
 #define ECSPI3_BASE_ADDR            (ATZ1_BASE_ADDR + 0x10000)
 #define ECSPI4_BASE_ADDR            (ATZ1_BASE_ADDR + 0x14000)
+#ifdef CONFIG_MX6SL
+#define UART5_IPS_BASE_ADDR         (ATZ1_BASE_ADDR + 0x18000)
+#define UART1_IPS_BASE_ADDR         (ATZ1_BASE_ADDR + 0x20000)
+#define UART2_IPS_BASE_ADDR         (ATZ1_BASE_ADDR + 0x24000)
+#define SSI1_IPS_BASE_ADDR          (ATZ1_BASE_ADDR + 0x28000)
+#define SSI2_IPS_BASE_ADDR          (ATZ1_BASE_ADDR + 0x2C000)
+#define SSI3_IPS_BASE_ADDR          (ATZ1_BASE_ADDR + 0x30000)
+#define UART3_IPS_BASE_ADDR         (ATZ1_BASE_ADDR + 0x34000)
+#define UART4_IPS_BASE_ADDR         (ATZ1_BASE_ADDR + 0x38000)
+#else
 #define ECSPI5_BASE_ADDR            (ATZ1_BASE_ADDR + 0x18000)
 #define UART1_BASE                  (ATZ1_BASE_ADDR + 0x20000)
 #define ESAI1_BASE_ADDR             (ATZ1_BASE_ADDR + 0x24000)
@@ -96,6 +119,8 @@
 #define SSI2_BASE_ADDR              (ATZ1_BASE_ADDR + 0x2C000)
 #define SSI3_BASE_ADDR              (ATZ1_BASE_ADDR + 0x30000)
 #define ASRC_BASE_ADDR              (ATZ1_BASE_ADDR + 0x34000)
+#endif
+
 #define SPBA_BASE_ADDR              (ATZ1_BASE_ADDR + 0x3C000)
 #define VPU_BASE_ADDR               (ATZ1_BASE_ADDR + 0x40000)
 #define AIPS1_ON_BASE_ADDR          (ATZ1_BASE_ADDR + 0x7C000)
@@ -128,18 +153,35 @@
 #define SRC_BASE_ADDR               (AIPS1_OFF_BASE_ADDR + 0x58000)
 #define GPC_BASE_ADDR               (AIPS1_OFF_BASE_ADDR + 0x5C000)
 #define IOMUXC_BASE_ADDR            (AIPS1_OFF_BASE_ADDR + 0x60000)
+#ifdef CONFIG_MX6SL
+#define CSI_BASE_ADDR               (AIPS1_OFF_BASE_ADDR + 0x64000)
+#define SIPIX_BASE_ADDR             (AIPS1_OFF_BASE_ADDR + 0x68000)
+#define SDMA_PORT_HOST_BASE_ADDR    (AIPS1_OFF_BASE_ADDR + 0x6C000)
+#else
 #define DCIC1_BASE_ADDR             (AIPS1_OFF_BASE_ADDR + 0x64000)
 #define DCIC2_BASE_ADDR             (AIPS1_OFF_BASE_ADDR + 0x68000)
 #define DMA_REQ_PORT_HOST_BASE_ADDR (AIPS1_OFF_BASE_ADDR + 0x6C000)
+#endif
 
 #define AIPS2_ON_BASE_ADDR          (ATZ2_BASE_ADDR + 0x7C000)
 #define AIPS2_OFF_BASE_ADDR         (ATZ2_BASE_ADDR + 0x80000)
 #define CAAM_BASE_ADDR              (ATZ2_BASE_ADDR)
 #define ARM_BASE_ADDR		    (ATZ2_BASE_ADDR + 0x40000)
+#ifdef CONFIG_MX6SL
+#define USBO2H_PL301_IPS_BASE_ADDR  (AIPS2_OFF_BASE_ADDR + 0x0000)
+#define USBO2H_USB_BASE_ADDR        (AIPS2_OFF_BASE_ADDR + 0x4000)
+#else
 #define USBOH3_PL301_BASE_ADDR      (AIPS2_OFF_BASE_ADDR + 0x0000)
 #define USBOH3_USB_BASE_ADDR        (AIPS2_OFF_BASE_ADDR + 0x4000)
+#endif
+
 #define ENET_BASE_ADDR              (AIPS2_OFF_BASE_ADDR + 0x8000)
+#ifdef CONFIG_MX6SL
+#define MSHC_IPS_BASE_ADDR          (AIPS2_OFF_BASE_ADDR + 0xC000)
+#else
 #define MLB_BASE_ADDR               (AIPS2_OFF_BASE_ADDR + 0xC000)
+#endif
+
 #define USDHC1_BASE_ADDR            (AIPS2_OFF_BASE_ADDR + 0x10000)
 #define USDHC2_BASE_ADDR            (AIPS2_OFF_BASE_ADDR + 0x14000)
 #define USDHC3_BASE_ADDR            (AIPS2_OFF_BASE_ADDR + 0x18000)
@@ -149,7 +191,12 @@
 #define I2C3_BASE_ADDR              (AIPS2_OFF_BASE_ADDR + 0x28000)
 #define ROMCP_BASE_ADDR             (AIPS2_OFF_BASE_ADDR + 0x2C000)
 #define MMDC_P0_BASE_ADDR           (AIPS2_OFF_BASE_ADDR + 0x30000)
+#ifdef CONFIG_MX6SL
+#define RNGB_IPS_BASE_ADDR          (AIPS2_OFF_BASE_ADDR + 0x34000)
+#else
 #define MMDC_P1_BASE_ADDR           (AIPS2_OFF_BASE_ADDR + 0x34000)
+#endif
+
 #define WEIM_BASE_ADDR              (AIPS2_OFF_BASE_ADDR + 0x38000)
 #define OCOTP_BASE_ADDR             (AIPS2_OFF_BASE_ADDR + 0x3C000)
 #define CSU_BASE_ADDR               (AIPS2_OFF_BASE_ADDR + 0x40000)
@@ -171,7 +218,6 @@
 
 #define CHIP_REV_1_0                 0x10
 #define IRAM_SIZE                    0x00040000
-#define IMX_IIM_BASE                 OCOTP_BASE_ADDR
 #define FEC_QUIRK_ENET_MAC
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
@@ -200,6 +246,131 @@ struct src {
 	u32     gpr10;
 };
 
+/* GPR1 bitfields */
+#define IOMUXC_GPR1_ENET_CLK_SEL_OFFSET		21
+#define IOMUXC_GPR1_ENET_CLK_SEL_MASK		(1 << IOMUXC_GPR1_ENET_CLK_SEL_OFFSET)
+
+/* GPR3 bitfields */
+#define IOMUXC_GPR3_GPU_DBG_OFFSET		29
+#define IOMUXC_GPR3_GPU_DBG_MASK		(3<<IOMUXC_GPR3_GPU_DBG_OFFSET)
+#define IOMUXC_GPR3_BCH_WR_CACHE_CTL_OFFSET	28
+#define IOMUXC_GPR3_BCH_WR_CACHE_CTL_MASK	(1<<IOMUXC_GPR3_BCH_WR_CACHE_CTL_OFFSET)
+#define IOMUXC_GPR3_BCH_RD_CACHE_CTL_OFFSET	27
+#define IOMUXC_GPR3_BCH_RD_CACHE_CTL_MASK	(1<<IOMUXC_GPR3_BCH_RD_CACHE_CTL_OFFSET)
+#define IOMUXC_GPR3_uSDHCx_WR_CACHE_CTL_OFFSET	26
+#define IOMUXC_GPR3_uSDHCx_WR_CACHE_CTL_MASK	(1<<IOMUXC_GPR3_uSDHCx_WR_CACHE_CTL_OFFSET)
+#define IOMUXC_GPR3_uSDHCx_RD_CACHE_CTL_OFFSET	25
+#define IOMUXC_GPR3_uSDHCx_RD_CACHE_CTL_MASK	(1<<IOMUXC_GPR3_uSDHCx_RD_CACHE_CTL_OFFSET)
+#define IOMUXC_GPR3_OCRAM_CTL_OFFSET		21
+#define IOMUXC_GPR3_OCRAM_CTL_MASK		(0xf<<IOMUXC_GPR3_OCRAM_CTL_OFFSET)
+#define IOMUXC_GPR3_OCRAM_STATUS_OFFSET		17
+#define IOMUXC_GPR3_OCRAM_STATUS_MASK		(0xf<<IOMUXC_GPR3_OCRAM_STATUS_OFFSET)
+#define IOMUXC_GPR3_CORE3_DBG_ACK_EN_OFFSET	16
+#define IOMUXC_GPR3_CORE3_DBG_ACK_EN_MASK	(1<<IOMUXC_GPR3_CORE3_DBG_ACK_EN_OFFSET)
+#define IOMUXC_GPR3_CORE2_DBG_ACK_EN_OFFSET	15
+#define IOMUXC_GPR3_CORE2_DBG_ACK_EN_MASK	(1<<IOMUXC_GPR3_CORE2_DBG_ACK_EN_OFFSET)
+#define IOMUXC_GPR3_CORE1_DBG_ACK_EN_OFFSET	14
+#define IOMUXC_GPR3_CORE1_DBG_ACK_EN_MASK	(1<<IOMUXC_GPR3_CORE1_DBG_ACK_EN_OFFSET)
+#define IOMUXC_GPR3_CORE0_DBG_ACK_EN_OFFSET	13
+#define IOMUXC_GPR3_CORE0_DBG_ACK_EN_MASK	(1<<IOMUXC_GPR3_CORE0_DBG_ACK_EN_OFFSET)
+#define IOMUXC_GPR3_TZASC2_BOOT_LOCK_OFFSET	12
+#define IOMUXC_GPR3_TZASC2_BOOT_LOCK_MASK	(1<<IOMUXC_GPR3_TZASC2_BOOT_LOCK_OFFSET)
+#define IOMUXC_GPR3_TZASC1_BOOT_LOCK_OFFSET	11
+#define IOMUXC_GPR3_TZASC1_BOOT_LOCK_MASK	(1<<IOMUXC_GPR3_TZASC1_BOOT_LOCK_OFFSET)
+#define IOMUXC_GPR3_IPU_DIAG_OFFSET		10
+#define IOMUXC_GPR3_IPU_DIAG_MASK		(1<<IOMUXC_GPR3_IPU_DIAG_OFFSET)
+
+#define IOMUXC_GPR3_MUX_SRC_IPU1_DI0	0
+#define IOMUXC_GPR3_MUX_SRC_IPU1_DI1	1
+#define IOMUXC_GPR3_MUX_SRC_IPU2_DI0	2
+#define IOMUXC_GPR3_MUX_SRC_IPU2_DI1	3
+
+#define IOMUXC_GPR3_LVDS1_MUX_CTL_OFFSET	8
+#define IOMUXC_GPR3_LVDS1_MUX_CTL_MASK		(3<<IOMUXC_GPR3_LVDS1_MUX_CTL_OFFSET)
+
+#define IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET	6
+#define IOMUXC_GPR3_LVDS0_MUX_CTL_MASK		(3<<IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET)
+
+#define IOMUXC_GPR3_MIPI_MUX_CTL_OFFSET		4
+#define IOMUXC_GPR3_MIPI_MUX_CTL_MASK		(3<<IOMUXC_GPR3_MIPI_MUX_CTL_OFFSET)
+
+#define IOMUXC_GPR3_HDMI_MUX_CTL_OFFSET		2
+#define IOMUXC_GPR3_HDMI_MUX_CTL_MASK		(3<<IOMUXC_GPR3_HDMI_MUX_CTL_OFFSET)
+
+
+struct iomuxc {
+	u32 gpr[14];
+	u32 omux[5];
+	/* mux and pad registers */
+};
+
+#define IOMUXC_GPR2_COUNTER_RESET_VAL_OFFSET		20
+#define IOMUXC_GPR2_COUNTER_RESET_VAL_MASK		(3<<IOMUXC_GPR2_COUNTER_RESET_VAL_OFFSET)
+#define IOMUXC_GPR2_LVDS_CLK_SHIFT_OFFSET		16
+#define IOMUXC_GPR2_LVDS_CLK_SHIFT_MASK			(7<<IOMUXC_GPR2_LVDS_CLK_SHIFT_OFFSET)
+
+#define IOMUXC_GPR2_BGREF_RRMODE_OFFSET			15
+#define IOMUXC_GPR2_BGREF_RRMODE_MASK			(1<<IOMUXC_GPR2_BGREF_RRMODE_OFFSET)
+#define IOMUXC_GPR2_BGREF_RRMODE_INTERNAL_RES		(1<<IOMUXC_GPR2_BGREF_RRMODE_OFFSET)
+#define IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES		(0<<IOMUXC_GPR2_BGREF_RRMODE_OFFSET)
+#define IOMUXC_GPR2_VSYNC_ACTIVE_HIGH	0
+#define IOMUXC_GPR2_VSYNC_ACTIVE_LOW	1
+
+#define IOMUXC_GPR2_DI1_VS_POLARITY_OFFSET		10
+#define IOMUXC_GPR2_DI1_VS_POLARITY_MASK		(1<<IOMUXC_GPR2_DI1_VS_POLARITY_OFFSET)
+#define IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_HIGH		(IOMUXC_GPR2_VSYNC_ACTIVE_HIGH<<IOMUXC_GPR2_DI1_VS_POLARITY_OFFSET)
+#define IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_LOW		(IOMUXC_GPR2_VSYNC_ACTIVE_LOW<<IOMUXC_GPR2_DI1_VS_POLARITY_OFFSET)
+
+#define IOMUXC_GPR2_DI0_VS_POLARITY_OFFSET		9
+#define IOMUXC_GPR2_DI0_VS_POLARITY_MASK		(1<<IOMUXC_GPR2_DI0_VS_POLARITY_OFFSET)
+#define IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_HIGH		(IOMUXC_GPR2_VSYNC_ACTIVE_HIGH<<IOMUXC_GPR2_DI0_VS_POLARITY_OFFSET)
+#define IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW		(IOMUXC_GPR2_VSYNC_ACTIVE_LOW<<IOMUXC_GPR2_DI0_VS_POLARITY_OFFSET)
+
+#define IOMUXC_GPR2_BITMAP_SPWG	0
+#define IOMUXC_GPR2_BITMAP_JEIDA	1
+
+#define IOMUXC_GPR2_BIT_MAPPING_CH1_OFFSET		8
+#define IOMUXC_GPR2_BIT_MAPPING_CH1_MASK		(1<<IOMUXC_GPR2_BIT_MAPPING_CH1_OFFSET)
+#define IOMUXC_GPR2_BIT_MAPPING_CH1_JEIDA		(IOMUXC_GPR2_BITMAP_JEIDA<<IOMUXC_GPR2_BIT_MAPPING_CH1_OFFSET)
+#define IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG		(IOMUXC_GPR2_BITMAP_SPWG<<IOMUXC_GPR2_BIT_MAPPING_CH1_OFFSET)
+
+#define IOMUXC_GPR2_DATA_WIDTH_18	0
+#define IOMUXC_GPR2_DATA_WIDTH_24	1
+
+#define IOMUXC_GPR2_DATA_WIDTH_CH1_OFFSET		7
+#define IOMUXC_GPR2_DATA_WIDTH_CH1_MASK			(1<<IOMUXC_GPR2_DATA_WIDTH_CH1_OFFSET)
+#define IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT		(IOMUXC_GPR2_DATA_WIDTH_18<<IOMUXC_GPR2_DATA_WIDTH_CH1_OFFSET)
+#define IOMUXC_GPR2_DATA_WIDTH_CH1_24BIT		(IOMUXC_GPR2_DATA_WIDTH_24<<IOMUXC_GPR2_DATA_WIDTH_CH1_OFFSET)
+
+#define IOMUXC_GPR2_BIT_MAPPING_CH0_OFFSET		6
+#define IOMUXC_GPR2_BIT_MAPPING_CH0_MASK		(1<<IOMUXC_GPR2_BIT_MAPPING_CH0_OFFSET)
+#define IOMUXC_GPR2_BIT_MAPPING_CH0_JEIDA		(IOMUXC_GPR2_BITMAP_JEIDA<<IOMUXC_GPR2_BIT_MAPPING_CH0_OFFSET)
+#define IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG		(IOMUXC_GPR2_BITMAP_SPWG<<IOMUXC_GPR2_BIT_MAPPING_CH0_OFFSET)
+
+#define IOMUXC_GPR2_DATA_WIDTH_CH0_OFFSET		5
+#define IOMUXC_GPR2_DATA_WIDTH_CH0_MASK			(1<<IOMUXC_GPR2_DATA_WIDTH_CH0_OFFSET)
+#define IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT		(IOMUXC_GPR2_DATA_WIDTH_18<<IOMUXC_GPR2_DATA_WIDTH_CH0_OFFSET)
+#define IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT		(IOMUXC_GPR2_DATA_WIDTH_24<<IOMUXC_GPR2_DATA_WIDTH_CH0_OFFSET)
+
+#define IOMUXC_GPR2_SPLIT_MODE_EN_OFFSET		4
+#define IOMUXC_GPR2_SPLIT_MODE_EN_MASK			(1<<IOMUXC_GPR2_SPLIT_MODE_EN_OFFSET)
+
+#define IOMUXC_GPR2_MODE_DISABLED	0
+#define IOMUXC_GPR2_MODE_ENABLED_DI0	1
+#define IOMUXC_GPR2_MODE_ENABLED_DI1	3
+
+#define IOMUXC_GPR2_LVDS_CH1_MODE_OFFSET		2
+#define IOMUXC_GPR2_LVDS_CH1_MODE_MASK			(3<<IOMUXC_GPR2_LVDS_CH1_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED		(IOMUXC_GPR2_MODE_DISABLED<<IOMUXC_GPR2_LVDS_CH1_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH1_MODE_ENABLED_DI0		(IOMUXC_GPR2_MODE_ENABLED_DI0<<IOMUXC_GPR2_LVDS_CH1_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH1_MODE_ENABLED_DI1		(IOMUXC_GPR2_MODE_ENABLED_DI1<<IOMUXC_GPR2_LVDS_CH1_MODE_OFFSET)
+
+#define IOMUXC_GPR2_LVDS_CH0_MODE_OFFSET		0
+#define IOMUXC_GPR2_LVDS_CH0_MODE_MASK			(3<<IOMUXC_GPR2_LVDS_CH0_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH0_MODE_DISABLED		(IOMUXC_GPR2_MODE_DISABLED<<IOMUXC_GPR2_LVDS_CH0_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI0		(IOMUXC_GPR2_MODE_ENABLED_DI0<<IOMUXC_GPR2_LVDS_CH0_MODE_OFFSET)
+#define IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI1		(IOMUXC_GPR2_MODE_ENABLED_DI1<<IOMUXC_GPR2_LVDS_CH0_MODE_OFFSET)
+
 /* ECSPI registers */
 struct cspi_regs {
 	u32 rxdata;
@@ -219,6 +390,7 @@ struct cspi_regs {
 #define MXC_CSPICTRL_EN		(1 << 0)
 #define MXC_CSPICTRL_MODE	(1 << 1)
 #define MXC_CSPICTRL_XCH	(1 << 2)
+#define MXC_CSPICTRL_MODE_MASK (0xf << 4)
 #define MXC_CSPICTRL_CHIPSELECT(x)	(((x) & 0x3) << 12)
 #define MXC_CSPICTRL_BITCOUNT(x)	(((x) & 0xfff) << 20)
 #define MXC_CSPICTRL_PREDIV(x)	(((x) & 0xF) << 12)
@@ -234,17 +406,26 @@ struct cspi_regs {
 #define MXC_CSPICTRL_CHAN	18
 
 /* Bit position inside CON register to be associated with SS */
-#define MXC_CSPICON_POL		4
-#define MXC_CSPICON_PHA		0
-#define MXC_CSPICON_SSPOL	12
+#define MXC_CSPICON_PHA		0  /* SCLK phase control */
+#define MXC_CSPICON_POL		4  /* SCLK polarity */
+#define MXC_CSPICON_SSPOL	12 /* SS polarity */
+#define MXC_CSPICON_CTL		20 /* inactive state of SCLK */
+#if defined(CONFIG_MX6SL) || defined(CONFIG_MX6DL)
+#define MXC_SPI_BASE_ADDRESSES \
+	ECSPI1_BASE_ADDR, \
+	ECSPI2_BASE_ADDR, \
+	ECSPI3_BASE_ADDR, \
+	ECSPI4_BASE_ADDR
+#else
 #define MXC_SPI_BASE_ADDRESSES \
 	ECSPI1_BASE_ADDR, \
 	ECSPI2_BASE_ADDR, \
 	ECSPI3_BASE_ADDR, \
 	ECSPI4_BASE_ADDR, \
 	ECSPI5_BASE_ADDR
+#endif
 
-struct iim_regs {
+struct ocotp_regs {
 	u32	ctrl;
 	u32	ctrl_set;
 	u32     ctrl_clr;
@@ -255,9 +436,9 @@ struct iim_regs {
 	u32     rsvd1[3];
 	u32     read_ctrl;
 	u32     rsvd2[3];
-	u32     fuse_data;
+	u32	read_fuse_data;
 	u32     rsvd3[3];
-	u32     sticky;
+	u32	sw_sticky;
 	u32     rsvd4[3];
 	u32     scs;
 	u32     scs_set;
@@ -272,7 +453,22 @@ struct iim_regs {
 
 	struct fuse_bank {
 		u32	fuse_regs[0x20];
-	} bank[15];
+	} bank[16];
+};
+
+struct fuse_bank0_regs {
+	u32	lock;
+	u32	rsvd0[3];
+	u32	uid_low;
+	u32	rsvd1[3];
+	u32	uid_high;
+	u32	rsvd2[3];
+	u32	rsvd3[4];
+	u32	rsvd4[4];
+	u32	rsvd5[4];
+	u32	cfg5;
+	u32	rsvd6[3];
+	u32	rsvd7[4];
 };
 
 struct fuse_bank4_regs {
@@ -283,7 +479,11 @@ struct fuse_bank4_regs {
 	u32	mac_addr_low;
 	u32     rsvd2[3];
 	u32     mac_addr_high;
-	u32	rsvd3[0x13];
+	u32	rsvd3[0xb];
+	u32	gp1;
+	u32	rsvd4[3];
+	u32	gp2;
+	u32	rsvd5[3];
 };
 
 struct aipstz_regs {
@@ -437,7 +637,16 @@ struct anatop_regs {
 	u32	usb2_misc_clr;		/* 0x258 */
 	u32	usb2_misc_tog;		/* 0x25c */
 	u32	digprog;		/* 0x260 */
+	u32	reserved1[7];
+	u32	digprog_sololite;	/* 0x280 */
 };
+
+#define ANATOP_PFD_FRAC_SHIFT(n)	((n)*8)
+#define ANATOP_PFD_FRAC_MASK(n)	(0x3f<<ANATOP_PFD_FRAC_SHIFT(n))
+#define ANATOP_PFD_STABLE_SHIFT(n)	(6+((n)*8))
+#define ANATOP_PFD_STABLE_MASK(n)	(1<<ANATOP_PFD_STABLE_SHIFT(n))
+#define ANATOP_PFD_CLKGATE_SHIFT(n)	(7+((n)*8))
+#define ANATOP_PFD_CLKGATE_MASK(n)	(1<<ANATOP_PFD_CLKGATE_SHIFT(n))
 
 struct iomuxc_base_regs {
 	u32     gpr[14];        /* 0x000 */
@@ -448,25 +657,12 @@ struct iomuxc_base_regs {
 	u32     daisy[104];     /* 0x7b0..94c */
 };
 
-struct src_regs {
-	u32	scr;		/* 0x00 */
-	u32	sbmr1;		/* 0x04 */
-	u32	srsr;		/* 0x08 */
-	u32	reserved1;	/* 0x0c */
-	u32	reserved2;	/* 0x10 */
-	u32	sisr;		/* 0x14 */
-	u32	simr;		/* 0x18 */
-	u32	sbmr2;		/* 0x1c */
-	u32	gpr1;		/* 0x20 */
-	u32	gpr2;		/* 0x24 */
-	u32	gpr3;		/* 0x28 */
-	u32	gpr4;		/* 0x2c */
-	u32	gpr5;		/* 0x30 */
-	u32	gpr6;		/* 0x34 */
-	u32	gpr7;		/* 0x38 */
-	u32	gpr8;		/* 0x3c */
-	u32	gpr9;		/* 0x40 */
-	u32	gpr10;		/* 0x44 */
+struct wdog_regs {
+	u16	wcr;	/* Control */
+	u16	wsr;	/* Service */
+	u16	wrsr;	/* Reset Status */
+	u16	wicr;	/* Interrupt Control */
+	u16	wmcr;	/* Miscellaneous Control */
 };
 
 #endif /* __ASSEMBLER__*/

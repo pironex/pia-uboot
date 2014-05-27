@@ -4,9 +4,8 @@
  * Copyright (C) 2012 Dmitry Bondar <bond@inmys.ru>
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This file is released under the terms of GPL v2 and any later version.
- * See the file COPYING in the root directory of the source tree for details.
-*/
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
 
 #include <common.h>
 #include <asm/io.h>
@@ -16,7 +15,7 @@
 void reset_cpu(unsigned long a)
 {
 	struct davinci_timer *const wdttimer =
-		(struct davinci_timer *)DAVINCI_TIMER1_BASE;
+		(struct davinci_timer *)DAVINCI_WDOG_BASE;
 	writel(0x08, &wdttimer->tgcr);
 	writel(readl(&wdttimer->tgcr) | 0x03, &wdttimer->tgcr);
 	writel(0, &wdttimer->tim12);

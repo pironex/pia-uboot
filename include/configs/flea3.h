@@ -7,20 +7,7 @@
  *
  * Configuration for the flea3 board.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -63,11 +50,10 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_HARD_I2C
-#define CONFIG_I2C_MXC
-#define CONFIG_SYS_I2C_BASE		I2C3_BASE_ADDR
-#define CONFIG_SYS_I2C_SPEED		100000
-#define CONFIG_SYS_I2C_SLAVE		0xfe
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_MXC
+#define CONFIG_SYS_SPD_BUS_NUM		2 /* I2C3 */
+#define CONFIG_SYS_MXC_I2C3_SLAVE	0xfe
 #define CONFIG_MXC_SPI
 #define CONFIG_MXC_GPIO
 
@@ -142,8 +128,6 @@
 #undef	CONFIG_SYS_CLKS_IN_HZ	/* everything, incl board info, in Hz */
 
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
-
-#define CONFIG_SYS_HZ				1000
 
 /*
  * Physical Memory Map
@@ -222,8 +206,6 @@
  * Default environment and default scripts
  * to update uboot and load kernel
  */
-#define xstr(s)	str(s)
-#define str(s)	#s
 
 #define CONFIG_HOSTNAME flea3
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
@@ -236,16 +218,16 @@
 		":${hostname}:${netdev}:off panic=1\0"			\
 	"addip_dyn=setenv bootargs ${bootargs} ip=dhcp\0"		\
 	"addip=if test -n ${ipdyn};then run addip_dyn;"			\
-		"else run addip_sta;fi\0"	\
+		"else run addip_sta;fi\0"				\
 	"addmtd=setenv bootargs ${bootargs} ${mtdparts}\0"		\
 	"addtty=setenv bootargs ${bootargs}"				\
 		" console=ttymxc2,${baudrate}\0"			\
 	"addmisc=setenv bootargs ${bootargs} ${misc}\0"			\
 	"loadaddr=80800000\0"						\
 	"kernel_addr_r=80800000\0"					\
-	"hostname=" xstr(CONFIG_HOSTNAME) "\0"				\
-	"bootfile=" xstr(CONFIG_HOSTNAME) "/uImage\0"			\
-	"ramdisk_file=" xstr(CONFIG_HOSTNAME) "/uRamdisk\0"		\
+	"hostname=" __stringify(CONFIG_HOSTNAME) "\0"			\
+	"bootfile=" __stringify(CONFIG_HOSTNAME) "/uImage\0"		\
+	"ramdisk_file=" __stringify(CONFIG_HOSTNAME) "/uRamdisk\0"	\
 	"flash_self=run ramargs addip addtty addmtd addmisc;"		\
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"flash_nfs=run nfsargs addip addtty addmtd addmisc;"		\
@@ -259,9 +241,9 @@
 		"run ramargs addip addtty addmtd addmisc;"		\
 		"bootm ${kernel_addr_r} ${ramdisk_addr_r};"		\
 		"else echo Images not loades;fi\0"			\
-	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"			\
+	"u-boot=" __stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
 	"load=tftp ${loadaddr} ${u-boot}\0"				\
-	"uboot_addr=" xstr(CONFIG_SYS_MONITOR_BASE) "\0"		\
+	"uboot_addr=" __stringify(CONFIG_SYS_MONITOR_BASE) "\0"		\
 	"update=protect off ${uboot_addr} +40000;"			\
 		"erase ${uboot_addr} +40000;"				\
 		"cp.b ${loadaddr} ${uboot_addr} ${filesize}\0"		\

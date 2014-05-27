@@ -5,20 +5,7 @@
  *
  * Author: Tor Krill tor@excito.com
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -29,7 +16,18 @@
 #include <hwconfig.h>
 
 #include "ehci.h"
-#include "ehci-core.h"
+
+/* Check USB PHY clock valid */
+static int usb_phy_clk_valid(struct usb_ehci *ehci)
+{
+	if (!((in_be32(&ehci->control) & PHY_CLK_VALID) ||
+			in_be32(&ehci->prictrl))) {
+		printf("USB PHY clock invalid!\n");
+		return 0;
+	} else {
+		return 1;
+	}
+}
 
 /*
  * Create the appropriate control structures to manage
@@ -37,9 +35,10 @@
  *
  * Excerpts from linux ehci fsl driver.
  */
-int ehci_hcd_init(void)
+int ehci_hcd_init(int index, enum usb_init_type init,
+		struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
-	struct usb_ehci *ehci;
+	struct usb_ehci *ehci = NULL;
 	const char *phy_type = NULL;
 	size_t len;
 #ifdef CONFIG_SYS_FSL_USB_INTERNAL_UTMI_PHY
@@ -48,10 +47,21 @@ int ehci_hcd_init(void)
 	usb_phy[0] = '\0';
 #endif
 
-	ehci = (struct usb_ehci *)CONFIG_SYS_FSL_USB_ADDR;
-	hccr = (struct ehci_hccr *)((uint32_t)&ehci->caplength);
-	hcor = (struct ehci_hcor *)((uint32_t) hccr +
-			HC_LENGTH(ehci_readl(&hccr->cr_capbase)));
+	switch (index) {
+	case 0:
+		ehci = (struct usb_ehci *)CONFIG_SYS_FSL_USB1_ADDR;
+		break;
+	case 1:
+		ehci = (struct usb_ehci *)CONFIG_SYS_FSL_USB2_ADDR;
+		break;
+	default:
+		printf("ERROR: wrong controller index!!\n");
+		break;
+	};
+
+	*hccr = (struct ehci_hccr *)((uint32_t)&ehci->caplength);
+	*hcor = (struct ehci_hcor *)((uint32_t) *hccr +
+			HC_LENGTH(ehci_readl(&(*hccr)->cr_capbase)));
 
 	/* Set to Host mode */
 	setbits_le32(&ehci->usbmode, CM_HOST);
@@ -76,24 +86,22 @@ int ehci_hcd_init(void)
 #endif
 	}
 
-	if (!strcmp(phy_type, "utmi")) {
+	if (!strncmp(phy_type, "utmi", 4)) {
 #if defined(CONFIG_SYS_FSL_USB_INTERNAL_UTMI_PHY)
 		setbits_be32(&ehci->control, PHY_CLK_SEL_UTMI);
 		setbits_be32(&ehci->control, UTMI_PHY_EN);
 		udelay(1000); /* delay required for PHY Clk to appear */
 #endif
-		out_le32(&(hcor->or_portsc[0]), PORT_PTS_UTMI);
+		out_le32(&(*hcor)->or_portsc[0], PORT_PTS_UTMI);
+		setbits_be32(&ehci->control, USB_EN);
 	} else {
-#if defined(CONFIG_SYS_FSL_USB_INTERNAL_UTMI_PHY)
-		clrbits_be32(&ehci->control, UTMI_PHY_EN);
 		setbits_be32(&ehci->control, PHY_CLK_SEL_ULPI);
+		clrsetbits_be32(&ehci->control, UTMI_PHY_EN, USB_EN);
 		udelay(1000); /* delay required for PHY Clk to appear */
-#endif
-		out_le32(&(hcor->or_portsc[0]), PORT_PTS_ULPI);
+		if (!usb_phy_clk_valid(ehci))
+			return -EINVAL;
+		out_le32(&(*hcor)->or_portsc[0], PORT_PTS_ULPI);
 	}
-
-	/* Enable interface. */
-	setbits_be32(&ehci->control, USB_EN);
 
 	out_be32(&ehci->prictrl, 0x0000000c);
 	out_be32(&ehci->age_cnt_limit, 0x00000040);
@@ -108,7 +116,7 @@ int ehci_hcd_init(void)
  * Destroy the appropriate control structures corresponding
  * the the EHCI host controller.
  */
-int ehci_hcd_stop(void)
+int ehci_hcd_stop(int index)
 {
 	return 0;
 }

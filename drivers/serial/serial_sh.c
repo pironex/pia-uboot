@@ -1,27 +1,18 @@
 /*
  * SuperH SCIF device driver.
+ * Copyright (C) 2013  Renesas Electronics Corporation
  * Copyright (C) 2007,2008,2010 Nobuhiro Iwamatsu
  * Copyright (C) 2002 - 2008  Paul Mundt
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <asm/processor.h>
 #include "serial_sh.h"
+#include <serial.h>
+#include <linux/compiler.h>
 
 #if defined(CONFIG_CONS_SCIF0)
 # define SCIF_BASE	SCIF0_BASE
@@ -55,13 +46,15 @@ static struct uart_port sh_sci = {
 	.type		= SCIF_BASE_PORT,
 };
 
-void serial_setbrg(void)
+static void sh_serial_setbrg(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
-	sci_out(&sh_sci, SCBRR, SCBRR_VALUE(gd->baudrate, CONFIG_SYS_CLK_FREQ));
+
+	sci_out(&sh_sci, SCBRR,
+		SCBRR_VALUE(gd->baudrate, CONFIG_SH_SCIF_CLK_FREQ));
 }
 
-int serial_init(void)
+static int sh_serial_init(void)
 {
 	sci_out(&sh_sci, SCSCR , SCSCR_INIT(&sh_sci));
 	sci_out(&sh_sci, SCSCR , SCSCR_INIT(&sh_sci));
@@ -115,6 +108,14 @@ static int serial_rx_fifo_level(void)
 	return scif_rxfill(&sh_sci);
 }
 
+static void handle_error(void)
+{
+	sci_in(&sh_sci, SCxSR);
+	sci_out(&sh_sci, SCxSR, SCxSR_ERROR_CLEAR(&sh_sci));
+	sci_in(&sh_sci, SCLSR);
+	sci_out(&sh_sci, SCLSR, 0x00);
+}
+
 void serial_raw_putc(const char c)
 {
 	while (1) {
@@ -127,32 +128,23 @@ void serial_raw_putc(const char c)
 	sci_out(&sh_sci, SCxSR, sci_in(&sh_sci, SCxSR) & ~SCxSR_TEND(&sh_sci));
 }
 
-void serial_putc(const char c)
+static void sh_serial_putc(const char c)
 {
 	if (c == '\n')
 		serial_raw_putc('\r');
 	serial_raw_putc(c);
 }
 
-void serial_puts(const char *s)
+static int sh_serial_tstc(void)
 {
-	char c;
-	while ((c = *s++) != 0)
-		serial_putc(c);
-}
+	if (sci_in(&sh_sci, SCxSR) & SCIF_ERRORS) {
+		handle_error();
+		return 0;
+	}
 
-int serial_tstc(void)
-{
 	return serial_rx_fifo_level() ? 1 : 0;
 }
 
-void handle_error(void)
-{
-	sci_in(&sh_sci, SCxSR);
-	sci_out(&sh_sci, SCxSR, SCxSR_ERROR_CLEAR(&sh_sci));
-	sci_in(&sh_sci, SCLSR);
-	sci_out(&sh_sci, SCLSR, 0x00);
-}
 
 int serial_getc_check(void)
 {
@@ -167,7 +159,7 @@ int serial_getc_check(void)
 	return status & (SCIF_DR | SCxSR_RDxF(&sh_sci));
 }
 
-int serial_getc(void)
+static int sh_serial_getc(void)
 {
 	unsigned short status;
 	char ch;
@@ -186,4 +178,25 @@ int serial_getc(void)
 	if (sci_in(&sh_sci, SCLSR) & SCxSR_ORER(&sh_sci))
 		handle_error();
 	return ch;
+}
+
+static struct serial_device sh_serial_drv = {
+	.name	= "sh_serial",
+	.start	= sh_serial_init,
+	.stop	= NULL,
+	.setbrg	= sh_serial_setbrg,
+	.putc	= sh_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= sh_serial_getc,
+	.tstc	= sh_serial_tstc,
+};
+
+void sh_serial_initialize(void)
+{
+	serial_register(&sh_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &sh_serial_drv;
 }

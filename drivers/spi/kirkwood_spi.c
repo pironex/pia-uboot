@@ -5,23 +5,7 @@
  *
  * Derived from drivers/spi/mpc8xxx_spi.c
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -41,17 +25,17 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 {
 	struct spi_slave *slave;
 	u32 data;
-	u32 kwspi_mpp_config[] = { 0, 0 };
+	static const u32 kwspi_mpp_config[2][2] = {
+		{ MPP0_SPI_SCn, 0 }, /* if cs == 0 */
+		{ MPP7_SPI_SCn, 0 } /* if cs != 0 */
+	};
 
 	if (!spi_cs_is_valid(bus, cs))
 		return NULL;
 
-	slave = malloc(sizeof(struct spi_slave));
+	slave = spi_alloc_slave_base(bus, cs);
 	if (!slave)
 		return NULL;
-
-	slave->bus = bus;
-	slave->cs = cs;
 
 	writel(~KWSPI_CSN_ACT | KWSPI_SMEMRDY, &spireg->ctrl);
 
@@ -68,12 +52,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	writel(KWSPI_IRQMASK, &spireg->irq_mask);
 
 	/* program mpp registers to select  SPI_CSn */
-	if (cs) {
-		kwspi_mpp_config[0] = MPP7_SPI_SCn;
-	} else {
-		kwspi_mpp_config[0] = MPP0_SPI_SCn;
-	}
-	kirkwood_mpp_conf(kwspi_mpp_config, cs_spi_mpp_back);
+	kirkwood_mpp_conf(kwspi_mpp_config[cs ? 1 : 0], cs_spi_mpp_back);
 
 	return slave;
 }

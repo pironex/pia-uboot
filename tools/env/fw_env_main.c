@@ -2,23 +2,7 @@
  * (C) Copyright 2000-2008
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -39,10 +23,13 @@
  *		  variable "name"
  */
 
+#include <fcntl.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <sys/file.h>
+#include <unistd.h>
 #include "fw_env.h"
 
 #define	CMD_PRINTENV	"fw_printenv"
@@ -81,13 +68,27 @@ void usage(void)
 	);
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	char *p;
 	char *cmdname = *argv;
 	char *script_file = NULL;
 	int c;
+	const char *lockname = "/var/lock/" CMD_PRINTENV ".lock";
+	int lockfd = -1;
+	int retval = EXIT_SUCCESS;
+
+	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (-1 == lockfd) {
+		fprintf(stderr, "Error opening lock file %s\n", lockname);
+		return EXIT_FAILURE;
+	}
+
+	if (-1 == flock(lockfd, LOCK_EX)) {
+		fprintf(stderr, "Error locking file %s\n", lockname);
+		close(lockfd);
+		return EXIT_FAILURE;
+	}
 
 	if ((p = strrchr (cmdname, '/')) != NULL) {
 		cmdname = p + 1;
@@ -104,38 +105,36 @@ main(int argc, char *argv[])
 			break;
 		case 'h':
 			usage();
-			return EXIT_SUCCESS;
+			goto exit;
 		default: /* '?' */
 			fprintf(stderr, "Try `%s --help' for more information."
 				"\n", cmdname);
-			return EXIT_FAILURE;
+			retval = EXIT_FAILURE;
+			goto exit;
 		}
 	}
 
-
 	if (strcmp(cmdname, CMD_PRINTENV) == 0) {
-
-		if (fw_printenv (argc, argv) != 0)
-			return EXIT_FAILURE;
-
-		return EXIT_SUCCESS;
-
+		if (fw_printenv(argc, argv) != 0)
+			retval = EXIT_FAILURE;
 	} else if (strcmp(cmdname, CMD_SETENV) == 0) {
 		if (!script_file) {
 			if (fw_setenv(argc, argv) != 0)
-				return EXIT_FAILURE;
+				retval = EXIT_FAILURE;
 		} else {
 			if (fw_parse_script(script_file) != 0)
-				return EXIT_FAILURE;
+				retval = EXIT_FAILURE;
 		}
-
-		return EXIT_SUCCESS;
-
+	} else {
+		fprintf(stderr,
+			"Identity crisis - may be called as `" CMD_PRINTENV
+			"' or as `" CMD_SETENV "' but not as `%s'\n",
+			cmdname);
+		retval = EXIT_FAILURE;
 	}
 
-	fprintf (stderr,
-		"Identity crisis - may be called as `" CMD_PRINTENV
-		"' or as `" CMD_SETENV "' but not as `%s'\n",
-		cmdname);
-	return EXIT_FAILURE;
+exit:
+	flock(lockfd, LOCK_UN);
+	close(lockfd);
+	return retval;
 }

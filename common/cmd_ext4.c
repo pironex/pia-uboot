@@ -17,21 +17,7 @@
  * Sysgo Real-Time Solutions, AG <www.elinos.com>
  * Pavel Bartusek <pba@sysgo.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -47,10 +33,10 @@
 #include <image.h>
 #include <linux/ctype.h>
 #include <asm/byteorder.h>
-#include <ext_common.h>
 #include <ext4fs.h>
 #include <linux/stat.h>
 #include <malloc.h>
+#include <fs.h>
 
 #if defined(CONFIG_CMD_USB) && defined(CONFIG_USB_STORAGE)
 #include <usb.h>
@@ -59,18 +45,12 @@
 int do_ext4_load(cmd_tbl_t *cmdtp, int flag, int argc,
 						char *const argv[])
 {
-	if (do_ext_load(cmdtp, flag, argc, argv))
-		return -1;
-
-	return 0;
+	return do_load(cmdtp, flag, argc, argv, FS_TYPE_EXT);
 }
 
 int do_ext4_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
-	if (do_ext_ls(cmdtp, flag, argc, argv))
-		return -1;
-
-	return 0;
+	return do_ls(cmdtp, flag, argc, argv, FS_TYPE_EXT);
 }
 
 #if defined(CONFIG_CMD_EXT4_WRITE)
@@ -94,20 +74,20 @@ int do_ext4_write(cmd_tbl_t *cmdtp, int flag, int argc,
 	dev = dev_desc->dev;
 
 	/* get the filename */
-	filename = argv[3];
+	filename = argv[4];
 
 	/* get the address in hexadecimal format (string to int) */
-	ram_address = simple_strtoul(argv[4], NULL, 16);
+	ram_address = simple_strtoul(argv[3], NULL, 16);
 
-	/* get the filesize in base 10 format */
-	file_size = simple_strtoul(argv[5], NULL, 10);
+	/* get the filesize in hexadecimal format */
+	file_size = simple_strtoul(argv[5], NULL, 16);
 
 	/* set the device as block device */
 	ext4fs_set_blk_dev(dev_desc, &info);
 
 	/* mount the filesystem */
 	if (!ext4fs_mount(info.size)) {
-		printf("Bad ext4 partition %s %d:%lu\n", argv[1], dev, part);
+		printf("Bad ext4 partition %s %d:%d\n", argv[1], dev, part);
 		goto fail;
 	}
 
@@ -128,18 +108,18 @@ fail:
 
 U_BOOT_CMD(ext4write, 6, 1, do_ext4_write,
 	"create a file in the root directory",
-	"<interface> <dev[:part]> [Absolute filename path] [Address] [sizebytes]\n"
-	"	  - create a file in / directory");
+	"<interface> <dev[:part]> <addr> <absolute filename path> [sizebytes]\n"
+	"    - create a file in / directory");
 
 #endif
 
 U_BOOT_CMD(ext4ls, 4, 1, do_ext4_ls,
 	   "list files in a directory (default /)",
 	   "<interface> <dev[:part]> [directory]\n"
-	   "	  - list files from 'dev' on 'interface' in a 'directory'");
+	   "    - list files from 'dev' on 'interface' in a 'directory'");
 
 U_BOOT_CMD(ext4load, 6, 0, do_ext4_load,
 	   "load binary file from a Ext4 filesystem",
 	   "<interface> <dev[:part]> [addr] [filename] [bytes]\n"
-	   "	  - load binary file 'filename' from 'dev' on 'interface'\n"
-	   "		 to address 'addr' from ext4 filesystem");
+	   "    - load binary file 'filename' from 'dev' on 'interface'\n"
+	   "      to address 'addr' from ext4 filesystem");

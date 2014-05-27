@@ -2,23 +2,7 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ENVIRONMENT_H_
@@ -75,6 +59,12 @@
 # endif
 #endif	/* CONFIG_ENV_IS_IN_FLASH */
 
+#if defined(CONFIG_ENV_IS_IN_MMC)
+# ifdef CONFIG_ENV_OFFSET_REDUND
+#  define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+# endif
+#endif
+
 #if defined(CONFIG_ENV_IS_IN_NAND)
 # if defined(CONFIG_ENV_OFFSET_OOB)
 #  ifdef CONFIG_ENV_OFFSET_REDUND
@@ -95,6 +85,24 @@ extern unsigned long nand_env_oob_offset;
 #  error "Need to define CONFIG_ENV_SIZE when using CONFIG_ENV_IS_IN_NAND"
 # endif
 #endif /* CONFIG_ENV_IS_IN_NAND */
+
+#if defined(CONFIG_ENV_IS_IN_UBI)
+# ifndef CONFIG_ENV_UBI_PART
+#  error "Need to define CONFIG_ENV_UBI_PART when using CONFIG_ENV_IS_IN_UBI"
+# endif
+# ifndef CONFIG_ENV_UBI_VOLUME
+#  error "Need to define CONFIG_ENV_UBI_VOLUME when using CONFIG_ENV_IS_IN_UBI"
+# endif
+# if defined(CONFIG_ENV_UBI_VOLUME_REDUND)
+#  define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+# endif
+# ifndef CONFIG_ENV_SIZE
+#  error "Need to define CONFIG_ENV_SIZE when using CONFIG_ENV_IS_IN_UBI"
+# endif
+# ifndef CONFIG_CMD_UBI
+#  error "Need to define CONFIG_CMD_UBI when using CONFIG_ENV_IS_IN_UBI"
+# endif
+#endif /* CONFIG_ENV_IS_IN_UBI */
 
 /* Embedded env is only supported for some flash types */
 #ifdef CONFIG_ENV_IS_EMBEDDED
@@ -164,6 +172,9 @@ extern void env_reloc(void);
 
 #ifndef DO_DEPS_ONLY
 
+#include <env_attr.h>
+#include <env_callback.h>
+#include <env_flags.h>
 #include <search.h>
 
 extern struct hsearch_data env_htab;
@@ -178,6 +189,9 @@ unsigned char env_get_char_memory(int index);
 /* Function that updates CRC of the enironment */
 void env_crc_update(void);
 
+/* Look up the variable from the default environment */
+char *getenv_default(const char *name);
+
 /* [re]set to the default environment */
 void set_default_env(const char *s);
 
@@ -186,15 +200,6 @@ int set_default_vars(int nvars, char * const vars[]);
 
 /* Import from binary representation into hash table */
 int env_import(const char *buf, int check);
-
-/*
- * Check if variable "name" can be changed from oldval to newval,
- * and if so, apply the changes (e.g. baudrate).
- * When (flag & H_FORCE) is set, it does not print out any error
- * message and forces overwriting of write-once variables.
- */
-int env_check_apply(const char *name, const char *oldval,
-			const char *newval, int flag);
 
 #endif /* DO_DEPS_ONLY */
 

@@ -4,23 +4,7 @@
  * This file is derived from arch/powerpc/cpu/mpc85xx/cpu.c and
  * arch/powerpc/cpu/mpc86xx/cpu.c. Basically this file contains
  * cpu specific common code for 85xx/86xx processors.
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -31,7 +15,9 @@
 #include <phy.h>
 #include <hwconfig.h>
 
-#define FSL_MAX_NUM_USB_CTRLS	2
+#ifndef CONFIG_USB_MAX_CONTROLLER_COUNT
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	1
+#endif
 
 #if defined(CONFIG_MP) && (defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx))
 static int ft_del_cpuhandle(void *blob, int cpuhandle)
@@ -137,15 +123,14 @@ void fdt_fixup_dr_usb(void *blob, bd_t *bd)
 {
 	const char *modes[] = { "host", "peripheral", "otg" };
 	const char *phys[] = { "ulpi", "utmi" };
-	const char *mode = NULL;
-	const char *phy_type = NULL;
-	char usb1_defined = 0;
+	const char *dr_mode_type = NULL;
+	const char *dr_phy_type = NULL;
 	int usb_mode_off = -1;
 	int usb_phy_off = -1;
 	char str[5];
 	int i, j;
 
-	for (i = 1; i <= FSL_MAX_NUM_USB_CTRLS; i++) {
+	for (i = 1; i <= CONFIG_USB_MAX_CONTROLLER_COUNT; i++) {
 		int mode_idx = -1, phy_idx = -1;
 		snprintf(str, 5, "%s%d", "usb", i);
 		if (hwconfig(str)) {
@@ -156,6 +141,7 @@ void fdt_fixup_dr_usb(void *blob, bd_t *bd)
 					break;
 				}
 			}
+
 			for (j = 0; j < ARRAY_SIZE(phys); j++) {
 				if (hwconfig_subarg_cmp(str, "phy_type",
 						phys[j])) {
@@ -163,31 +149,32 @@ void fdt_fixup_dr_usb(void *blob, bd_t *bd)
 					break;
 				}
 			}
-			if (mode_idx >= 0) {
-				usb_mode_off = fdt_fixup_usb_mode_phy_type(blob,
-					modes[mode_idx], NULL, usb_mode_off);
-				if (usb_mode_off < 0)
-					return;
+
+			if (mode_idx < 0 || phy_idx < 0) {
+				puts("ERROR: wrong usb mode/phy defined!!\n");
+				return;
 			}
-			if (phy_idx >= 0) {
-				usb_phy_off = fdt_fixup_usb_mode_phy_type(blob,
-					NULL, phys[phy_idx], usb_phy_off);
-				if (usb_phy_off < 0)
-					return;
-			}
-			if (!strcmp(str, "usb1"))
-				usb1_defined = 1;
-			if (mode_idx < 0 && phy_idx < 0)
+
+			dr_mode_type = modes[mode_idx];
+			dr_phy_type = phys[phy_idx];
+
+			if (mode_idx < 0 && phy_idx < 0) {
 				printf("WARNING: invalid phy or mode\n");
+				return;
+			}
 		}
-	}
-	if (!usb1_defined) {
-		int usb_off = -1;
-		mode = getenv("usb_dr_mode");
-		phy_type = getenv("usb_phy_type");
-		if (!mode && !phy_type)
+
+		usb_mode_off = fdt_fixup_usb_mode_phy_type(blob,
+			dr_mode_type, NULL, usb_mode_off);
+
+		if (usb_mode_off < 0)
 			return;
-		fdt_fixup_usb_mode_phy_type(blob, mode, phy_type, usb_off);
+
+		usb_phy_off = fdt_fixup_usb_mode_phy_type(blob,
+			NULL, dr_phy_type, usb_phy_off);
+
+		if (usb_phy_off < 0)
+			return;
 	}
 }
 #endif /* defined(CONFIG_HAS_FSL_DR_USB) || defined(CONFIG_HAS_FSL_MPH_USB) */
@@ -199,7 +186,7 @@ void fdt_fixup_dr_usb(void *blob, bd_t *bd)
 #if CONFIG_SYS_FSL_SEC_COMPAT == 2 /* SEC 2.x/3.x */
 void fdt_fixup_crypto_node(void *blob, int sec_rev)
 {
-	const struct sec_rev_prop {
+	static const struct sec_rev_prop {
 		u32 sec_rev;
 		u32 num_channels;
 		u32 channel_fifo_len;
@@ -214,8 +201,8 @@ void fdt_fixup_crypto_node(void *blob, int sec_rev)
 		{ 0x0301, 4, 24, 0xbfe, 0x03ab0ebf }, /* SEC 3.1 */
 		{ 0x0303, 4, 24, 0x97c, 0x03a30abf }, /* SEC 3.3 */
 	};
-	char compat_strlist[ARRAY_SIZE(sec_rev_prop_list) *
-			    sizeof("fsl,secX.Y")];
+	static char compat_strlist[ARRAY_SIZE(sec_rev_prop_list) *
+				   sizeof("fsl,secX.Y")];
 	int crypto_node, sec_idx, err;
 	char *p;
 	u32 val;
@@ -279,10 +266,86 @@ void fdt_fixup_crypto_node(void *blob, int sec_rev)
 		       fdt_strerror(err));
 }
 #elif CONFIG_SYS_FSL_SEC_COMPAT >= 4  /* SEC4 */
+static u8 caam_get_era(void)
+{
+	static const struct {
+		u16 ip_id;
+		u8 maj_rev;
+		u8 era;
+	} caam_eras[] = {
+		{0x0A10, 1, 1},
+		{0x0A10, 2, 2},
+		{0x0A12, 1, 3},
+		{0x0A14, 1, 3},
+		{0x0A14, 2, 4},
+		{0x0A16, 1, 4},
+		{0x0A10, 3, 4},
+		{0x0A11, 1, 4},
+		{0x0A18, 1, 4},
+		{0x0A11, 2, 5},
+		{0x0A12, 2, 5},
+		{0x0A13, 1, 5},
+		{0x0A1C, 1, 5}
+	};
+
+	ccsr_sec_t __iomem *sec = (void __iomem *)CONFIG_SYS_FSL_SEC_ADDR;
+	u32 secvid_ms = in_be32(&sec->secvid_ms);
+	u32 ccbvid = in_be32(&sec->ccbvid);
+	u16 ip_id = (secvid_ms & SEC_SECVID_MS_IPID_MASK) >>
+				SEC_SECVID_MS_IPID_SHIFT;
+	u8 maj_rev = (secvid_ms & SEC_SECVID_MS_MAJ_REV_MASK) >>
+				SEC_SECVID_MS_MAJ_REV_SHIFT;
+	u8 era = (ccbvid & SEC_CCBVID_ERA_MASK) >> SEC_CCBVID_ERA_SHIFT;
+
+	int i;
+
+	if (era)	/* This is '0' prior to CAAM ERA-6 */
+		return era;
+
+	for (i = 0; i < ARRAY_SIZE(caam_eras); i++)
+		if (caam_eras[i].ip_id == ip_id &&
+		    caam_eras[i].maj_rev == maj_rev)
+			return caam_eras[i].era;
+
+	return 0;
+}
+
+static void fdt_fixup_crypto_era(void *blob, u32 era)
+{
+	int err;
+	int crypto_node;
+
+	crypto_node = fdt_path_offset(blob, "crypto");
+	if (crypto_node < 0) {
+		printf("WARNING: Missing crypto node\n");
+		return;
+	}
+
+	err = fdt_setprop(blob, crypto_node, "fsl,sec-era", &era,
+			  sizeof(era));
+	if (err < 0) {
+		printf("ERROR: could not set fsl,sec-era property: %s\n",
+		       fdt_strerror(err));
+	}
+}
+
 void fdt_fixup_crypto_node(void *blob, int sec_rev)
 {
-	if (!sec_rev)
+	u8 era;
+
+	if (!sec_rev) {
 		fdt_del_node_and_alias(blob, "crypto");
+		return;
+	}
+
+	/* Add SEC ERA information in compatible */
+	era = caam_get_era();
+	if (era) {
+		fdt_fixup_crypto_era(blob, era);
+	} else {
+		printf("WARNING: Unable to get ERA for CAAM rev: %d\n",
+			sec_rev);
+	}
 }
 #endif
 

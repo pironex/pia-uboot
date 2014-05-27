@@ -136,6 +136,7 @@
 
 #define CONFIG_BAUDRATE		57600
 #define CONFIG_UART_CONSOLE	0
+#define CONFIG_BFIN_SERIAL
 
 #define CONFIG_PANIC_HANG	1
 #define CONFIG_RTC_BFIN		1
@@ -173,7 +174,7 @@
 
 #define BOOT_ENV_SETTINGS \
 	"update=tftpboot $(loadaddr) u-boot.ldr;" \
-		"sf probe " MK_STR(BFIN_BOOT_SPI_SSEL) ";" \
+		"sf probe " __stringify(BFIN_BOOT_SPI_SSEL) ";" \
 		"sf erase 0 0x30000;" \
 		"sf write $(loadaddr) 0 $(filesize)" \
 	"flashboot=sf read 0x1000000 0x30000 0x320000;" \

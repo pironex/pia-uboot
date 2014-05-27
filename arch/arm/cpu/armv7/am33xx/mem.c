@@ -10,20 +10,7 @@
  *     Richard Woodruff <r-woodruff2@ti.com>
  *     Syed Mohammed Khasim <khasim@ti.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -35,30 +22,6 @@
 
 struct gpmc *gpmc_cfg;
 
-#if defined(CONFIG_CMD_NAND)
-static const u32 gpmc_m_nand[GPMC_MAX_REG] = {
-	M_NAND_GPMC_CONFIG1,
-	M_NAND_GPMC_CONFIG2,
-	M_NAND_GPMC_CONFIG3,
-	M_NAND_GPMC_CONFIG4,
-	M_NAND_GPMC_CONFIG5,
-	M_NAND_GPMC_CONFIG6, 0
-};
-#endif
-
-#if defined(CONFIG_CMD_FLASH)
-static const u32 gpmc_nor[GPMC_MAX_REG] = {
-	STNOR_GPMC_CONFIG1,
-	STNOR_GPMC_CONFIG2,
-	STNOR_GPMC_CONFIG3,
-	STNOR_GPMC_CONFIG4,
-	STNOR_GPMC_CONFIG5,
-	STNOR_GPMC_CONFIG6,
-	STNOR_GPMC_CONFIG7
-};
-
-#define GPMC_CS 0
-#endif
 
 void enable_gpmc_cs_config(const u32 *gpmc_config, struct gpmc_cs *cs, u32 base,
 			u32 size)
@@ -87,21 +50,42 @@ void gpmc_init(void)
 {
 	/* putting a blanket check on GPMC based on ZeBu for now */
 	gpmc_cfg = (struct gpmc *)GPMC_BASE;
-
-#if defined(CONFIG_CMD_NAND) || defined(CONFIG_NOR)
-	const u32 *gpmc_config = NULL;
-	u32 base = 0;
+#if defined(CONFIG_NOR)
+/* configure GPMC for NOR */
+	const u32 gpmc_regs[GPMC_MAX_REG] = {	STNOR_GPMC_CONFIG1,
+						STNOR_GPMC_CONFIG2,
+						STNOR_GPMC_CONFIG3,
+						STNOR_GPMC_CONFIG4,
+						STNOR_GPMC_CONFIG5,
+						STNOR_GPMC_CONFIG6,
+						STNOR_GPMC_CONFIG7
+						};
+	u32 size = GPMC_SIZE_16M;
+	u32 base = CONFIG_SYS_FLASH_BASE;
+#elif defined(CONFIG_NAND)
+/* configure GPMC for NAND */
+	const u32  gpmc_regs[GPMC_MAX_REG] = {	M_NAND_GPMC_CONFIG1,
+						M_NAND_GPMC_CONFIG2,
+						M_NAND_GPMC_CONFIG3,
+						M_NAND_GPMC_CONFIG4,
+						M_NAND_GPMC_CONFIG5,
+						M_NAND_GPMC_CONFIG6,
+						0
+						};
+	u32 size = GPMC_SIZE_256M;
+	u32 base = CONFIG_SYS_NAND_BASE;
+#else
+	const u32 gpmc_regs[GPMC_MAX_REG] = { 0, 0, 0, 0, 0, 0, 0 };
 	u32 size = 0;
+	u32 base = 0;
 #endif
 	/* global settings */
 	writel(0x00000008, &gpmc_cfg->sysconfig);
-#ifdef CONFIG_NOR
 	writel(0x00000000, &gpmc_cfg->irqstatus);
 	writel(0x00000000, &gpmc_cfg->irqenable);
-	writel(0x00000A00, &gpmc_cfg->config);
+#ifdef CONFIG_NOR
+	writel(0x00000200, &gpmc_cfg->config);
 #else
-	writel(0x00000100, &gpmc_cfg->irqstatus);
-	writel(0x00000200, &gpmc_cfg->irqenable);
 	writel(0x00000012, &gpmc_cfg->config);
 #endif
 	/*
@@ -109,33 +93,6 @@ void gpmc_init(void)
 	 */
 	writel(0, &gpmc_cfg->cs[0].config7);
 	sdelay(1000);
-
-#ifdef CONFIG_CMD_NAND
-	gpmc_config = gpmc_m_nand;
-
-	base = PISMO1_NAND_BASE;
-	size = PISMO1_NAND_SIZE;
-	enable_gpmc_cs_config(gpmc_config, &gpmc_cfg->cs[0], base, size);
-#endif
-
-#ifdef CONFIG_NOR
-	/* NOR - CS0 */
-	/* nor reset is gpio2_25 */
-#define GPIO2_25_MUX	0x44E1089C
-#define GPIO2_25_OE	0x481AC134
-#define GPIO2_25_DO	0x481AC13C
-
-	u32 tmp = 0;
-
-	tmp = readl(GPIO2_25_OE);
-	tmp &= 0xfdffffff;
-	writel(tmp, GPIO2_25_OE);
-	writel(0x02000000, 0x481ac194);
-
-	gpmc_config = gpmc_nor;
-	base = CONFIG_SYS_FLASH_BASE;
-	size = GPMC_SIZE_16M;
-	enable_gpmc_cs_config(gpmc_config, &gpmc_cfg->cs[0], base, size);
-	writel(0x00000a00, 0x50000050);
-#endif
+	/* enable chip-select specific configurations */
+	enable_gpmc_cs_config(gpmc_regs, &gpmc_cfg->cs[0], base, size);
 }

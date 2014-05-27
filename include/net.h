@@ -39,7 +39,7 @@
 #define PKTALIGN	ARCH_DMA_MINALIGN
 
 /* IPv4 addresses are always 32 bits in size */
-typedef u32		IPaddr_t;
+typedef __be32		IPaddr_t;
 
 
 /**
@@ -89,7 +89,7 @@ struct eth_device {
 	int  (*recv) (struct eth_device *);
 	void (*halt) (struct eth_device *);
 #ifdef CONFIG_MCAST_TFTP
-	int (*mcast) (struct eth_device *, u32 ip, u8 set);
+	int (*mcast) (struct eth_device *, const u8 *enetaddr, u8 set);
 #endif
 	int  (*write_hwaddr) (struct eth_device *);
 	struct eth_device *next;
@@ -102,12 +102,13 @@ extern int eth_register(struct eth_device* dev);/* Register network device */
 extern int eth_unregister(struct eth_device *dev);/* Remove network device */
 extern void eth_try_another(int first_restart);	/* Change the device */
 extern void eth_set_current(void);		/* set nterface to ethcur var */
+
 /* get the current device MAC */
+extern struct eth_device *eth_current;
+
 static inline __attribute__((always_inline))
 struct eth_device *eth_get_dev(void)
 {
-	extern struct eth_device *eth_current;
-
 	return eth_current;
 }
 extern struct eth_device *eth_get_dev_by_name(const char *devname);
@@ -356,7 +357,7 @@ struct icmp_hdr {
 		} echo;
 		ulong	gateway;
 		struct {
-			ushort	__unused;
+			ushort	unused;
 			ushort	mtu;
 		} frag;
 		uchar data[0];
@@ -517,10 +518,10 @@ enum net_loop_state {
 	NETLOOP_SUCCESS,
 	NETLOOP_FAIL
 };
+extern enum net_loop_state net_state;
+
 static inline void net_set_state(enum net_loop_state state)
 {
-	extern enum net_loop_state net_state;
-
 	debug_cond(DEBUG_INT_STATE, "--- NetState set to %d\n", state);
 	net_state = state;
 }
@@ -693,6 +694,9 @@ extern void copy_filename(char *dst, const char *src, int size);
 
 /* get a random source port */
 extern unsigned int random_port(void);
+
+/* Update U-Boot over TFTP */
+extern int update_tftp(ulong addr);
 
 /**********************************************************************/
 

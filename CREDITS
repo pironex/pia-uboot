@@ -79,11 +79,6 @@ N: Oliver Brown
 E: obrown@adventnetworks.com
 D: Port to the gw8260 board
 
-N: Curt Brune
-E: curt@cucy.com
-D: Added support for Samsung S3C4510B CPU (ARM7tdmi based SoC)
-W: http://www.cucy.com
-
 N: Jonathan De Bruyne
 E: jonathan.debruyne@siemens.atea.be
 D: Port to Siemens IAD210 board
@@ -129,6 +124,10 @@ N: James F. Dougherty
 E: jfd@GigabitNetworks.COM
 D: Port to the MOUSSE board
 
+N: Mike Dunn
+E: mikedunn@newsguy.com
+D: Palmtreo680 board, docg4 nand flash driver
+
 N: Dave Ellis
 E: DGE@sixnetio.com
 D: EEPROM Speedup, SXNI855T port
@@ -144,7 +143,7 @@ W: www.freescale.com
 
 N: Dr. Wolfgang Grandegger
 E: wg@denx.de
-D: Support for Interphase 4539 T1/E1/J1 PMC, PN62, CCM, SCM boards
+D: Support for Interphase 4539 T1/E1/J1 PMC, CCM, SCM boards
 W: www.denx.de
 
 N: Peter Figuli

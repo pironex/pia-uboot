@@ -7,23 +7,7 @@
  * (C) Copyright 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _LCD_H_
@@ -32,30 +16,30 @@
 extern char lcd_is_enabled;
 
 extern int lcd_line_length;
-extern int lcd_color_fg;
-extern int lcd_color_bg;
 
-/*
- * Frame buffer memory information
- */
-extern void *lcd_base;		/* Start of framebuffer memory	*/
-extern void *lcd_console_address;	/* Start of console buffer	*/
-
-extern short console_col;
-extern short console_row;
 extern struct vidinfo panel_info;
 
-extern void lcd_ctrl_init (void *lcdbase);
-extern void lcd_enable (void);
+void lcd_ctrl_init(void *lcdbase);
+void lcd_enable(void);
 
 /* setcolreg used in 8bpp/16bpp; initcolregs used in monochrome */
-extern void lcd_setcolreg (ushort regno,
-				ushort red, ushort green, ushort blue);
-extern void lcd_initcolregs (void);
+void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue);
+void lcd_initcolregs(void);
+
+int lcd_getfgcolor(void);
 
 /* gunzip_bmp used if CONFIG_VIDEO_BMP_GZIP */
-extern struct bmp_image *gunzip_bmp(unsigned long addr, unsigned long *lenp);
-extern int bmp_display(ulong addr, int x, int y);
+struct bmp_image *gunzip_bmp(unsigned long addr, unsigned long *lenp,
+			     void **alloc_addr);
+int bmp_display(ulong addr, int x, int y);
+
+/**
+ * Set whether we need to flush the dcache when changing the LCD image. This
+ * defaults to off.
+ *
+ * @param flush		non-zero to flush cache after update, 0 to skip
+ */
+void lcd_set_flush_dcache(int flush);
 
 #if defined CONFIG_MPC823
 /*
@@ -225,15 +209,6 @@ typedef struct vidinfo {
 	u_char	vl_vbpd;	/* Wait end of frame */
 	u_char  vl_cmd_allow_len; /* Wait end of frame */
 
-	void (*cfg_gpio)(void);
-	void (*backlight_on)(unsigned int onoff);
-	void (*reset_lcd)(void);
-	void (*lcd_power_on)(void);
-	void (*cfg_ldo)(void);
-	void (*enable_ldo)(unsigned int onoff);
-	void (*mipi_power)(void);
-	void (*backlight_reset)(void);
-
 	unsigned int win_id;
 	unsigned int init_delay;
 	unsigned int power_on_delay;
@@ -248,6 +223,8 @@ typedef struct vidinfo {
 	unsigned int logo_on;
 	unsigned int logo_width;
 	unsigned int logo_height;
+	int logo_x_offset;
+	int logo_y_offset;
 	unsigned long logo_addr;
 	unsigned int rgb_mode;
 	unsigned int resolution;
@@ -258,7 +235,6 @@ typedef struct vidinfo {
 	unsigned int sclk_div;
 
 	unsigned int dual_lcd_enabled;
-
 } vidinfo_t;
 
 void init_panel_info(vidinfo_t *vid);
@@ -283,19 +259,62 @@ extern vidinfo_t panel_info;
 /* Video functions */
 
 #if defined(CONFIG_RBC823)
-void	lcd_disable	(void);
+void	lcd_disable(void);
 #endif
 
-
-/* int	lcd_init	(void *lcdbase); */
-void	lcd_putc	(const char c);
-void	lcd_puts	(const char *s);
-void	lcd_printf	(const char *fmt, ...);
+void	lcd_putc(const char c);
+void	lcd_puts(const char *s);
+void	lcd_printf(const char *fmt, ...);
 void	lcd_clear(void);
 int	lcd_display_bitmap(ulong bmp_image, int x, int y);
 
+/**
+ * Get the width of the LCD in pixels
+ *
+ * @return width of LCD in pixels
+ */
+int lcd_get_pixel_width(void);
+
+/**
+ * Get the height of the LCD in pixels
+ *
+ * @return height of LCD in pixels
+ */
+int lcd_get_pixel_height(void);
+
+/**
+ * Get the number of text lines/rows on the LCD
+ *
+ * @return number of rows
+ */
+int lcd_get_screen_rows(void);
+
+/**
+ * Get the number of text columns on the LCD
+ *
+ * @return number of columns
+ */
+int lcd_get_screen_columns(void);
+
+/**
+ * Set the position of the text cursor
+ *
+ * @param col	Column to place cursor (0 = left side)
+ * @param row	Row to place cursor (0 = top line)
+ */
+void lcd_position_cursor(unsigned col, unsigned row);
+
 /* Allow boards to customize the information displayed */
 void lcd_show_board_info(void);
+
+/* Return the size of the LCD frame buffer, and the line length */
+int lcd_get_size(int *line_length);
+
+int lcd_dt_simplefb_add_node(void *blob);
+int lcd_dt_simplefb_enable_existing_node(void *blob);
+
+/* Update the LCD / flush the cache */
+void lcd_sync(void);
 
 /************************************************************************/
 /* ** BITMAP DISPLAY SUPPORT						*/
@@ -311,7 +330,7 @@ void lcd_show_board_info(void);
  *  is connected, as we can't autodetect anything.
  */
 #define CONFIG_SYS_HIGH	0	/* Pins are active high			*/
-#define CONFIG_SYS_LOW		1	/* Pins are active low			*/
+#define CONFIG_SYS_LOW	1	/* Pins are active low			*/
 
 #define LCD_MONOCHROME	0
 #define LCD_COLOR2	1
@@ -325,10 +344,10 @@ void lcd_show_board_info(void);
 # define LCD_INFO_Y		(BMP_LOGO_HEIGHT + VIDEO_FONT_HEIGHT)
 #elif defined(CONFIG_LCD_LOGO)
 # define LCD_INFO_X		(BMP_LOGO_WIDTH + 4 * VIDEO_FONT_WIDTH)
-# define LCD_INFO_Y		(VIDEO_FONT_HEIGHT)
+# define LCD_INFO_Y		VIDEO_FONT_HEIGHT
 #else
-# define LCD_INFO_X		(VIDEO_FONT_WIDTH)
-# define LCD_INFO_Y		(VIDEO_FONT_HEIGHT)
+# define LCD_INFO_X		VIDEO_FONT_WIDTH
+# define LCD_INFO_Y		VIDEO_FONT_HEIGHT
 #endif
 
 /* Default to 8bpp if bit depth not specified */
@@ -382,34 +401,6 @@ void lcd_show_board_info(void);
 /************************************************************************/
 #ifndef PAGE_SIZE
 # define PAGE_SIZE	4096
-#endif
-
-/************************************************************************/
-/* ** CONSOLE DEFINITIONS & FUNCTIONS					*/
-/************************************************************************/
-#if defined(CONFIG_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
-# define CONSOLE_ROWS		((panel_info.vl_row-BMP_LOGO_HEIGHT) \
-					/ VIDEO_FONT_HEIGHT)
-#else
-# define CONSOLE_ROWS		(panel_info.vl_row / VIDEO_FONT_HEIGHT)
-#endif
-
-#define CONSOLE_COLS		(panel_info.vl_col / VIDEO_FONT_WIDTH)
-#define CONSOLE_ROW_SIZE	(VIDEO_FONT_HEIGHT * lcd_line_length)
-#define CONSOLE_ROW_FIRST	(lcd_console_address)
-#define CONSOLE_ROW_SECOND	(lcd_console_address + CONSOLE_ROW_SIZE)
-#define CONSOLE_ROW_LAST	(lcd_console_address + CONSOLE_SIZE \
-					- CONSOLE_ROW_SIZE)
-#define CONSOLE_SIZE		(CONSOLE_ROW_SIZE * CONSOLE_ROWS)
-#define CONSOLE_SCROLL_SIZE	(CONSOLE_SIZE - CONSOLE_ROW_SIZE)
-
-#if LCD_BPP == LCD_MONOCHROME
-# define COLOR_MASK(c)		((c)	  | (c) << 1 | (c) << 2 | (c) << 3 | \
-				 (c) << 4 | (c) << 5 | (c) << 6 | (c) << 7)
-#elif (LCD_BPP == LCD_COLOR8) || (LCD_BPP == LCD_COLOR16)
-# define COLOR_MASK(c)		(c)
-#else
-# error Unsupported LCD BPP.
 #endif
 
 /************************************************************************/

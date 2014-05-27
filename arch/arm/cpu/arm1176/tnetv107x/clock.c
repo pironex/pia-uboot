@@ -1,22 +1,7 @@
 /*
  * TNETV107X: Clock management APIs
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -167,10 +152,6 @@ static unsigned long pll_div_mask[] = { 0x01ff, 0x00ff, 0x00ff };
 #define tdm_clk			{TDM_PLL, 0}
 #define tdm_extra_clk		{TDM_PLL, 1}
 #define tdm1_clk		{TDM_PLL, 2}
-
-/* Optimization barrier */
-#define barrier()	\
-	__asm__ __volatile__("mov r0, r0\n" : : : "memory");
 
 static const struct lpsc_map lpsc_clk_map[] = {
 	[TNETV107X_LPSC_ARM]			= sys_arm1176_clk,

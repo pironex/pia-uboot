@@ -1,27 +1,13 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
-
+#include <cros_ec.h>
+#include <dm.h>
 #include <os.h>
+#include <asm/u-boot-sandbox.h>
 
 /*
  * Pointer to initial global data area
@@ -30,32 +16,68 @@
  */
 gd_t *gd;
 
+/* Add a simple GPIO device */
+U_BOOT_DEVICE(gpio_sandbox) = {
+	.name = "gpio_sandbox",
+};
+
 void flush_cache(unsigned long start, unsigned long size)
 {
 }
 
-ulong get_tbclk(void)
+unsigned long timer_read_counter(void)
 {
-	return CONFIG_SYS_HZ;
-}
-
-unsigned long long get_ticks(void)
-{
-	return get_timer(0);
-}
-
-ulong get_timer(ulong base)
-{
-	return (os_get_nsec() / 1000000) - base;
-}
-
-int timer_init(void)
-{
-	return 0;
+	return os_get_nsec() / 1000;
 }
 
 int dram_init(void)
 {
-	gd->ram_size = CONFIG_DRAM_SIZE;
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 	return 0;
 }
+
+#ifdef CONFIG_BOARD_EARLY_INIT_F
+int board_early_init_f(void)
+{
+#ifdef CONFIG_VIDEO_SANDBOX_SDL
+	int ret;
+
+	ret = sandbox_lcd_sdl_early_init();
+	if (ret) {
+		puts("Could not init sandbox LCD emulation\n");
+		return ret;
+	}
+#endif
+
+	return 0;
+}
+#endif
+
+int arch_early_init_r(void)
+{
+#ifdef CONFIG_CROS_EC
+	if (cros_ec_board_init()) {
+		printf("%s: Failed to init EC\n", __func__);
+		return 0;
+	}
+#endif
+
+	return 0;
+}
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+	if (cros_ec_get_error()) {
+		/* Force console on */
+		gd->flags &= ~GD_FLG_SILENT;
+
+		printf("cros-ec communications failure %d\n",
+		       cros_ec_get_error());
+		puts("\nPlease reset with Power+Refresh\n\n");
+		panic("Cannot init cros-ec device");
+		return -1;
+	}
+	return 0;
+}
+#endif

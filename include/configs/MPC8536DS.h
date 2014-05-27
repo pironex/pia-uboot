@@ -1,23 +1,7 @@
 /*
  * Copyright 2007-2009,2010-2012 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -40,7 +24,7 @@
 #define CONFIG_SYS_TEXT_BASE_SPL 0xfff00000
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE_SPL /* start of monitor */
 #else
-#define CONFIG_SYS_LDSCRIPT $(TOPDIR)/$(CPUDIR)/u-boot-nand.lds
+#define CONFIG_SYS_LDSCRIPT $(CPUDIR)/u-boot-nand.lds
 #define CONFIG_SYS_TEXT_BASE	0xf8f82000
 #endif /* CONFIG_NAND_SPL */
 #endif
@@ -58,7 +42,7 @@
 #endif
 
 #ifndef CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_TEXT_BASE	0xeff80000
+#define CONFIG_SYS_TEXT_BASE	0xeff40000
 #endif
 
 #ifndef	CONFIG_RESET_VECTOR_ADDRESS
@@ -72,7 +56,6 @@
 /* High Level Configuration Options */
 #define CONFIG_BOOKE		1	/* BOOKE */
 #define CONFIG_E500		1	/* BOOKE e500 family */
-#define CONFIG_MPC85xx		1	/* MPC8540/60/55/41/48 */
 #define CONFIG_MPC8536		1
 #define CONFIG_MPC8536DS	1
 
@@ -84,6 +67,7 @@
 #define CONFIG_PCIE2		1	/* PCIE controler 2 (slot 2) */
 #define CONFIG_PCIE3		1	/* PCIE controler 3 (ULI bridge) */
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #define CONFIG_FSL_PCIE_RESET	1	/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 
@@ -137,7 +121,7 @@
 
 /* DDR Setup */
 #define CONFIG_VERY_BIG_RAM
-#define CONFIG_FSL_DDR2
+#define CONFIG_SYS_FSL_DDR2
 #undef CONFIG_FSL_DDR_INTERACTIVE
 #define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup */
 #define CONFIG_DDR_SPD
@@ -342,7 +326,7 @@
 
 /* NAND boot: 4K NAND loader config */
 #define CONFIG_SYS_NAND_SPL_SIZE	0x1000
-#define CONFIG_SYS_NAND_U_BOOT_SIZE	((512 << 10) - 0x2000)
+#define CONFIG_SYS_NAND_U_BOOT_SIZE	((768 << 10) - 0x2000)
 #define CONFIG_SYS_NAND_U_BOOT_DST	(CONFIG_SYS_INIT_L2_ADDR)
 #define CONFIG_SYS_NAND_U_BOOT_START \
 		(CONFIG_SYS_INIT_L2_ADDR + CONFIG_SYS_NAND_SPL_SIZE)
@@ -433,15 +417,15 @@
 /*
  * I2C
  */
-#define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C		/* I2C with hardware support */
-#undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_NOPROBES	{{0, 0x29}}	/* Don't probe these addrs */
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
+#define CONFIG_SYS_I2C_NOPROBES		{ {0, 0x29} }
 
 /*
  * I2C2 EEPROM
@@ -642,7 +626,7 @@
 #if defined(CONFIG_RAMBOOT_NAND)
 #define CONFIG_ENV_IS_IN_NAND	1
 #define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
-#define CONFIG_ENV_OFFSET ((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_ENV_OFFSET ((768 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
 #define CONFIG_ENV_RANGE	(3 * CONFIG_ENV_SIZE)
 #elif defined(CONFIG_RAMBOOT_SPIFLASH)
 #define CONFIG_ENV_IS_IN_SPI_FLASH
@@ -665,11 +649,7 @@
 #endif
 #else
 	#define CONFIG_ENV_IS_IN_FLASH	1
-	#if CONFIG_SYS_MONITOR_BASE > 0xfff80000
-	#define CONFIG_ENV_ADDR		0xfff80000
-	#else
 	#define CONFIG_ENV_ADDR	(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
-	#endif
 	#define CONFIG_ENV_SIZE		0x2000
 	#define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) */
 #endif
@@ -735,7 +715,6 @@
 #define CONFIG_CMDLINE_EDITING			/* Command-line editing */
 #define CONFIG_AUTO_COMPLETE			/* add autocompletion support */
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt */
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size */
 #else
@@ -745,7 +724,6 @@
 		+ sizeof(CONFIG_SYS_PROMPT) + 16) /* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Argument Buffer Size */
-#define CONFIG_SYS_HZ		1000		/* decrementer freq: 1ms ticks */
 
 /*
  * For booting Linux, the board info and command line data
@@ -757,7 +735,6 @@
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 /*
@@ -796,21 +773,26 @@
 #define CONFIG_BAUDRATE	115200
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
- "netdev=eth0\0"						\
- "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
- "tftpflash=tftpboot $loadaddr $uboot; "			\
-	"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
-	"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; "	\
-	"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0"	\
- "consoledev=ttyS0\0"				\
- "ramdiskaddr=2000000\0"			\
- "ramdiskfile=8536ds/ramdisk.uboot\0"		\
- "fdtaddr=c00000\0"				\
- "fdtfile=8536ds/mpc8536ds.dtb\0"		\
- "bdev=sda3\0"					\
- "hwconfig=usb1:dr_mode=host,phy_type=ulpi\0"
+"netdev=eth0\0"						\
+"uboot=" __stringify(CONFIG_UBOOTPATH) "\0"			\
+"tftpflash=tftpboot $loadaddr $uboot; "			\
+	"protect off " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" +$filesize; "	\
+	"erase " __stringify(CONFIG_SYS_TEXT_BASE)		\
+		" +$filesize; "	\
+	"cp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" $filesize; "	\
+	"protect on " __stringify(CONFIG_SYS_TEXT_BASE)		\
+		" +$filesize; "	\
+	"cmp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" $filesize\0"	\
+"consoledev=ttyS0\0"				\
+"ramdiskaddr=2000000\0"			\
+"ramdiskfile=8536ds/ramdisk.uboot\0"		\
+"fdtaddr=c00000\0"				\
+"fdtfile=8536ds/mpc8536ds.dtb\0"		\
+"bdev=sda3\0"					\
+"hwconfig=usb1:dr_mode=host,phy_type=ulpi\0"
 
 #define CONFIG_HDBOOT				\
  "setenv bootargs root=/dev/$bdev rw "		\

@@ -5,19 +5,7 @@
  *
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -45,7 +33,6 @@
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
 #define CONFIG_SYS_HZ_CLOCK		clk_get(DAVINCI_AUXCLK_CLKID)
-#define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_DA850_PLL_INIT
 #define CONFIG_SYS_DA850_DDR_INIT
 
@@ -159,6 +146,7 @@
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SPI_FLASH_WINBOND
+#define CONFIG_CMD_SF
 #define CONFIG_DAVINCI_SPI
 #define CONFIG_SYS_SPI_BASE		DAVINCI_SPI1_BASE
 #define CONFIG_SYS_SPI_CLK		clk_get(DAVINCI_SPI1_CLKID)
@@ -199,8 +187,8 @@
 #define	CONFIG_SYS_NAND_PAGE_2K
 #define CONFIG_SYS_NAND_CS		3
 #define CONFIG_SYS_NAND_BASE		DAVINCI_ASYNC_EMIF_DATA_CE3_BASE
-#define CONFIG_SYS_CLE_MASK		0x10
-#define CONFIG_SYS_ALE_MASK		0x8
+#define CONFIG_SYS_NAND_MASK_CLE		0x10
+#define CONFIG_SYS_NAND_MASK_ALE		0x8
 #undef CONFIG_SYS_NAND_HW_ECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1 /* Max number of NAND devices */
 #define CONFIG_SYS_NAND_HW_ECC_OOBFIRST
@@ -227,6 +215,9 @@
 #define CONFIG_SYS_NAND_ECCBYTES	10
 #define CONFIG_SYS_NAND_OOBSIZE		64
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 #define CONFIG_SPL_NAND_SIMPLE
 #define CONFIG_SPL_NAND_LOAD
 #endif
@@ -236,7 +227,6 @@
  */
 #ifdef CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -344,7 +334,6 @@
 #undef CONFIG_CMD_IMLS
 #undef CONFIG_CMD_FLASH
 #define CONFIG_CMD_SPI
-#define CONFIG_CMD_SF
 #define CONFIG_CMD_SAVEENV
 #endif
 
@@ -396,7 +385,7 @@
 #define CONFIG_SPL_LDSCRIPT	"board/$(BOARDDIR)/u-boot-spl-da850evm.lds"
 #define CONFIG_SPL_STACK	0x8001ff00
 #define CONFIG_SPL_TEXT_BASE	0x80000000
-#define CONFIG_SPL_MAX_SIZE	32768
+#define CONFIG_SPL_MAX_FOOTPRINT	32768
 #endif
 
 /* Load U-Boot Image From MMC */

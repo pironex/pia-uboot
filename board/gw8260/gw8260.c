@@ -11,23 +11,7 @@
  * Advent Networks, Inc. <http://www.adventnetworks.com>
  * Oliver Brown <oliverb@alumni.utexas.net>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*********************************************************************/
@@ -544,15 +528,11 @@ int mem_test_walk (void)
 /*********************************************************************/
 int testdram (void)
 {
-	char *s;
 	int rundata, runaddress, runwalk;
 
-	s = getenv ("testdramdata");
-	rundata = (s && (*s == 'y')) ? 1 : 0;
-	s = getenv ("testdramaddress");
-	runaddress = (s && (*s == 'y')) ? 1 : 0;
-	s = getenv ("testdramwalk");
-	runwalk = (s && (*s == 'y')) ? 1 : 0;
+	rundata = getenv_yesno("testdramdata") == 1;
+	runaddress = getenv_yesno("testdramaddress") == 1;
+	runwalk = getenv_yesno("testdramwalk") == 1;
 
 	if ((rundata == 1) || (runaddress == 1) || (runwalk == 1)) {
 		printf ("Testing RAM ... ");

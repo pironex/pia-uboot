@@ -2,23 +2,7 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -381,49 +365,6 @@ static void scc_init (int scc_index)
 	immr->im_cpm.cp_scc[scc_index].scc_psmr = SCC_PSMR_ENCRC |
 			SCC_PSMR_NIB22 | SCC_PSMR_LPB;
 
-#if 0
-	/*
-	 * Configure Ethernet TENA Signal
-	 */
-
-#if (defined(PC_ENET_TENA) && !defined(PB_ENET_TENA))
-	immr->im_ioport.iop_pcpar |= PC_ENET_TENA;
-	immr->im_ioport.iop_pcdir &= ~PC_ENET_TENA;
-#elif (defined(PB_ENET_TENA) && !defined(PC_ENET_TENA))
-	immr->im_cpm.cp_pbpar |= PB_ENET_TENA;
-	immr->im_cpm.cp_pbdir |= PB_ENET_TENA;
-#else
-#error Configuration Error: exactly ONE of PB_ENET_TENA, PC_ENET_TENA must be defined
-#endif
-
-#if defined(CONFIG_ADS) && defined(CONFIG_MPC860)
-	/*
-	 * Port C is used to control the PHY,MC68160.
-	 */
-	immr->im_ioport.iop_pcdir |=
-			(PC_ENET_ETHLOOP | PC_ENET_TPFLDL | PC_ENET_TPSQEL);
-
-	immr->im_ioport.iop_pcdat |= PC_ENET_TPFLDL;
-	immr->im_ioport.iop_pcdat &= ~(PC_ENET_ETHLOOP | PC_ENET_TPSQEL);
-	*((uint *) BCSR1) &= ~BCSR1_ETHEN;
-#endif /* MPC860ADS */
-
-#if defined(CONFIG_AMX860)
-	/*
-	 * Port B is used to control the PHY,MC68160.
-	 */
-	immr->im_cpm.cp_pbdir |=
-			(PB_ENET_ETHLOOP | PB_ENET_TPFLDL | PB_ENET_TPSQEL);
-
-	immr->im_cpm.cp_pbdat |= PB_ENET_TPFLDL;
-	immr->im_cpm.cp_pbdat &= ~(PB_ENET_ETHLOOP | PB_ENET_TPSQEL);
-
-	immr->im_ioport.iop_pddir |= PD_ENET_ETH_EN;
-	immr->im_ioport.iop_pddat &= ~PD_ENET_ETH_EN;
-#endif /* AMX860 */
-
-#endif /* 0 */
-
 #ifdef CONFIG_RPXCLASSIC
 	*((uchar *) BCSR0) &= ~BCSR0_ETHLPBK;
 	*((uchar *) BCSR0) |= (BCSR0_ETHEN | BCSR0_COLTEST | BCSR0_FULLDPLX);
@@ -449,7 +390,7 @@ static void scc_init (int scc_index)
 	 */
 #if defined (CONFIG_FADS)
 	udelay (10000);				/* wait 10 ms */
-#elif defined (CONFIG_AMX860) || defined(CONFIG_RPXCLASSIC)
+#elif defined(CONFIG_RPXCLASSIC)
 	udelay (100000);			/* wait 100 ms */
 #endif
 }

@@ -1,43 +1,21 @@
 /*
  * Copyright 2012 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
-#define _GNU_SOURCE
-
-#include "mkimage.h"
+#include "imagetool.h"
 #include <image.h>
 #include "pblimage.h"
 
 /*
- * The PBL can load up to 64 bytes at a time, so we split the U-Boot
- * image into 64 byte chunks. PBL needs a command for each piece, of
- * the form "81xxxxxx", where "xxxxxx" is the offset. SYS_TEXT_BASE
- * is 0xFFF80000 for PBL boot, and PBL only cares about low 24-bit,
- * so it starts from 0x81F80000.
+ * Initialize to an invalid value.
  */
-static uint32_t next_pbl_cmd = 0x81F80000;
+static uint32_t next_pbl_cmd = 0x82000000;
 /*
  * need to store all bytes in memory for calculating crc32, then write the
  * bytes to image file for PBL boot.
  */
-static unsigned char mem_buf[600000];
+static unsigned char mem_buf[1000000];
 static unsigned char *pmem_buf = mem_buf;
 static int pbl_size;
 static char *fname = "Unknown";
@@ -51,6 +29,27 @@ static union
 } endian_test = { {'l', '?', '?', 'b'} };
 
 #define ENDIANNESS ((char)endian_test.l)
+
+/*
+ * The PBL can load up to 64 bytes at a time, so we split the U-Boot
+ * image into 64 byte chunks. PBL needs a command for each piece, of
+ * the form "81xxxxxx", where "xxxxxx" is the offset. Calculate the
+ * start offset by subtracting the size of the u-boot image from the
+ * top of the allowable 24-bit range.
+ */
+static void init_next_pbl_cmd(FILE *fp_uboot)
+{
+	struct stat st;
+	int fd = fileno(fp_uboot);
+
+	if (fstat(fd, &st) == -1) {
+		printf("Error: Could not determine u-boot image size. %s\n",
+			strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	next_pbl_cmd = 0x82000000 - st.st_size;
+}
 
 static void generate_pbl_cmd(void)
 {
@@ -80,6 +79,7 @@ static void pbl_fget(size_t size, FILE *stream)
 /* load split u-boot with PBI command 81xxxxxx. */
 static void load_uboot(FILE *fp_uboot)
 {
+	init_next_pbl_cmd(fp_uboot);
 	while (next_pbl_cmd < 0x82000000) {
 		generate_pbl_cmd();
 		pbl_fget(64, fp_uboot);
@@ -242,7 +242,7 @@ static void add_end_cmd(void)
 	}
 }
 
-void pbl_load_uboot(int ifd, struct mkimage_params *params)
+void pbl_load_uboot(int ifd, struct image_tool_params *params)
 {
 	FILE *fp_uboot;
 	int size;
@@ -281,7 +281,7 @@ static int pblimage_check_image_types(uint8_t type)
 }
 
 static int pblimage_verify_header(unsigned char *ptr, int image_size,
-			struct mkimage_params *params)
+			struct image_tool_params *params)
 {
 	struct pbl_header *pbl_hdr = (struct pbl_header *) ptr;
 
@@ -308,7 +308,7 @@ static void pblimage_print_header(const void *ptr)
 }
 
 static void pblimage_set_header(void *ptr, struct stat *sbuf, int ifd,
-				struct mkimage_params *params)
+				struct image_tool_params *params)
 {
 	/*nothing need to do, pbl_load_uboot takes care of whole file. */
 }
@@ -327,5 +327,5 @@ static struct image_type_params pblimage_params = {
 void init_pbl_image_type(void)
 {
 	pbl_size = 0;
-	mkimage_register(&pblimage_params);
+	register_image_type(&pblimage_params);
 }

@@ -3,23 +3,7 @@
  *
  *  Copyright (c) 2004-2005, Greg Ungerer <greg.ungerer@opengear.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -72,10 +56,10 @@ lowlevel_init:
 	 * enable UART for early debug trace
 	 */
 	ldr	r1, =(KS8695_IO_BASE+KS8695_UART_DIVISOR)
-	mov	r2, #0xd9
-	str	r2, [r1]		/* 115200 baud */
+	mov	r2, #((25000000+CONFIG_BAUDRATE/2) / CONFIG_BAUDRATE)
+	str	r2, [r1]
 	ldr	r1, =(KS8695_IO_BASE+KS8695_UART_LINE_CTRL)
-	mov	r2, #0x03
+	mov	r2, #KS8695_UART_LINEC_WLEN8
 	str	r2, [r1]		/* 8 data bits, no parity, 1 stop */
 	ldr	r1, =(KS8695_IO_BASE+KS8695_UART_TX_HOLDING)
 	mov	r2, #0x41

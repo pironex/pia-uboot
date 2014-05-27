@@ -4,32 +4,21 @@
  *
  * Configuation settings for the zmx25 board
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <asm/arch/imx-regs.h>
+
 #define CONFIG_ARM926EJS			/* arm926ejs CPU core */
 #define CONFIG_MX25
-#define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
+
+#define CONFIG_SYS_TIMER_RATE		32768
+#define CONFIG_SYS_TIMER_COUNTER	\
+	(&((struct gpt_regs *)IMX_GPT1_BASE)->counter)
 
 #define CONFIG_MACH_TYPE	MACH_TYPE_ZMX25
 /*
@@ -109,9 +98,9 @@
 #define CONFIG_USB_EHCI			/* Enable EHCI USB support */
 #define CONFIG_USB_EHCI_MXC
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
-#define CONFIG_MXC_USB_PORT	2
-#define CONFIG_MXC_USB_PORTSC	0xC0000000
-#define CONFIG_MXC_USB_FLAGS	0
+#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_MXC_USB_PORTSC	MXC_EHCI_MODE_SERIAL
+#define CONFIG_MXC_USB_FLAGS	(MXC_EHCI_INTERNAL_PHY | MXC_EHCI_IPPUE_DOWN)
 #define CONFIG_EHCI_IS_TDI
 #define CONFIG_USB_STORAGE
 #define CONFIG_DOS_PARTITION

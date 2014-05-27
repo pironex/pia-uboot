@@ -1,30 +1,15 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
- * See file CREDITS for list of people who contributed to this
- * project.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /* Tegra20 pin multiplexing functions */
 
-#include <asm/io.h>
-#include <asm/arch/tegra20.h>
-#include <asm/arch/pinmux.h>
 #include <common.h>
+#include <asm/io.h>
+#include <asm/arch/tegra.h>
+#include <asm/arch/pinmux.h>
 
 
 /*
@@ -390,7 +375,7 @@ const struct tegra_pingroup_desc tegra_soc_pingroups[PINGRP_COUNT] = {
 	PIN(UAA,  BB,    SPI3,   MIPI_HS, UARTA,    ULPI,        MIPI_HS),
 	PIN(UAB,  BB,    SPI2,   MIPI_HS, UARTA,    ULPI,        MIPI_HS),
 	PIN(UAC,  BB,    OWR,    RSVD,   RSVD,      RSVD,        RSVD4),
-	PIN(UAD,  UART,  IRDA,   SPDIF,  UARTA,     SPI4,        SPDIF),
+	PIN(UAD,  UART,  UARTB,  SPDIF,  UARTA,     SPI4,        SPDIF),
 	PIN(UCA,  UART,  UARTC,  RSVD,   GMI,       RSVD,        RSVD4),
 	PIN(UCB,  UART,  UARTC,  PWM,    GMI,       RSVD,        RSVD4),
 
@@ -554,7 +539,7 @@ void pinmux_set_func(enum pmux_pingrp pin, enum pmux_func func)
 	writel(reg, muxctl);
 }
 
-void pinmux_config_pingroup(struct pingroup_config *config)
+void pinmux_config_pingroup(const struct pingroup_config *config)
 {
 	enum pmux_pingrp pin = config->pingroup;
 
@@ -563,7 +548,7 @@ void pinmux_config_pingroup(struct pingroup_config *config)
 	pinmux_set_tristate(pin, config->tristate);
 }
 
-void pinmux_config_table(struct pingroup_config *config, int len)
+void pinmux_config_table(const struct pingroup_config *config, int len)
 {
 	int i;
 

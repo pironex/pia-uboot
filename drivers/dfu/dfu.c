@@ -4,30 +4,32 @@
  * Copyright (C) 2012 Samsung Electronics
  * author: Lukasz Majewski <l.majewski@samsung.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <errno.h>
 #include <malloc.h>
+#include <mmc.h>
 #include <fat.h>
 #include <dfu.h>
 #include <linux/list.h>
 #include <linux/compiler.h>
 
+static bool dfu_reset_request;
 static LIST_HEAD(dfu_list);
 static int dfu_alt_num;
+static int alt_num_cnt;
+
+bool dfu_reset(void)
+{
+	return dfu_reset_request;
+}
+
+void dfu_trigger_reset()
+{
+	dfu_reset_request = true;
+}
 
 static int dfu_find_alt_num(const char *s)
 {
@@ -40,10 +42,64 @@ static int dfu_find_alt_num(const char *s)
 	return ++i;
 }
 
-static unsigned char __aligned(CONFIG_SYS_CACHELINE_SIZE)
-				     dfu_buf[DFU_DATA_BUF_SIZE];
+int dfu_init_env_entities(char *interface, int dev)
+{
+	const char *str_env;
+	char *env_bkp;
+	int ret;
 
-static int dfu_write_buffer_flush(struct dfu_entity *dfu)
+	str_env = getenv("dfu_alt_info");
+	if (!str_env) {
+		error("\"dfu_alt_info\" env variable not defined!\n");
+		return -EINVAL;
+	}
+
+	env_bkp = strdup(str_env);
+	ret = dfu_config_entities(env_bkp, interface, dev);
+	if (ret) {
+		error("DFU entities configuration failed!\n");
+		return ret;
+	}
+
+	free(env_bkp);
+	return 0;
+}
+
+static unsigned char *dfu_buf;
+static unsigned long dfu_buf_size = CONFIG_SYS_DFU_DATA_BUF_SIZE;
+
+unsigned char *dfu_free_buf(void)
+{
+	free(dfu_buf);
+	dfu_buf = NULL;
+	return dfu_buf;
+}
+
+unsigned long dfu_get_buf_size(void)
+{
+	return dfu_buf_size;
+}
+
+unsigned char *dfu_get_buf(void)
+{
+	char *s;
+
+	if (dfu_buf != NULL)
+		return dfu_buf;
+
+	s = getenv("dfu_bufsiz");
+	dfu_buf_size = s ? (unsigned long)simple_strtol(s, NULL, 16) :
+			CONFIG_SYS_DFU_DATA_BUF_SIZE;
+
+	dfu_buf = memalign(CONFIG_SYS_CACHELINE_SIZE, dfu_buf_size);
+	if (dfu_buf == NULL)
+		printf("%s: Could not memalign 0x%lx bytes\n",
+		       __func__, dfu_buf_size);
+
+	return dfu_buf;
+}
+
+static int dfu_write_buffer_drain(struct dfu_entity *dfu)
 {
 	long w_size;
 	int ret;
@@ -71,23 +127,47 @@ static int dfu_write_buffer_flush(struct dfu_entity *dfu)
 	return ret;
 }
 
+int dfu_flush(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
+{
+	int ret = 0;
+
+	if (dfu->flush_medium)
+		ret = dfu->flush_medium(dfu);
+
+	printf("\nDFU complete CRC32: 0x%08x\n", dfu->crc);
+
+	/* clear everything */
+	dfu_free_buf();
+	dfu->crc = 0;
+	dfu->offset = 0;
+	dfu->i_blk_seq_num = 0;
+	dfu->i_buf_start = dfu_buf;
+	dfu->i_buf_end = dfu_buf;
+	dfu->i_buf = dfu->i_buf_start;
+	dfu->inited = 0;
+
+	return ret;
+}
+
 int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 {
 	int ret = 0;
 	int tret;
 
-	debug("%s: name: %s buf: 0x%p size: 0x%x p_num: 0x%x "
-			"offset: 0x%llx bufoffset: 0x%x\n",
-	       __func__, dfu->name, buf, size, blk_seq_num, dfu->offset,
-	       dfu->i_buf - dfu->i_buf_start);
+	debug("%s: name: %s buf: 0x%p size: 0x%x p_num: 0x%x offset: 0x%llx bufoffset: 0x%x\n",
+	      __func__, dfu->name, buf, size, blk_seq_num, dfu->offset,
+	      dfu->i_buf - dfu->i_buf_start);
 
 	if (!dfu->inited) {
 		/* initial state */
 		dfu->crc = 0;
 		dfu->offset = 0;
+		dfu->bad_skip = 0;
 		dfu->i_blk_seq_num = 0;
-		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_start = dfu_get_buf();
+		if (dfu->i_buf_start == NULL)
+			return -ENOMEM;
+		dfu->i_buf_end = dfu_get_buf() + dfu_buf_size;
 		dfu->i_buf = dfu->i_buf_start;
 
 		dfu->inited = 1;
@@ -117,15 +197,15 @@ int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 
 	/* flush buffer if overflow */
 	if ((dfu->i_buf + size) > dfu->i_buf_end) {
-		tret = dfu_write_buffer_flush(dfu);
+		tret = dfu_write_buffer_drain(dfu);
 		if (ret == 0)
 			ret = tret;
 	}
 
 	/* we should be in buffer now (if not then size too large) */
 	if ((dfu->i_buf + size) > dfu->i_buf_end) {
-		printf("%s: Wrong size! [%d] [%d] - %d\n",
-		       __func__, dfu->i_blk_seq_num, blk_seq_num, size);
+		error("Buffer overflow! (0x%p + 0x%x > 0x%p)\n", dfu->i_buf,
+		      size, dfu->i_buf_end);
 		return -1;
 	}
 
@@ -134,27 +214,9 @@ int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 
 	/* if end or if buffer full flush */
 	if (size == 0 || (dfu->i_buf + size) > dfu->i_buf_end) {
-		tret = dfu_write_buffer_flush(dfu);
+		tret = dfu_write_buffer_drain(dfu);
 		if (ret == 0)
 			ret = tret;
-	}
-
-	/* end? */
-	if (size == 0) {
-		debug("%s: DFU complete CRC32: 0x%x\n", __func__, dfu->crc);
-
-		printf("\nDownload complete (CRC32 0x%04x)\n", dfu->crc);
-
-		/* clear everything */
-		dfu->crc = 0;
-		dfu->offset = 0;
-		dfu->i_blk_seq_num = 0;
-		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
-		dfu->i_buf = dfu->i_buf_start;
-
-		dfu->inited = 0;
-
 	}
 
 	return ret = 0 ? size : ret;
@@ -167,7 +229,6 @@ static int dfu_read_buffer_fill(struct dfu_entity *dfu, void *buf, int size)
 
 	readn = 0;
 	while (size > 0) {
-
 		/* get chunk that can be read */
 		chunk = min(size, dfu->b_left);
 		/* consume */
@@ -176,6 +237,7 @@ static int dfu_read_buffer_fill(struct dfu_entity *dfu, void *buf, int size)
 			dfu->crc = crc32(dfu->crc, buf, chunk);
 			dfu->i_buf += chunk;
 			dfu->b_left -= chunk;
+			dfu->r_left -= chunk;
 			size -= chunk;
 			buf += chunk;
 			readn += chunk;
@@ -217,7 +279,11 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 	       __func__, dfu->name, buf, size, blk_seq_num, dfu->i_buf);
 
 	if (!dfu->inited) {
-		ret = dfu->read_medium(dfu, 0, NULL, &dfu->r_left);
+		dfu->i_buf_start = dfu_get_buf();
+		if (dfu->i_buf_start == NULL)
+			return -ENOMEM;
+
+		ret = dfu->read_medium(dfu, 0, dfu->i_buf_start, &dfu->r_left);
 		if (ret != 0) {
 			debug("%s: failed to get r_left\n", __func__);
 			return ret;
@@ -228,10 +294,9 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		dfu->i_blk_seq_num = 0;
 		dfu->crc = 0;
 		dfu->offset = 0;
-		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_end = dfu_get_buf() + dfu_buf_size;
 		dfu->i_buf = dfu->i_buf_start;
-		dfu->b_left = 0;
+		dfu->b_left = min(dfu_buf_size, dfu->r_left);
 
 		dfu->bad_skip = 0;
 
@@ -256,11 +321,12 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		debug("%s: %s CRC32: 0x%x\n", __func__, dfu->name, dfu->crc);
 		puts("\nUPLOAD ... done\nCtrl+C to exit ...\n");
 
+		dfu_free_buf();
 		dfu->i_blk_seq_num = 0;
 		dfu->crc = 0;
 		dfu->offset = 0;
 		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_end = dfu_buf;
 		dfu->i_buf = dfu->i_buf_start;
 		dfu->b_left = 0;
 
@@ -273,7 +339,7 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 }
 
 static int dfu_fill_entity(struct dfu_entity *dfu, char *s, int alt,
-			    char *interface, int num)
+			   char *interface, int num)
 {
 	char *st;
 
@@ -290,6 +356,9 @@ static int dfu_fill_entity(struct dfu_entity *dfu, char *s, int alt,
 			return -1;
 	} else if (strcmp(interface, "nand") == 0) {
 		if (dfu_fill_entity_nand(dfu, s))
+			return -1;
+	} else if (strcmp(interface, "ram") == 0) {
+		if (dfu_fill_entity_ram(dfu, s))
 			return -1;
 	} else {
 		printf("%s: Device %s not (yet) supported!\n",
@@ -311,6 +380,8 @@ void dfu_free_entities(void)
 	if (t)
 		free(t);
 	INIT_LIST_HEAD(&dfu_list);
+
+	alt_num_cnt = 0;
 }
 
 int dfu_config_entities(char *env, char *interface, int num)
@@ -328,11 +399,12 @@ int dfu_config_entities(char *env, char *interface, int num)
 	for (i = 0; i < dfu_alt_num; i++) {
 
 		s = strsep(&env, ";");
-		ret = dfu_fill_entity(&dfu[i], s, i, interface, num);
+		ret = dfu_fill_entity(&dfu[i], s, alt_num_cnt, interface, num);
 		if (ret)
 			return -1;
 
 		list_add_tail(&dfu[i].list, &dfu_list);
+		alt_num_cnt++;
 	}
 
 	return 0;
@@ -340,14 +412,14 @@ int dfu_config_entities(char *env, char *interface, int num)
 
 const char *dfu_get_dev_type(enum dfu_device_type t)
 {
-	const char *dev_t[] = {NULL, "eMMC", "OneNAND", "NAND" };
+	const char *dev_t[] = {NULL, "eMMC", "OneNAND", "NAND", "RAM" };
 	return dev_t[t];
 }
 
 const char *dfu_get_layout(enum dfu_layout l)
 {
 	const char *dfu_layout[] = {NULL, "RAW_ADDR", "FAT", "EXT2",
-					   "EXT3", "EXT4" };
+					   "EXT3", "EXT4", "RAM_ADDR" };
 	return dfu_layout[l];
 }
 
@@ -379,4 +451,16 @@ struct dfu_entity *dfu_get_entity(int alt)
 	}
 
 	return NULL;
+}
+
+int dfu_get_alt(char *name)
+{
+	struct dfu_entity *dfu;
+
+	list_for_each_entry(dfu, &dfu_list, list) {
+		if (!strncmp(dfu->name, name, strlen(dfu->name)))
+			return dfu->alt;
+	}
+
+	return -ENODEV;
 }

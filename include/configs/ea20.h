@@ -5,19 +5,7 @@
  *
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -42,11 +30,11 @@
 #define CONFIG_MACH_DAVINCI_DA850_EVM
 #define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
+#define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
 #define CONFIG_SYS_HZ_CLOCK		clk_get(DAVINCI_AUXCLK_CLKID)
-#define CONFIG_SYS_HZ			1000
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_SYS_TEXT_BASE		0xc1080000
 #define CONFIG_DA8XX_GPIO
@@ -100,7 +88,6 @@
 #ifdef CONFIG_DRIVER_TI_EMAC
 #define CONFIG_EMAC_MDIO_PHY_NUM	0
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -236,8 +223,6 @@
  * Default environment and default scripts
  * to update uboot and load kernel
  */
-#define xstr(s)	str(s)
-#define str(s)	#s
 
 #define CONFIG_HOSTNAME ea20
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
@@ -277,9 +262,9 @@
 	"loadaddr=c0000014\0"						\
 	"memory=32M\0"							\
 	"kernel_addr_r=c0700000\0"					\
-	"hostname=" xstr(CONFIG_HOSTNAME) "\0"				\
-	"bootfile=" xstr(CONFIG_HOSTNAME) "/uImage\0"			\
-	"ramdisk_file=" xstr(CONFIG_HOSTNAME) "/image.ext2\0"		\
+	"hostname=" __stringify(CONFIG_HOSTNAME) "\0"			\
+	"bootfile=" __stringify(CONFIG_HOSTNAME) "/uImage\0"		\
+	"ramdisk_file=" __stringify(CONFIG_HOSTNAME) "/image.ext2\0"	\
 	"flash_self=run ramargs addip addtty addmtd addmisc addmem;"	\
 			"bootm ${kernel_addr_r}\0"			\
 	"flash_nfs=run nfsargs addip addtty addmtd addmisc addmem;"	\
@@ -295,12 +280,12 @@
 		"bootm ${kernel_addr_r}\0"				\
 	"net_self_load=tftp ${kernel_addr_r} ${bootfile};"		\
 		"tftp ${ramdisk_addr_r} ${ramdisk_file};\0"		\
-	"nand_nand=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"nand_nand=ubi part nand0,${as};ubifsmount ubi:rootfs;"		\
 		"ubifsload ${kernel_addr_r} /boot/uImage;"		\
 		"ubifsumount; run nandargs addip addtty "		\
 		"addmtd addmisc addmem;clrlogo;"			\
 		"bootm ${kernel_addr_r}\0"				\
-	"nand_nandrw=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"nand_nandrw=ubi part nand0,${as};ubifsmount ubi:rootfs;"	\
 		"ubifsload ${kernel_addr_r} /boot/uImage;"		\
 		"ubifsumount; run nandrwargs addip addtty "		\
 		"addmtd addmisc addmem;clrlogo;"			\
@@ -308,10 +293,10 @@
 	"net_nandrw=tftp ${kernel_addr_r} ${bootfile}; run nandrwargs"	\
 		" addip addtty addmtd addmisc addmem;"			\
 		"clrlogo;bootm ${kernel_addr_r}\0"			\
-	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
+	"u-boot=" __stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
 	"load_magic=if sf probe 0;then sf "				\
 		"read c0000000 0x10000 0x60000;fi\0"			\
-	"load_nand=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"load_nand=ubi part nand0,${as};ubifsmount ubi:rootfs;"		\
 		"if ubifsload c0000014 /boot/u-boot.bin;"		\
 		"then mw c0000008 ${filesize};else echo Error reading"	\
 		" u-boot from nand!;fi\0"				\

@@ -1,20 +1,7 @@
 /*
  * (C) Copyright 2008 Stefan Roese <sr@denx.de>, DENX Software Engineering
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -38,10 +25,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_MIPS32				/* MIPS 4Kc CPU core	*/
 #define CPU_CLOCK_RATE			324000000 /* Clock for the MIPS core */
 #define CONFIG_SYS_MIPS_TIMER_FREQ	(CPU_CLOCK_RATE / 2)
-#define CONFIG_SYS_HZ			1000
 
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* SDRAM is initialized by the bootstrap code */
 
@@ -136,7 +121,6 @@
  */
 #define CONFIG_USB_EHCI			/* Enable EHCI USB support	*/
 #define CONFIG_USB_EHCI_VCT		/* on VCT platform		*/
-#define CONFIG_EHCI_DCACHE		/* with dcache handling support	*/
 #define CONFIG_EHCI_MMIO_BIG_ENDIAN
 #define CONFIG_EHCI_DESC_BIG_ENDIAN
 #define CONFIG_EHCI_IS_TDI
@@ -246,11 +230,10 @@
 /*
  * I2C/EEPROM
  */
-#undef	CONFIG_HARD_I2C			/* I2C with hardware support	*/
-#define	CONFIG_SOFT_I2C			/* I2C bit-banged		*/
-
-#define CONFIG_SYS_I2C_SPEED		83000	/* 83 kHz is supposed to work	*/
-#define CONFIG_SYS_I2C_SLAVE		0x7f
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SOFT_SPEED	83000	/* 83 kHz is supposed to work */
+#define CONFIG_SYS_I2C_SOFT_SLAVE	0x7f
 
 /*
  * Software (bit-bang) I2C driver configuration
@@ -338,7 +321,7 @@ int vct_gpio_get(int pin);
 #undef CONFIG_CMD_USB
 
 #undef CONFIG_SMC911X
-#undef CONFIG_SOFT_I2C
+#undef CONFIG_SYS_I2C_SOFT
 #undef CONFIG_SOURCE
 #undef CONFIG_SYS_LONGHELP
 #undef CONFIG_TIMESTAMP

@@ -5,20 +5,7 @@
  *
  * Configuration settings for the MX51EVK Board
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -28,18 +15,12 @@
 
 #define CONFIG_MX51	/* in a mx51 */
 
-#define CONFIG_SYS_MX5_HCLK	24000000
-#define CONFIG_SYS_MX5_CLK32		32768
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
 #define CONFIG_SYS_TEXT_BASE	0x97800000
 
 #include <asm/arch/imx-regs.h>
-/*
- * Disabled for now due to build problems under Debian and a significant
- * increase in the final file size: 144260 vs. 109536 Bytes.
- */
 
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -59,6 +40,9 @@
 /*
  * Hardware drivers
  */
+#define CONFIG_FSL_IIM
+#define CONFIG_CMD_FUSE
+
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_MXC_GPIO
@@ -71,9 +55,9 @@
 #define CONFIG_MXC_SPI
 
 /* PMIC Controller */
-#define CONFIG_PMIC
-#define CONFIG_PMIC_SPI
-#define CONFIG_PMIC_FSL
+#define CONFIG_POWER
+#define CONFIG_POWER_SPI
+#define CONFIG_POWER_FSL
 #define CONFIG_FSL_PMIC_BUS	0
 #define CONFIG_FSL_PMIC_CS	0
 #define CONFIG_FSL_PMIC_CLK	2500000
@@ -98,7 +82,6 @@
 /*
  * Eth Configs
  */
-#define CONFIG_HAS_ETH1
 #define CONFIG_MII
 
 #define CONFIG_FEC_MXC
@@ -147,48 +130,82 @@
  ***********************************************************/
 
 #include <config_cmd_default.h>
-
+#define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
 #define CONFIG_CMD_DATE
 
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	1
 
 #define CONFIG_ETHPRIME		"FEC0"
 
-#define CONFIG_LOADADDR		0x90800000	/* loadaddr env var */
+#define CONFIG_LOADADDR		0x92000000	/* loadaddr env var */
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=boot.scr\0" \
-	"uimage=uImage\0" \
+	"image=zImage\0" \
+	"fdt_file=imx51-babbage.dtb\0" \
+	"fdt_addr=0x91000000\0" \
+	"boot_fdt=try\0" \
+	"ip_dyn=yes\0" \
 	"mmcdev=0\0" \
-	"mmcpart=2\0" \
-	"mmcroot=/dev/mmcblk0p3 rw\0" \
-	"mmcrootfstype=ext3 rootwait\0" \
+	"mmcpart=1\0" \
+	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
 	"mmcargs=setenv bootargs console=ttymxc0,${baudrate} " \
-		"root=${mmcroot} " \
-		"rootfstype=${mmcrootfstype}\0" \
+		"root=${mmcroot}\0" \
 	"loadbootscript=" \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
-	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
+	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
+	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
-		"bootm\0" \
+		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"if run loadfdt; then " \
+				"bootz ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootz; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootz; " \
+		"fi;\0" \
 	"netargs=setenv bootargs console=ttymxc0,${baudrate} " \
 		"root=/dev/nfs " \
 		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"netboot=echo Booting from net ...; " \
 		"run netargs; " \
-		"dhcp ${uimage}; bootm\0" \
+		"if test ${ip_dyn} = yes; then " \
+			"setenv get_cmd dhcp; " \
+		"else " \
+			"setenv get_cmd tftp; " \
+		"fi; " \
+		"${get_cmd} ${image}; " \
+		"if test ${boot_fdt} = yes ||  test ${boot_fdt} = try; then " \
+			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
+				"bootz ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootz; " \
+				"else " \
+					"echo ERROR: Cannot load the DT; " \
+					"exit; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootz; " \
+		"fi;\0"
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \
-			"if run loaduimage; then " \
+			"if run loadimage; then " \
 				"run mmcboot; " \
 			"else run netboot; " \
 			"fi; " \
@@ -202,7 +219,6 @@
  */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
-#define CONFIG_SYS_PROMPT		"MX51EVK U-Boot > "
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
@@ -215,7 +231,6 @@
 
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
 
-#define CONFIG_SYS_HZ		1000
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
@@ -238,6 +253,7 @@
 
 #define CONFIG_SYS_DDR_CLKSEL	0
 #define CONFIG_SYS_CLKTL_CBCDR	0x59E35100
+#define CONFIG_SYS_MAIN_PWR_ON
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization

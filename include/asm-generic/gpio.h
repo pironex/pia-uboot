@@ -1,23 +1,7 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  * Copyright (c) 2011, NVIDIA Corp. All rights reserved.
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_GENERIC_GPIO_H_
@@ -42,10 +26,11 @@
  */
 
 /**
- * Request ownership of a GPIO.
+ * Request a gpio. This should be called before any of the other functions
+ * are used on this gpio.
  *
- * @param gpio	GPIO number
- * @param label	Name given to the GPIO
+ * @param gp	GPIO number
+ * @param label	User label for this GPIO
  * @return 0 if ok, -1 on error
  */
 int gpio_request(unsigned gpio, const char *label);
@@ -94,13 +79,107 @@ int gpio_get_value(unsigned gpio);
  */
 int gpio_set_value(unsigned gpio, int value);
 
+/* State of a GPIO, as reported by get_state() */
+enum {
+	GPIOF_INPUT = 0,
+	GPIOF_OUTPUT,
+	GPIOF_UNKNOWN,
+};
+
+struct device;
+
 /**
- * Request a gpio. This should be called before any of the other functions
- * are used on this gpio.
+ * struct struct dm_gpio_ops - Driver model GPIO operations
  *
- * @param gp	GPIO number
- * @param label	User label for this GPIO
- * @return 0 if ok, -1 on error
+ * Refer to functions above for description. These function largely copy
+ * the old API.
+ *
+ * This is trying to be close to Linux GPIO API. Once the U-Boot uses the
+ * new DM GPIO API, this should be really easy to flip over to the Linux
+ * GPIO API-alike interface.
+ *
+ * Akso it would be useful to standardise additional functions like
+ * pullup, slew rate and drive strength.
+ *
+ * gpio_request)( and gpio_free() are optional - if NULL then they will
+ * not be called.
+ *
+ * Note that @offset is the offset from the base GPIO of the device. So
+ * offset 0 is the device's first GPIO and offset o-1 is the last GPIO,
+ * where o is the number of GPIO lines controlled by the device. A device
+ * is typically used to control a single bank of GPIOs. Within complex
+ * SoCs there may be many banks and therefore many devices all referring
+ * to the different IO addresses within the SoC.
+ *
+ * The uclass combines all GPIO devices togther to provide a consistent
+ * numbering from 0 to n-1, where n is the number of GPIOs in total across
+ * all devices. Be careful not to confuse offset with gpio in the parameters.
  */
-int gpio_request(unsigned gpio, const char *label);
+struct dm_gpio_ops {
+	int (*request)(struct device *dev, unsigned offset, const char *label);
+	int (*free)(struct device *dev, unsigned offset);
+	int (*direction_input)(struct device *dev, unsigned offset);
+	int (*direction_output)(struct device *dev, unsigned offset,
+				int value);
+	int (*get_value)(struct device *dev, unsigned offset);
+	int (*set_value)(struct device *dev, unsigned offset, int value);
+	int (*get_function)(struct device *dev, unsigned offset);
+	int (*get_state)(struct device *dev, unsigned offset, char *state,
+			 int maxlen);
+};
+
+/**
+ * struct gpio_dev_priv - information about a device used by the uclass
+ *
+ * The uclass combines all active GPIO devices into a unified numbering
+ * scheme. To do this it maintains some private information aobut each
+ * device.
+ *
+ * To implement driver model support in your GPIO driver, add a probe
+ * handler, and set @gpio_count and @bank_name correctly in that handler.
+ * This tells the uclass the name of the GPIO bank and the number of GPIOs
+ * it contains.
+ *
+ * @bank_name: Name of the GPIO device (e.g 'a' means GPIOs will be called
+ * 'A0', 'A1', etc.
+ * @gpio_count: Number of GPIOs in this device
+ * @gpio_base: Base GPIO number for this device. For the first active device
+ * this will be 0; the numbering for others will follow sequentially so that
+ * @gpio_base for device 1 will equal the number of GPIOs in device 0.
+ */
+struct gpio_dev_priv {
+	const char *bank_name;
+	unsigned gpio_count;
+	unsigned gpio_base;
+};
+
+/* Access the GPIO operations for a device */
+#define gpio_get_ops(dev)	((struct dm_gpio_ops *)(dev)->driver->ops)
+
+/**
+ * gpio_get_bank_info - Return information about a GPIO bank/device
+ *
+ * This looks up a device and returns both its GPIO base name and the number
+ * of GPIOs it controls.
+ *
+ * @dev: Device to look up
+ * @offset_count: Returns number of GPIOs within this bank
+ * @return bank name of this device
+ */
+const char *gpio_get_bank_info(struct device *dev, int *offset_count);
+
+/**
+ * gpio_lookup_name - Look up a GPIO name and return its details
+ *
+ * This is used to convert a named GPIO into a device, offset and GPIO
+ * number.
+ *
+ * @name: GPIO name to look up
+ * @devp: Returns pointer to device which contains this GPIO
+ * @offsetp: Returns the offset number within this device
+ * @gpiop: Returns the absolute GPIO number, numbered from 0
+ */
+int gpio_lookup_name(const char *name, struct device **devp,
+		     unsigned int *offsetp, unsigned int *gpiop);
+
 #endif	/* _ASM_GENERIC_GPIO_H_ */

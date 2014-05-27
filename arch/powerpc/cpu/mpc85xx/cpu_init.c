@@ -7,23 +7,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -35,9 +19,11 @@
 #include <asm/io.h>
 #include <asm/cache.h>
 #include <asm/mmu.h>
+#include <asm/fsl_errata.h>
 #include <asm/fsl_law.h>
 #include <asm/fsl_serdes.h>
 #include <asm/fsl_srio.h>
+#include <fsl_usb.h>
 #include <hwconfig.h>
 #include <linux/compiler.h>
 #include "mp.h"
@@ -49,6 +35,54 @@
 #include "../../../../drivers/block/fsl_sata.h"
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006261
+void fsl_erratum_a006261_workaround(struct ccsr_usb_phy __iomem *usb_phy)
+{
+#ifdef CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE
+	u32 xcvrprg = in_be32(&usb_phy->port1.xcvrprg);
+
+	/* Increase Disconnect Threshold by 50mV */
+	xcvrprg &= ~CONFIG_SYS_FSL_USB_XCVRPRG_HS_DCNT_PROG_MASK |
+						INC_DCNT_THRESHOLD_50MV;
+	/* Enable programming of USB High speed Disconnect threshold */
+	xcvrprg |= CONFIG_SYS_FSL_USB_XCVRPRG_HS_DCNT_PROG_EN;
+	out_be32(&usb_phy->port1.xcvrprg, xcvrprg);
+
+	xcvrprg = in_be32(&usb_phy->port2.xcvrprg);
+	/* Increase Disconnect Threshold by 50mV */
+	xcvrprg &= ~CONFIG_SYS_FSL_USB_XCVRPRG_HS_DCNT_PROG_MASK |
+						INC_DCNT_THRESHOLD_50MV;
+	/* Enable programming of USB High speed Disconnect threshold */
+	xcvrprg |= CONFIG_SYS_FSL_USB_XCVRPRG_HS_DCNT_PROG_EN;
+	out_be32(&usb_phy->port2.xcvrprg, xcvrprg);
+#else
+
+	u32 temp = 0;
+	u32 status = in_be32(&usb_phy->status1);
+
+	u32 squelch_prog_rd_0_2 =
+		(status >> CONFIG_SYS_FSL_USB_SQUELCH_PROG_RD_0)
+			& CONFIG_SYS_FSL_USB_SQUELCH_PROG_MASK;
+
+	u32 squelch_prog_rd_3_5 =
+		(status >> CONFIG_SYS_FSL_USB_SQUELCH_PROG_RD_3)
+			& CONFIG_SYS_FSL_USB_SQUELCH_PROG_MASK;
+
+	setbits_be32(&usb_phy->config1,
+		     CONFIG_SYS_FSL_USB_HS_DISCNCT_INC);
+	setbits_be32(&usb_phy->config2,
+		     CONFIG_SYS_FSL_USB_RX_AUTO_CAL_RD_WR_SEL);
+
+	temp = squelch_prog_rd_0_2 << CONFIG_SYS_FSL_USB_SQUELCH_PROG_WR_0;
+	out_be32(&usb_phy->config2, in_be32(&usb_phy->config2) | temp);
+
+	temp = squelch_prog_rd_3_5 << CONFIG_SYS_FSL_USB_SQUELCH_PROG_WR_3;
+	out_be32(&usb_phy->config2, in_be32(&usb_phy->config2) | temp);
+#endif
+}
+#endif
+
 
 #ifdef CONFIG_QE
 extern qe_iop_conf_t qe_iop_conf_tab[];
@@ -172,6 +206,15 @@ static void enable_cpc(void)
 #ifdef CONFIG_SYS_FSL_ERRATUM_CPC_A003
 		setbits_be32(&cpc->cpchdbcr0, CPC_HDBCR0_DATA_ECC_SCRUB_DIS);
 #endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006593
+		setbits_be32(&cpc->cpchdbcr0, 1 << (31 - 21));
+#endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006379
+		if (has_erratum_a006379()) {
+			setbits_be32(&cpc->cpchdbcr0,
+				     CPC_HDBCR0_SPLRU_LEVEL_EN);
+		}
+#endif
 
 		out_be32(&cpc->cpccsr0, CPC_CSR0_CE | CPC_CSR0_PE);
 		/* Read back to sync write */
@@ -179,10 +222,11 @@ static void enable_cpc(void)
 
 	}
 
-	printf("Corenet Platform Cache: %d KB enabled\n", size);
+	puts("Corenet Platform Cache: ");
+	print_size(size * 1024, " enabled\n");
 }
 
-void invalidate_cpc(void)
+static void invalidate_cpc(void)
 {
 	int i;
 	cpc_corenet_t *cpc = (cpc_corenet_t *)CONFIG_SYS_FSL_CPC_ADDR;
@@ -295,6 +339,57 @@ static void __fsl_serdes__init(void)
 }
 __attribute__((weak, alias("__fsl_serdes__init"))) void fsl_serdes_init(void);
 
+#if defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2) && defined(CONFIG_E6500)
+int enable_cluster_l2(void)
+{
+	int i = 0;
+	u32 cluster;
+	ccsr_gur_t *gur = (void __iomem *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+	struct ccsr_cluster_l2 __iomem *l2cache;
+
+	cluster = in_be32(&gur->tp_cluster[i].lower);
+	if (cluster & TP_CLUSTER_EOC)
+		return 0;
+
+	/* The first cache has already been set up, so skip it */
+	i++;
+
+	/* Look through the remaining clusters, and set up their caches */
+	do {
+		int j, cluster_valid = 0;
+
+		l2cache = (void __iomem *)(CONFIG_SYS_FSL_CLUSTER_1_L2 + i * 0x40000);
+
+		cluster = in_be32(&gur->tp_cluster[i].lower);
+
+		/* check that at least one core/accel is enabled in cluster */
+		for (j = 0; j < 4; j++) {
+			u32 idx = (cluster >> (j*8)) & TP_CLUSTER_INIT_MASK;
+			u32 type = in_be32(&gur->tp_ityp[idx]);
+
+			if (type & TP_ITYP_AV)
+				cluster_valid = 1;
+		}
+
+		if (cluster_valid) {
+			/* set stash ID to (cluster) * 2 + 32 + 1 */
+			clrsetbits_be32(&l2cache->l2csr1, 0xff, 32 + i * 2 + 1);
+
+			printf("enable l2 for cluster %d %p\n", i, l2cache);
+
+			out_be32(&l2cache->l2csr0, L2CSR0_L2FI|L2CSR0_L2LFC);
+			while ((in_be32(&l2cache->l2csr0)
+				& (L2CSR0_L2FI|L2CSR0_L2LFC)) != 0)
+					;
+			out_be32(&l2cache->l2csr0, L2CSR0_L2E|L2CSR0_L2PE|L2CSR0_L2REP_MODE);
+		}
+		i++;
+	} while (!(cluster & TP_CLUSTER_EOC));
+
+	return 0;
+}
+#endif
+
 /*
  * Initialize L2 as cache.
  *
@@ -306,9 +401,20 @@ int cpu_init_r(void)
 {
 	__maybe_unused u32 svr = get_svr();
 #ifdef CONFIG_SYS_LBC_LCRR
-	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
+	fsl_lbc_t *lbc = (void __iomem *)LBC_BASE_ADDR;
 #endif
-
+#ifdef CONFIG_L2_CACHE
+	ccsr_l2cache_t *l2cache = (void __iomem *)CONFIG_SYS_MPC85xx_L2_ADDR;
+#elif defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2) && defined(CONFIG_E6500)
+	struct ccsr_cluster_l2 * l2cache = (void __iomem *)CONFIG_SYS_FSL_CLUSTER_1_L2;
+#endif
+#if defined(CONFIG_PPC_SPINTABLE_COMPATIBLE) && defined(CONFIG_MP)
+	extern int spin_table_compat;
+	const char *spin;
+#endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_SEC_A003571
+	ccsr_sec_t __iomem *sec = (void *)CONFIG_SYS_FSL_SEC_ADDR;
+#endif
 #if defined(CONFIG_SYS_P4080_ERRATUM_CPU22) || \
 	defined(CONFIG_SYS_FSL_ERRATUM_NMG_CPU_A011)
 	/*
@@ -352,11 +458,26 @@ int cpu_init_r(void)
 		sync();
 	}
 #endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_A005812
+	/*
+	 * A-005812 workaround sets bit 32 of SPR 976 for SoCs running
+	 * in write shadow mode. Checking DCWS before setting SPR 976.
+	 */
+	if (mfspr(L1CSR2) & L1CSR2_DCWS)
+		mtspr(SPRN_HDBCR0, (mfspr(SPRN_HDBCR0) | 0x80000000));
+#endif
+
+#if defined(CONFIG_PPC_SPINTABLE_COMPATIBLE) && defined(CONFIG_MP)
+	spin = getenv("spin_table_compat");
+	if (spin && (*spin == 'n'))
+		spin_table_compat = 0;
+	else
+		spin_table_compat = 1;
+#endif
 
 	puts ("L2:    ");
 
 #if defined(CONFIG_L2_CACHE)
-	volatile ccsr_l2cache_t *l2cache = (void *)CONFIG_SYS_MPC85xx_L2_ADDR;
 	volatile uint cache_ctl;
 	uint ver;
 	u32 l2siz_field;
@@ -394,28 +515,28 @@ int cpu_init_r(void)
 	case 0x1:
 		if (ver == SVR_8540 || ver == SVR_8560   ||
 		    ver == SVR_8541 || ver == SVR_8555) {
-			puts("128 KB ");
-			/* set L2E=1, L2I=1, & L2BLKSZ=1 (128 Kbyte) */
+			puts("128 KiB ");
+			/* set L2E=1, L2I=1, & L2BLKSZ=1 (128 KiBibyte) */
 			cache_ctl = 0xc4000000;
 		} else {
-			puts("256 KB ");
+			puts("256 KiB ");
 			cache_ctl = 0xc0000000; /* set L2E=1, L2I=1, & L2SRAM=0 */
 		}
 		break;
 	case 0x2:
 		if (ver == SVR_8540 || ver == SVR_8560   ||
 		    ver == SVR_8541 || ver == SVR_8555) {
-			puts("256 KB ");
-			/* set L2E=1, L2I=1, & L2BLKSZ=2 (256 Kbyte) */
+			puts("256 KiB ");
+			/* set L2E=1, L2I=1, & L2BLKSZ=2 (256 KiBibyte) */
 			cache_ctl = 0xc8000000;
 		} else {
-			puts ("512 KB ");
+			puts("512 KiB ");
 			/* set L2E=1, L2I=1, & L2SRAM=0 */
 			cache_ctl = 0xc0000000;
 		}
 		break;
 	case 0x3:
-		puts("1024 KB ");
+		puts("1024 KiB ");
 		/* set L2E=1, L2I=1, & L2SRAM=0 */
 		cache_ctl = 0xc0000000;
 		break;
@@ -429,7 +550,7 @@ int cpu_init_r(void)
 				&& l2srbar >= CONFIG_SYS_FLASH_BASE) {
 			l2srbar = CONFIG_SYS_INIT_L2_ADDR;
 			l2cache->l2srbar0 = l2srbar;
-			printf("moving to 0x%08x", CONFIG_SYS_INIT_L2_ADDR);
+			printf(", moving to 0x%08x", CONFIG_SYS_INIT_L2_ADDR);
 		}
 #endif /* CONFIG_SYS_INIT_L2_ADDR */
 		puts("\n");
@@ -463,22 +584,50 @@ int cpu_init_r(void)
 	if (CONFIG_SYS_INIT_L2CSR0 & L2CSR0_L2E) {
 		while (!(mfspr(SPRN_L2CSR0) & L2CSR0_L2E))
 			;
-		printf("%d KB enabled\n", (l2cfg0 & 0x3fff) * 64);
+		print_size((l2cfg0 & 0x3fff) * 64 * 1024, " enabled\n");
 	}
 
 skip_l2:
+#elif defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2) && defined(CONFIG_E6500)
+	if (l2cache->l2csr0 & L2CSR0_L2E)
+		print_size((l2cache->l2cfg0 & 0x3fff) * 64 * 1024,
+			   " enabled\n");
+
+	enable_cluster_l2();
 #else
 	puts("disabled\n");
 #endif
 
 	enable_cpc();
 
+#ifndef CONFIG_SYS_FSL_NO_SERDES
 	/* needs to be in ram since code uses global static vars */
 	fsl_serdes_init();
+#endif
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_SEC_A003571
+#define MCFGR_AXIPIPE 0x000000f0
+	if (IS_SVR_REV(svr, 1, 0))
+		clrbits_be32(&sec->mcfgr, MCFGR_AXIPIPE);
+#endif
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_A005871
+	if (IS_SVR_REV(svr, 1, 0)) {
+		int i;
+		__be32 *p = (void __iomem *)CONFIG_SYS_DCSRBAR + 0xb004c;
+
+		for (i = 0; i < 12; i++) {
+			p += i + (i > 5 ? 11 : 0);
+			out_be32(p, 0x2);
+		}
+		p = (void __iomem *)CONFIG_SYS_DCSRBAR + 0xb0108;
+		out_be32(p, 0x34);
+	}
+#endif
 
 #ifdef CONFIG_SYS_SRIO
 	srio_init();
-#ifdef CONFIG_FSL_CORENET
+#ifdef CONFIG_SRIO_PCIE_BOOT_MASTER
 	char *s = getenv("bootmaster");
 	if (s) {
 		if (!strcmp(s, "SRIO1")) {
@@ -497,11 +646,13 @@ skip_l2:
 	setup_mp();
 #endif
 
-#ifdef CONFIG_SYS_FSL_ERRATUM_ESDHC136
+#ifdef CONFIG_SYS_FSL_ERRATUM_ESDHC13
 	{
-		void *p;
-		p = (void *)CONFIG_SYS_DCSRBAR + 0x20520;
-		setbits_be32(p, 1 << (31 - 14));
+		if (SVR_MAJ(svr) < 3) {
+			void *p;
+			p = (void *)CONFIG_SYS_DCSRBAR + 0x20520;
+			setbits_be32(p, 1 << (31 - 14));
+		}
 	}
 #endif
 
@@ -520,20 +671,70 @@ skip_l2:
 
 #ifdef CONFIG_SYS_FSL_USB1_PHY_ENABLE
 	{
-		ccsr_usb_phy_t *usb_phy1 =
+		struct ccsr_usb_phy __iomem *usb_phy1 =
 			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006261
+		if (has_erratum_a006261())
+			fsl_erratum_a006261_workaround(usb_phy1);
+#endif
 		out_be32(&usb_phy1->usb_enable_override,
 				CONFIG_SYS_FSL_USB_ENABLE_OVERRIDE);
 	}
 #endif
 #ifdef CONFIG_SYS_FSL_USB2_PHY_ENABLE
 	{
-		ccsr_usb_phy_t *usb_phy2 =
+		struct ccsr_usb_phy __iomem *usb_phy2 =
 			(void *)CONFIG_SYS_MPC85xx_USB2_PHY_ADDR;
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006261
+		if (has_erratum_a006261())
+			fsl_erratum_a006261_workaround(usb_phy2);
+#endif
 		out_be32(&usb_phy2->usb_enable_override,
 				CONFIG_SYS_FSL_USB_ENABLE_OVERRIDE);
 	}
 #endif
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_USB14
+	/* On P204x/P304x/P50x0 Rev1.0, USB transmit will result internal
+	 * multi-bit ECC errors which has impact on performance, so software
+	 * should disable all ECC reporting from USB1 and USB2.
+	 */
+	if (IS_SVR_REV(get_svr(), 1, 0)) {
+		struct dcsr_dcfg_regs *dcfg = (struct dcsr_dcfg_regs *)
+			(CONFIG_SYS_DCSRBAR + CONFIG_SYS_DCSR_DCFG_OFFSET);
+		setbits_be32(&dcfg->ecccr1,
+				(DCSR_DCFG_ECC_DISABLE_USB1 |
+				 DCSR_DCFG_ECC_DISABLE_USB2));
+	}
+#endif
+
+#if defined(CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE)
+		struct ccsr_usb_phy __iomem *usb_phy =
+			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
+		setbits_be32(&usb_phy->pllprg[1],
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY2_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY1_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_MFI |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PLL_EN);
+		setbits_be32(&usb_phy->port1.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port1.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port1.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
+		setbits_be32(&usb_phy->port2.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port2.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port2.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006261
+		if (has_erratum_a006261())
+			fsl_erratum_a006261_workaround(usb_phy);
+#endif
+
+#endif /* CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE */
 
 #ifdef CONFIG_FMAN_ENET
 	fman_enet_init();

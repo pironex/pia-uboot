@@ -3,20 +3,7 @@
  *
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -24,9 +11,11 @@
 #include <errno.h>
 #include <linux/compiler.h>
 
-#define	CPU_MASK_PXA_REVID	0x00f
+#define	CPU_MASK_PXA_PRODID	0x000003f0
+#define	CPU_MASK_PXA_REVID	0x0000000f
 
-#define	CPU_MASK_PXA_PRODID	0x3f0
+#define	CPU_MASK_PRODREV	(CPU_MASK_PXA_PRODID | CPU_MASK_PXA_REVID)
+
 #define	CPU_VALUE_PXA25X	0x100
 #define	CPU_VALUE_PXA27X	0x110
 
@@ -49,6 +38,11 @@ int cpu_is_pxa27x(void)
 	uint32_t id = pxa_get_cpuid();
 	id &= CPU_MASK_PXA_PRODID;
 	return id == CPU_VALUE_PXA27X;
+}
+
+uint32_t pxa_get_cpu_revision(void)
+{
+	return pxa_get_cpuid() & CPU_MASK_PRODREV;
 }
 
 #ifdef	CONFIG_DISPLAY_CPUINFO

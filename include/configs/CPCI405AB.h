@@ -2,23 +2,7 @@
  * (C) Copyright 2001-2003
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -34,7 +18,6 @@
  */
 
 #define CONFIG_405GP		1	/* This is a PPC405 CPU		*/
-#define CONFIG_4xx		1	/* ...member of PPC4xx family	*/
 #define CONFIG_CPCI405		1	/* ...on a CPCI405 board	*/
 #define CONFIG_CPCI405_VER2	1	/* ...version 2			*/
 #define CONFIG_CPCI405AB	1	/* ...and special AB version	*/
@@ -111,7 +94,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP			/* undef to save memory		*/
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #undef	CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
 
@@ -148,8 +130,6 @@
 #define CONFIG_SYS_LOAD_ADDR	0x100000	/* default load address */
 #define CONFIG_SYS_EXTBDINFO	1		/* To use extended board_into (bd_t) */
 
-#define CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks */
-
 #define CONFIG_CMDLINE_EDITING		/* add command line history	*/
 
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
@@ -173,6 +153,7 @@
 #define PCI_HOST_AUTO	2		/* detected via arbiter enable	*/
 
 #define CONFIG_PCI			/* include pci support		*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_HOST PCI_HOST_AUTO	/* select pci host function	*/
 #define CONFIG_PCI_PNP			/* do pci plug-and-play		*/
 					/* resource configuration	*/
@@ -192,7 +173,7 @@
 #define CONFIG_SYS_PCI_PTM1PCI 0x00000000	/* Host: use this pci address	*/
 #define CONFIG_SYS_PCI_PTM2LA	0xffc00000	/* point to flash		*/
 #define CONFIG_SYS_PCI_PTM2MS	0xffc00001	/* 4MB, enable			*/
-#define CONFIG_SYS_PCI_PTM2PCI 0x04000000	/* Host: use this pci address	*/
+#define CONFIG_SYS_PCI_PTM2PCI (bd->bi_memsize) /* host use this pci address */
 
 #define CONFIG_PCI_4xx_PTM_OVERWRITE	1 /* overwrite PTMx settings by env */
 
@@ -262,10 +243,11 @@
 /*-----------------------------------------------------------------------
  * I2C EEPROM (CAT24WC32) for environment
  */
-#define CONFIG_HARD_I2C			/* I2c with hardware support */
-#define CONFIG_PPC4XX_I2C		/* use PPC4xx driver		*/
-#define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_PPC4XX
+#define CONFIG_SYS_I2C_PPC4XX_CH0
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		100000
+#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0		0x7F
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* EEPROM CAT28WC32		*/
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 2	/* Bytes of address		*/

@@ -4,23 +4,7 @@
  *
  * Aneesh V <aneesh@ti.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <spl.h>
@@ -48,13 +32,6 @@ struct spl_image_info spl_image;
 /* Define board data structure */
 static bd_t bdata __attribute__ ((section(".data")));
 
-inline void hang(void)
-{
-	puts("### ERROR ### Please RESET the board ###\n");
-	for (;;)
-		;
-}
-
 /*
  * Default function to determine if u-boot or the OS should
  * be started. This implementation always returns 1.
@@ -73,6 +50,16 @@ __weak int spl_start_uboot(void)
 	return 1;
 }
 #endif
+
+/*
+ * Weak default function for board specific cleanup/preparation before
+ * Linux boot. Some boards/platforms might not need it, so just provide
+ * an empty stub here.
+ */
+__weak void spl_board_prepare_for_linux(void)
+{
+	/* Nothing to do! */
+}
 
 void spl_parse_image_header(const struct image_header *header)
 {
@@ -98,8 +85,9 @@ void spl_parse_image_header(const struct image_header *header)
 		}
 		spl_image.os = image_get_os(header);
 		spl_image.name = image_get_name(header);
-		debug("spl: payload image: %s load addr: 0x%x size: %d\n",
-			spl_image.name, spl_image.load_addr, spl_image.size);
+		debug("spl: payload image: %.*s load addr: 0x%x size: %d\n",
+			sizeof(spl_image.name), spl_image.name,
+			spl_image.load_addr, spl_image.size);
 	} else {
 		/* Signature not found - assume u-boot.bin */
 		debug("mkimage signature not found - ih_magic = %x\n",
@@ -113,19 +101,15 @@ void spl_parse_image_header(const struct image_header *header)
 	}
 }
 
-static void __noreturn jump_to_image_no_args(void)
+__weak void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 {
-	typedef void __noreturn (*image_entry_noargs_t)(u32 *);
-	image_entry_noargs_t image_entry =
-			(image_entry_noargs_t) spl_image.entry_point;
+	typedef void __noreturn (*image_entry_noargs_t)(void);
 
-	debug("image entry point: 0x%X\n", spl_image.entry_point);
-	/* Pass the saved boot_params from rom code */
-#if defined(CONFIG_VIRTIO) || defined(CONFIG_ZEBU)
-	image_entry = (image_entry_noargs_t)0x80100000;
-#endif
-	u32 boot_params_ptr_addr = (u32)&boot_params_ptr;
-	image_entry((u32 *)boot_params_ptr_addr);
+	image_entry_noargs_t image_entry =
+			(image_entry_noargs_t) spl_image->entry_point;
+
+	debug("image entry point: 0x%X\n", spl_image->entry_point);
+	image_entry();
 }
 
 #ifdef CONFIG_SPL_RAM_DEVICE
@@ -154,23 +138,21 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	mem_malloc_init(CONFIG_SYS_SPL_MALLOC_START,
 			CONFIG_SYS_SPL_MALLOC_SIZE);
 #endif
-	debug("  +spl:timer_init()\n");
+
+#ifndef CONFIG_PPC
+	/*
+	 * timer_init() does not exist on PPC systems. The timer is initialized
+	 * and enabled (decrementer) in interrupt_init() here.
+	 */
 	timer_init();
+#endif
 
 #ifdef CONFIG_SPL_BOARD_INIT
-	debug("  +spl:spl_board_init()\n");
 	spl_board_init();
 #endif
 
 	boot_device = spl_boot_device();
 	debug("boot device - %d\n", boot_device);
-
-#ifdef CONFIG_UART_THEN_USB_SPL
-	/* Hack: load SPL via UART, then use USB */
-	if (boot_device == BOOT_DEVICE_UART)
-		boot_device = BOOT_DEVICE_USB;
-#endif
-
 	switch (boot_device) {
 #ifdef CONFIG_SPL_RAM_DEVICE
 	case BOOT_DEVICE_RAM:
@@ -187,6 +169,11 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #ifdef CONFIG_SPL_NAND_SUPPORT
 	case BOOT_DEVICE_NAND:
 		spl_nand_load_image();
+		break;
+#endif
+#ifdef CONFIG_SPL_ONENAND_SUPPORT
+	case BOOT_DEVICE_ONENAND:
+		spl_onenand_load_image();
 		break;
 #endif
 #ifdef CONFIG_SPL_NOR_SUPPORT
@@ -213,9 +200,19 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #endif
 		break;
 #endif
-#ifdef CONFIG_SPL_USB_ETH_SUPPORT
-	case BOOT_DEVICE_USB:
+#ifdef CONFIG_SPL_USBETH_SUPPORT
+	case BOOT_DEVICE_USBETH:
 		spl_net_load_image("usb_ether");
+		break;
+#endif
+#ifdef CONFIG_SPL_USB_SUPPORT
+	case BOOT_DEVICE_USB:
+		spl_usb_load_image();
+		break;
+#endif
+#ifdef CONFIG_SPL_SATA_SUPPORT
+	case BOOT_DEVICE_SATA:
+		spl_sata_load_image();
 		break;
 #endif
 	default:
@@ -236,7 +233,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	default:
 		debug("Unsupported OS image.. Jumping nevertheless..\n");
 	}
-	jump_to_image_no_args();
+	jump_to_image_no_args(&spl_image);
 }
 
 /*
@@ -246,7 +243,6 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 void preloader_console_init(void)
 {
 	gd->bd = &bdata;
-	gd->flags |= GD_FLG_RELOC;
 	gd->baudrate = CONFIG_BAUDRATE;
 
 	serial_init();		/* serial communications setup */

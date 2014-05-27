@@ -1,29 +1,14 @@
 /*
  * Copyright 2010, Renato Andreola <renato.andreola@imagos.it>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <watchdog.h>
 #include <asm/io.h>
 #include <nios2-yanu.h>
+#include <serial.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -33,62 +18,34 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static yanu_uart_t *uart = (yanu_uart_t *)CONFIG_SYS_NIOS_CONSOLE;
 
+static void oc_serial_setbrg(void)
+{
+	int n, k;
+	const unsigned max_uns = 0xFFFFFFFF;
+	unsigned best_n, best_m, baud;
+	unsigned baudrate;
+
 #if defined(CONFIG_SYS_NIOS_FIXEDBAUD)
-
-/* Everything's already setup for fixed-baud PTF assignment*/
-
-void serial_setbrg (void)
-{
-	int n, k;
-	const unsigned max_uns = 0xFFFFFFFF;
-	unsigned best_n, best_m, baud;
-
-	/* compute best N and M couple */
-	best_n = YANU_MAX_PRESCALER_N;
-	for (n = YANU_MAX_PRESCALER_N; n >= 0; n--) {
-		if ((unsigned)CONFIG_SYS_CLK_FREQ / (1 << (n + 4)) >=
-		    (unsigned)CONFIG_BAUDRATE) {
-			best_n = n;
-			break;
-		}
-	}
-	for (k = 0;; k++) {
-		if ((unsigned)CONFIG_BAUDRATE <= (max_uns >> (15+n-k)))
-			break;
-	}
-	best_m =
-	    ((unsigned)CONFIG_BAUDRATE * (1 << (15 + n - k))) /
-	    ((unsigned)CONFIG_SYS_CLK_FREQ >> k);
-
-	baud = best_m + best_n * YANU_BAUDE;
-	writel(baud, &uart->baud);
-
-	return;
-}
-
+	/* Everything's already setup for fixed-baud PTF assignment */
+	baudrate = CONFIG_BAUDRATE;
 #else
-
-void serial_setbrg (void)
-{
-	int n, k;
-	const unsigned max_uns = 0xFFFFFFFF;
-	unsigned best_n, best_m, baud;
-
+	baudrate = gd->baudrate;
+#endif
 	/* compute best N and M couple */
 	best_n = YANU_MAX_PRESCALER_N;
 	for (n = YANU_MAX_PRESCALER_N; n >= 0; n--) {
 		if ((unsigned)CONFIG_SYS_CLK_FREQ / (1 << (n + 4)) >=
-		    gd->baudrate) {
+		    baudrate) {
 			best_n = n;
 			break;
 		}
 	}
 	for (k = 0;; k++) {
-		if (gd->baudrate <= (max_uns >> (15+n-k)))
+		if (baudrate <= (max_uns >> (15+n-k)))
 			break;
 	}
 	best_m =
-	    (gd->baudrate * (1 << (15 + n - k))) /
+	    (baudrate * (1 << (15 + n - k))) /
 	    ((unsigned)CONFIG_SYS_CLK_FREQ >> k);
 
 	baud = best_m + best_n * YANU_BAUDE;
@@ -97,10 +54,7 @@ void serial_setbrg (void)
 	return;
 }
 
-
-#endif /* CONFIG_SYS_NIOS_FIXEDBAUD */
-
-int serial_init (void)
+static int oc_serial_init(void)
 {
 	unsigned action,control;
 
@@ -141,7 +95,7 @@ int serial_init (void)
 /*-----------------------------------------------------------------------
  * YANU CONSOLE
  *---------------------------------------------------------------------*/
-void serial_putc (char c)
+static void oc_serial_putc(char c)
 {
 	int tx_chars;
 	unsigned status;
@@ -161,15 +115,7 @@ void serial_putc (char c)
 	writel((unsigned char)c, &uart->data);
 }
 
-void serial_puts (const char *s)
-{
-	while (*s != 0) {
-		serial_putc (*s++);
-	}
-}
-
-
-int serial_tstc(void)
+static int oc_serial_tstc(void)
 {
 	unsigned status ;
 
@@ -178,7 +124,7 @@ int serial_tstc(void)
 		 ((1 << YANU_RFIFO_CHARS_N) - 1)) > 0);
 }
 
-int serial_getc (void)
+static int oc_serial_getc(void)
 {
 	while (serial_tstc() == 0)
 		WATCHDOG_RESET ();
@@ -187,4 +133,25 @@ int serial_getc (void)
 	writel(YANU_ACTION_RFIFO_PULL, &uart->action);
 
 	return(readl(&uart->data) & YANU_DATA_CHAR_MASK);
+}
+
+static struct serial_device oc_serial_drv = {
+	.name	= "oc_serial",
+	.start	= oc_serial_init,
+	.stop	= NULL,
+	.setbrg	= oc_serial_setbrg,
+	.putc	= oc_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= oc_serial_getc,
+	.tstc	= oc_serial_tstc,
+};
+
+void oc_serial_initialize(void)
+{
+	serial_register(&oc_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &oc_serial_drv;
 }

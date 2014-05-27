@@ -14,23 +14,7 @@
  *      Syed Mohammed Khasim <khasim@ti.com>
  *
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <spl.h>
@@ -50,7 +34,9 @@ DECLARE_GLOBAL_DATA_PTR;
 /* Declarations */
 extern omap3_sysinfo sysinfo;
 static void omap3_setup_aux_cr(void);
+#ifndef CONFIG_SYS_L2CACHE_OFF
 static void omap3_invalidate_l2_cache_secure(void);
+#endif
 
 static const struct gpio_bank gpio_bank_34xx[6] = {
 	{ (void *)OMAP34XX_GPIO1_BASE, METHOD_GPIO_24XX },
@@ -96,11 +82,11 @@ int board_mmc_init(bd_t *bis)
 {
 	switch (spl_boot_device()) {
 	case BOOT_DEVICE_MMC1:
-		omap_mmc_init(0, 0, 0);
+		omap_mmc_init(0, 0, 0, -1, -1);
 		break;
 	case BOOT_DEVICE_MMC2:
 	case BOOT_DEVICE_MMC2_2:
-		omap_mmc_init(1, 0, 0);
+		omap_mmc_init(1, 0, 0, -1, -1);
 		break;
 	}
 	return 0;
@@ -108,11 +94,11 @@ int board_mmc_init(bd_t *bis)
 
 void spl_board_init(void)
 {
-#ifdef CONFIG_SPL_NAND_SUPPORT
+#if defined(CONFIG_SPL_NAND_SUPPORT) || defined(CONFIG_SPL_ONENAND_SUPPORT)
 	gpmc_init();
 #endif
 #ifdef CONFIG_SPL_I2C_SUPPORT
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
 #endif
 }
 #endif /* CONFIG_SPL_BUILD */
@@ -326,14 +312,25 @@ void abort(void)
  *****************************************************************************/
 static int do_switch_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
-	if (argc != 2)
+	if (argc < 2 || argc > 3)
 		goto usage;
-	if (strncmp(argv[1], "hw", 2) == 0)
-		omap_nand_switch_ecc(1);
-	else if (strncmp(argv[1], "sw", 2) == 0)
-		omap_nand_switch_ecc(0);
-	else
+
+	if (strncmp(argv[1], "hw", 2) == 0) {
+		if (argc == 2) {
+			omap_nand_switch_ecc(1, 1);
+		} else {
+			if (strncmp(argv[2], "hamming", 7) == 0)
+				omap_nand_switch_ecc(1, 1);
+			else if (strncmp(argv[2], "bch8", 4) == 0)
+				omap_nand_switch_ecc(1, 8);
+			else
+				goto usage;
+		}
+	} else if (strncmp(argv[1], "sw", 2) == 0) {
+		omap_nand_switch_ecc(0, 0);
+	} else {
 		goto usage;
+	}
 
 	return 0;
 
@@ -343,9 +340,13 @@ usage:
 }
 
 U_BOOT_CMD(
-	nandecc, 2, 1,	do_switch_ecc,
+	nandecc, 3, 1,	do_switch_ecc,
 	"switch OMAP3 NAND ECC calculation algorithm",
-	"[hw/sw] - Switch between NAND hardware (hw) or software (sw) ecc algorithm"
+	"hw [hamming|bch8] - Switch between NAND hardware 1-bit hamming and"
+	" 8-bit BCH\n"
+	"                           ecc calculation (second parameter may"
+	" be omitted).\n"
+	"nandecc sw               - Switch to NAND software ecc algorithm."
 );
 
 #endif /* CONFIG_NAND_OMAP_GPMC & !CONFIG_SPL_BUILD */
@@ -410,19 +411,6 @@ static void omap3_update_aux_cr_secure(u32 set_bits, u32 clear_bits)
 	}
 }
 
-static void omap3_update_aux_cr(u32 set_bits, u32 clear_bits)
-{
-	u32 acr;
-
-	/* Read ACR */
-	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr));
-	acr &= ~clear_bits;
-	acr |= set_bits;
-
-	/* Write ACR - affects non-secure banked bits */
-	asm volatile ("mcr p15, 0, %0, c1, c0, 1" : : "r" (acr));
-}
-
 static void omap3_setup_aux_cr(void)
 {
 	/* Workaround for Cortex-A8 errata: #454179 #430973
@@ -436,6 +424,19 @@ static void omap3_setup_aux_cr(void)
 }
 
 #ifndef CONFIG_SYS_L2CACHE_OFF
+static void omap3_update_aux_cr(u32 set_bits, u32 clear_bits)
+{
+	u32 acr;
+
+	/* Read ACR */
+	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr));
+	acr &= ~clear_bits;
+	acr |= set_bits;
+
+	/* Write ACR - affects non-secure banked bits */
+	asm volatile ("mcr p15, 0, %0, c1, c0, 1" : : "r" (acr));
+}
+
 /* Invalidate the entire L2 cache from secure mode */
 static void omap3_invalidate_l2_cache_secure(void)
 {
@@ -476,7 +477,7 @@ void omap3_outer_cache_disable(void)
 	 */
 	omap3_update_aux_cr(0, 0x2);
 }
-#endif
+#endif /* !CONFIG_SYS_L2CACHE_OFF */
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 void enable_caches(void)
@@ -484,4 +485,4 @@ void enable_caches(void)
 	/* Enable D-cache. I-cache is already enabled in start.S */
 	dcache_enable();
 }
-#endif
+#endif /* !CONFIG_SYS_DCACHE_OFF */

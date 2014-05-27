@@ -3,23 +3,7 @@
  *
  * Copyright (C) 2012 Atmel Corporation
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -28,16 +12,6 @@
 #include <asm/arch/clk.h>
 #include <lcd.h>
 #include <atmel_hlcdc.h>
-
-int lcd_line_length;
-int lcd_color_fg;
-int lcd_color_bg;
-
-void *lcd_base;				/* Start of framebuffer memory	*/
-void *lcd_console_address;		/* Start of console buffer	*/
-
-short console_col;
-short console_row;
 
 /* configurable parameters */
 #define ATMEL_LCDC_CVAL_DEFAULT		0xc8
@@ -50,6 +24,18 @@ short console_row;
 
 #define lcdc_readl(reg)		__raw_readl((reg))
 #define lcdc_writel(reg, val)	__raw_writel((val), (reg))
+
+/*
+ * the CLUT register map as following
+ * RCLUT(24 ~ 16), GCLUT(15 ~ 8), BCLUT(7 ~ 0)
+ */
+void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
+{
+	lcdc_writel(((red << LCDC_BASECLUT_RCLUT_Pos) & LCDC_BASECLUT_RCLUT_Msk)
+		| ((green << LCDC_BASECLUT_GCLUT_Pos) & LCDC_BASECLUT_GCLUT_Msk)
+		| ((blue << LCDC_BASECLUT_BCLUT_Pos) & LCDC_BASECLUT_BCLUT_Msk),
+		panel_info.mmio + ATMEL_LCDC_LUT(regno));
+}
 
 void lcd_ctrl_init(void *lcdbase)
 {

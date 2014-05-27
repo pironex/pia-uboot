@@ -3,23 +3,11 @@
  * Texas Instruments, <www.ti.com>
  * Richard Woodruff <r-woodruff2@ti.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
-  */
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
 #ifndef _SYS_PROTO_H_
 #define _SYS_PROTO_H_
+#include <linux/mtd/omap_gpmc.h>
 
 typedef struct {
 	u32 mtype;
@@ -32,6 +20,15 @@ struct emu_hal_params {
 	u32 param1;
 };
 
+/* Board SDRC timing values */
+struct board_sdrc_timings {
+	u32 mcfg;
+	u32 ctrla;
+	u32 ctrlb;
+	u32 rfr_ctrl;
+	u32 mr;
+};
+
 void prcm_init(void);
 void per_clocks_enable(void);
 void ehci_clocks_enable(void);
@@ -39,8 +36,8 @@ void ehci_clocks_enable(void);
 void memif_init(void);
 void sdrc_init(void);
 void do_sdrc_init(u32, u32);
-void get_board_mem_timings(u32 *mcfg, u32 *ctrla, u32 *ctrlb, u32 *rfr_ctrl,
-		u32 *mr);
+
+void get_board_mem_timings(struct board_sdrc_timings *timings);
 void identify_nand_chip(int *mfr, int *id);
 void emif4_init(void);
 void gpmc_init(void);
@@ -69,7 +66,7 @@ void sr32(void *, u32, u32, u32);
 u32 wait_on_value(u32, u32, void *, u32);
 void sdelay(unsigned long);
 void make_cs1_contiguous(void);
-void omap_nand_switch_ecc(int);
+void omap_nand_switch_ecc(uint32_t, uint32_t);
 void power_init_r(void);
 void dieid_num_r(void);
 void do_omap3_emu_romcode_call(u32 service_id, u32 parameters);

@@ -5,23 +5,7 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * aloong with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _PCI_H
@@ -67,7 +51,130 @@
 #define PCI_CLASS_PROG		0x09	/* Reg. Level Programming Interface */
 #define PCI_CLASS_DEVICE	0x0a	/* Device class */
 #define PCI_CLASS_CODE		0x0b	/* Device class code */
+#define  PCI_CLASS_CODE_TOO_OLD	0x00
+#define  PCI_CLASS_CODE_STORAGE 0x01
+#define  PCI_CLASS_CODE_NETWORK 0x02
+#define  PCI_CLASS_CODE_DISPLAY	0x03
+#define  PCI_CLASS_CODE_MULTIMEDIA 0x04
+#define  PCI_CLASS_CODE_MEMORY	0x05
+#define  PCI_CLASS_CODE_BRIDGE	0x06
+#define  PCI_CLASS_CODE_COMM	0x07
+#define  PCI_CLASS_CODE_PERIPHERAL 0x08
+#define  PCI_CLASS_CODE_INPUT	0x09
+#define  PCI_CLASS_CODE_DOCKING	0x0A
+#define  PCI_CLASS_CODE_PROCESSOR 0x0B
+#define  PCI_CLASS_CODE_SERIAL	0x0C
+#define  PCI_CLASS_CODE_WIRELESS 0x0D
+#define  PCI_CLASS_CODE_I2O	0x0E
+#define  PCI_CLASS_CODE_SATELLITE 0x0F
+#define  PCI_CLASS_CODE_CRYPTO	0x10
+#define  PCI_CLASS_CODE_DATA	0x11
+/* Base Class 0x12 - 0xFE is reserved */
+#define  PCI_CLASS_CODE_OTHER	0xFF
+
 #define PCI_CLASS_SUB_CODE	0x0a	/* Device sub-class code */
+#define  PCI_CLASS_SUB_CODE_TOO_OLD_NOTVGA	0x00
+#define  PCI_CLASS_SUB_CODE_TOO_OLD_VGA		0x01
+#define  PCI_CLASS_SUB_CODE_STORAGE_SCSI	0x00
+#define  PCI_CLASS_SUB_CODE_STORAGE_IDE		0x01
+#define  PCI_CLASS_SUB_CODE_STORAGE_FLOPPY	0x02
+#define  PCI_CLASS_SUB_CODE_STORAGE_IPIBUS	0x03
+#define  PCI_CLASS_SUB_CODE_STORAGE_RAID	0x04
+#define  PCI_CLASS_SUB_CODE_STORAGE_ATA		0x05
+#define  PCI_CLASS_SUB_CODE_STORAGE_SATA	0x06
+#define  PCI_CLASS_SUB_CODE_STORAGE_SAS		0x07
+#define  PCI_CLASS_SUB_CODE_STORAGE_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_NETWORK_ETHERNET	0x00
+#define  PCI_CLASS_SUB_CODE_NETWORK_TOKENRING	0x01
+#define  PCI_CLASS_SUB_CODE_NETWORK_FDDI	0x02
+#define  PCI_CLASS_SUB_CODE_NETWORK_ATM		0x03
+#define  PCI_CLASS_SUB_CODE_NETWORK_ISDN	0x04
+#define  PCI_CLASS_SUB_CODE_NETWORK_WORLDFIP	0x05
+#define  PCI_CLASS_SUB_CODE_NETWORK_PICMG	0x06
+#define  PCI_CLASS_SUB_CODE_NETWORK_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_DISPLAY_VGA		0x00
+#define  PCI_CLASS_SUB_CODE_DISPLAY_XGA		0x01
+#define  PCI_CLASS_SUB_CODE_DISPLAY_3D		0x02
+#define  PCI_CLASS_SUB_CODE_DISPLAY_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_MULTIMEDIA_VIDEO	0x00
+#define  PCI_CLASS_SUB_CODE_MULTIMEDIA_AUDIO	0x01
+#define  PCI_CLASS_SUB_CODE_MULTIMEDIA_PHONE	0x02
+#define  PCI_CLASS_SUB_CODE_MULTIMEDIA_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_MEMORY_RAM		0x00
+#define  PCI_CLASS_SUB_CODE_MEMORY_FLASH	0x01
+#define  PCI_CLASS_SUB_CODE_MEMORY_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_BRIDGE_HOST		0x00
+#define  PCI_CLASS_SUB_CODE_BRIDGE_ISA		0x01
+#define  PCI_CLASS_SUB_CODE_BRIDGE_EISA		0x02
+#define  PCI_CLASS_SUB_CODE_BRIDGE_MCA		0x03
+#define  PCI_CLASS_SUB_CODE_BRIDGE_PCI		0x04
+#define  PCI_CLASS_SUB_CODE_BRIDGE_PCMCIA	0x05
+#define  PCI_CLASS_SUB_CODE_BRIDGE_NUBUS	0x06
+#define  PCI_CLASS_SUB_CODE_BRIDGE_CARDBUS	0x07
+#define  PCI_CLASS_SUB_CODE_BRIDGE_RACEWAY	0x08
+#define  PCI_CLASS_SUB_CODE_BRIDGE_SEMI_PCI	0x09
+#define  PCI_CLASS_SUB_CODE_BRIDGE_INFINIBAND	0x0A
+#define  PCI_CLASS_SUB_CODE_BRIDGE_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_COMM_SERIAL		0x00
+#define  PCI_CLASS_SUB_CODE_COMM_PARALLEL	0x01
+#define  PCI_CLASS_SUB_CODE_COMM_MULTIPORT	0x02
+#define  PCI_CLASS_SUB_CODE_COMM_MODEM		0x03
+#define  PCI_CLASS_SUB_CODE_COMM_GPIB		0x04
+#define  PCI_CLASS_SUB_CODE_COMM_SMARTCARD	0x05
+#define  PCI_CLASS_SUB_CODE_COMM_OTHER		0x80
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_PIC	0x00
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_DMA	0x01
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_TIMER	0x02
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_RTC	0x03
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_HOTPLUG	0x04
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_SD	0x05
+#define  PCI_CLASS_SUB_CODE_PERIPHERAL_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_INPUT_KEYBOARD	0x00
+#define  PCI_CLASS_SUB_CODE_INPUT_DIGITIZER	0x01
+#define  PCI_CLASS_SUB_CODE_INPUT_MOUSE		0x02
+#define  PCI_CLASS_SUB_CODE_INPUT_SCANNER	0x03
+#define  PCI_CLASS_SUB_CODE_INPUT_GAMEPORT	0x04
+#define  PCI_CLASS_SUB_CODE_INPUT_OTHER		0x80
+#define  PCI_CLASS_SUB_CODE_DOCKING_GENERIC	0x00
+#define  PCI_CLASS_SUB_CODE_DOCKING_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_386	0x00
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_486	0x01
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_PENTIUM	0x02
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_ALPHA	0x10
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_POWERPC	0x20
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_MIPS	0x30
+#define  PCI_CLASS_SUB_CODE_PROCESSOR_COPROC	0x40
+#define  PCI_CLASS_SUB_CODE_SERIAL_1394		0x00
+#define  PCI_CLASS_SUB_CODE_SERIAL_ACCESSBUS	0x01
+#define  PCI_CLASS_SUB_CODE_SERIAL_SSA		0x02
+#define  PCI_CLASS_SUB_CODE_SERIAL_USB		0x03
+#define  PCI_CLASS_SUB_CODE_SERIAL_FIBRECHAN	0x04
+#define  PCI_CLASS_SUB_CODE_SERIAL_SMBUS	0x05
+#define  PCI_CLASS_SUB_CODE_SERIAL_INFINIBAND	0x06
+#define  PCI_CLASS_SUB_CODE_SERIAL_IPMI		0x07
+#define  PCI_CLASS_SUB_CODE_SERIAL_SERCOS	0x08
+#define  PCI_CLASS_SUB_CODE_SERIAL_CANBUS	0x09
+#define  PCI_CLASS_SUB_CODE_WIRELESS_IRDA	0x00
+#define  PCI_CLASS_SUB_CODE_WIRELESS_IR		0x01
+#define  PCI_CLASS_SUB_CODE_WIRELESS_RF		0x10
+#define  PCI_CLASS_SUB_CODE_WIRELESS_BLUETOOTH	0x11
+#define  PCI_CLASS_SUB_CODE_WIRELESS_BROADBAND	0x12
+#define  PCI_CLASS_SUB_CODE_WIRELESS_80211A	0x20
+#define  PCI_CLASS_SUB_CODE_WIRELESS_80211B	0x21
+#define  PCI_CLASS_SUB_CODE_WIRELESS_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_I2O_V1_0		0x00
+#define  PCI_CLASS_SUB_CODE_SATELLITE_TV	0x01
+#define  PCI_CLASS_SUB_CODE_SATELLITE_AUDIO	0x02
+#define  PCI_CLASS_SUB_CODE_SATELLITE_VOICE	0x03
+#define  PCI_CLASS_SUB_CODE_SATELLITE_DATA	0x04
+#define  PCI_CLASS_SUB_CODE_CRYPTO_NETWORK	0x00
+#define  PCI_CLASS_SUB_CODE_CRYPTO_ENTERTAINMENT 0x10
+#define  PCI_CLASS_SUB_CODE_CRYPTO_OTHER	0x80
+#define  PCI_CLASS_SUB_CODE_DATA_DPIO		0x00
+#define  PCI_CLASS_SUB_CODE_DATA_PERFCNTR	0x01
+#define  PCI_CLASS_SUB_CODE_DATA_COMMSYNC	0x10
+#define  PCI_CLASS_SUB_CODE_DATA_MGMT		0x20
+#define  PCI_CLASS_SUB_CODE_DATA_OTHER		0x80
 
 #define PCI_CACHE_LINE_SIZE	0x0c	/* 8 bits */
 #define PCI_LATENCY_TIMER	0x0d	/* 8 bits */
@@ -303,16 +410,14 @@
 #define PCI_MAX_PCI_DEVICES	32
 #define PCI_MAX_PCI_FUNCTIONS	8
 
-#define PCI_DCR		0x54    /* PCIe Device Control Register */
-#define PCI_DSR		0x56    /* PCIe Device Status Register */
-#define PCI_LSR		0x5e    /* PCIe Link Status Register */
-#define PCI_LCR		0x5c    /* PCIe Link Control Register */
-#define PCI_LTSSM	0x404   /* PCIe Link Training, Status State Machine */
-#define  PCI_LTSSM_L0	0x16    /* L0 state */
+#define PCI_FIND_CAP_TTL 0x48
+#define CAP_START_POS 0x40
 
 /* Include the ID list */
 
 #include <pci_ids.h>
+
+#ifndef __ASSEMBLY__
 
 #ifdef CONFIG_SYS_PCI_64BIT
 typedef u64 pci_addr_t;
@@ -339,7 +444,7 @@ struct pci_region {
 #define PCI_REGION_SYS_MEMORY	0x00000100	/* System memory */
 #define PCI_REGION_RO		0x00000200	/* Read-only memory */
 
-extern __inline__ void pci_set_region(struct pci_region *reg,
+static inline void pci_set_region(struct pci_region *reg,
 				      pci_addr_t bus_start,
 				      phys_addr_t phys_start,
 				      pci_size_t size,
@@ -425,7 +530,7 @@ struct pci_controller {
 	void *priv_data;
 };
 
-extern __inline__ void pci_set_ops(struct pci_controller *hose,
+static inline void pci_set_ops(struct pci_controller *hose,
 				   int (*read_byte)(struct pci_controller*,
 						    pci_dev_t, int where, u8 *),
 				   int (*read_word)(struct pci_controller*,
@@ -446,7 +551,9 @@ extern __inline__ void pci_set_ops(struct pci_controller *hose,
 	hose->write_dword = write_dword;
 }
 
+#ifdef CONFIG_PCI_INDIRECT_BRIDGE
 extern void pci_setup_indirect(struct pci_controller* hose, u32 cfg_addr, u32 cfg_data);
+#endif
 
 extern phys_addr_t pci_hose_bus_to_phys(struct pci_controller* hose,
 					pci_addr_t addr, unsigned long flags);
@@ -545,6 +652,13 @@ extern int pci_hose_config_device(struct pci_controller *hose,
 				  pci_addr_t mem,
 				  unsigned long command);
 
+extern int pci_hose_find_capability(struct pci_controller *hose, pci_dev_t dev,
+				    int cap);
+extern int pci_hose_find_cap_start(struct pci_controller *hose, pci_dev_t dev,
+				   u8 hdr_type);
+extern int pci_find_cap(struct pci_controller *hose, pci_dev_t dev, int pos,
+			int cap);
+
 const char * pci_class_str(u8 class);
 int pci_last_busno(void);
 
@@ -555,4 +669,6 @@ extern void pci_mpc824x_init (struct pci_controller *hose);
 #ifdef CONFIG_MPC85xx
 extern void pci_mpc85xx_init (struct pci_controller *hose);
 #endif
-#endif	/* _PCI_H */
+
+#endif /* __ASSEMBLY__ */
+#endif /* _PCI_H */

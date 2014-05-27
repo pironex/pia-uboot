@@ -71,20 +71,9 @@
  *      maybe change map[] to use 2-bit entries
  *      (eventually) remove all the printf's
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
+
 #define __U_BOOT__
 #ifdef __U_BOOT__
 #include <malloc.h>         /* malloc, free, realloc*/
@@ -232,6 +221,8 @@ struct child_prog {
 	pid_t pid;					/* 0 if exited */
 #endif
 	char **argv;				/* program name and arguments */
+	/* was quoted when parsed; copy of struct o_string.nonnull field */
+	int *argv_nonnull;			
 #ifdef __U_BOOT__
 	int    argc;                            /* number of program arguments */
 #endif
@@ -289,8 +280,7 @@ struct variables {
 char **global_argv;
 unsigned int global_argc;
 #endif
-unsigned int last_return_code;
-int nesting_level;
+static unsigned int last_return_code;
 #ifndef __U_BOOT__
 extern char **environ; /* This is in <unistd.h>, but protected with __USE_GNU */
 #endif
@@ -479,7 +469,7 @@ static int process_command_subs(o_string *dest, struct p_context *ctx, struct in
 static int parse_group(o_string *dest, struct p_context *ctx, struct in_str *input, int ch);
 #endif
 static char *lookup_param(char *src);
-static char *make_string(char **inp);
+static char *make_string(char **inp, int *nonnull);
 static int handle_dollar(o_string *dest, struct p_context *ctx, struct in_str *input);
 #ifndef __U_BOOT__
 static int parse_string(o_string *dest, struct p_context *ctx, const char *src);
@@ -1625,7 +1615,8 @@ static int run_pipe_real(struct pipe *pi)
 		if (child->sp) {
 			char * str = NULL;
 
-			str = make_string((child->argv + i));
+			str = make_string(child->argv + i,
+					  child->argv_nonnull + i);
 			parse_string_outer(str, FLAG_EXIT_FROM_LOOP | FLAG_REPARSING);
 			free(str);
 			return last_return_code;
@@ -1666,7 +1657,7 @@ static int run_pipe_real(struct pipe *pi)
 		}
 		/* Process the command */
 		return cmd_process(flag, child->argc, child->argv,
-				   &flag_repeat);
+				   &flag_repeat, NULL);
 #endif
 	}
 #ifndef __U_BOOT__
@@ -1952,7 +1943,8 @@ static int free_pipe(struct pipe *pi, int indent)
 			for (a = 0; a < child->argc; a++) {
 				free(child->argv[a]);
 			}
-					free(child->argv);
+			free(child->argv);
+			free(child->argv_nonnull);
 			child->argc = 0;
 #endif
 			child->argv=NULL;
@@ -2172,7 +2164,7 @@ int set_local_var(const char *s, int flg_export)
 	 * NAME=VALUE format.  So the first order of business is to
 	 * split 's' on the '=' into 'name' and 'value' */
 	value = strchr(name, '=');
-	if (value==0 && ++value==0) {
+	if (value == NULL && ++value == NULL) {
 		free(name);
 		return -1;
 	}
@@ -2207,13 +2199,13 @@ int set_local_var(const char *s, int flg_export)
 			result = -1;
 		} else {
 			cur->name = strdup(name);
-			if(cur->name == 0) {
+			if (cur->name == NULL) {
 				free(cur);
 				result = -1;
 			} else {
 				struct variables *bottom = top_vars;
 				cur->value = strdup(value);
-				cur->next = 0;
+				cur->next = NULL;
 				cur->flg_export = flg_export;
 				cur->flg_read_only = 0;
 				while(bottom->next) bottom=bottom->next;
@@ -2246,7 +2238,7 @@ void unset_local_var(const char *name)
 			if(strcmp(cur->name, name)==0)
 				break;
 		}
-		if(cur!=0) {
+		if (cur != NULL) {
 			struct variables *next = top_vars;
 			if(cur->flg_read_only) {
 				error_msg("%s: readonly variable", name);
@@ -2329,7 +2321,8 @@ static int setup_redirect(struct p_context *ctx, int fd, redir_type style,
 }
 #endif
 
-struct pipe *new_pipe(void) {
+static struct pipe *new_pipe(void)
+{
 	struct pipe *pi;
 	pi = xmalloc(sizeof(struct pipe));
 	pi->num_progs = 0;
@@ -2387,7 +2380,7 @@ static struct reserved_combo reserved_list[] = {
 };
 #define NRES (sizeof(reserved_list)/sizeof(struct reserved_combo))
 
-int reserved_word(o_string *dest, struct p_context *ctx)
+static int reserved_word(o_string *dest, struct p_context *ctx)
 {
 	struct reserved_combo *r;
 	for (r=reserved_list;
@@ -2481,8 +2474,14 @@ static int done_word(o_string *dest, struct p_context *ctx)
 		argc = ++child->argc;
 		child->argv = realloc(child->argv, (argc+1)*sizeof(*child->argv));
 		if (child->argv == NULL) return 1;
+		child->argv_nonnull = realloc(child->argv_nonnull,
+					(argc+1)*sizeof(*child->argv_nonnull));
+		if (child->argv_nonnull == NULL)
+			return 1;
 		child->argv[argc-1]=str;
+		child->argv_nonnull[argc-1] = dest->nonnull;
 		child->argv[argc]=NULL;
+		child->argv_nonnull[argc] = 0;
 		for (s = dest->data; s && *s; s++,str++) {
 			if (*s == '\\') s++;
 			*str = *s;
@@ -2548,6 +2547,7 @@ static int done_command(struct p_context *ctx)
 	prog->redirects = NULL;
 #endif
 	prog->argv = NULL;
+	prog->argv_nonnull = NULL;
 #ifndef __U_BOOT__
 	prog->is_stopped = 0;
 #endif
@@ -2924,8 +2924,8 @@ int parse_string(o_string *dest, struct p_context *ctx, const char *src)
 #endif
 
 /* return code is 0 for normal exit, 1 for syntax error */
-int parse_stream(o_string *dest, struct p_context *ctx,
-	struct in_str *input, int end_trigger)
+static int parse_stream(o_string *dest, struct p_context *ctx,
+			struct in_str *input, int end_trigger)
 {
 	unsigned int ch, m;
 #ifndef __U_BOOT__
@@ -3124,13 +3124,13 @@ int parse_stream(o_string *dest, struct p_context *ctx,
 	return 0;
 }
 
-void mapset(const unsigned char *set, int code)
+static void mapset(const unsigned char *set, int code)
 {
 	const unsigned char *s;
 	for (s=set; *s; s++) map[*s] = code;
 }
 
-void update_ifs_map(void)
+static void update_ifs_map(void)
 {
 	/* char *ifs and char map[256] are both globals. */
 	ifs = (uchar *)getenv("IFS");
@@ -3158,7 +3158,7 @@ void update_ifs_map(void)
 
 /* most recursion does not come through here, the exeception is
  * from builtin_source() */
-int parse_stream_outer(struct in_str *inp, int flag)
+static int parse_stream_outer(struct in_str *inp, int flag)
 {
 
 	struct p_context ctx;
@@ -3292,7 +3292,7 @@ int u_boot_hush_start(void)
 		top_vars = malloc(sizeof(struct variables));
 		top_vars->name = "HUSH_VERSION";
 		top_vars->value = "0.01";
-		top_vars->next = 0;
+		top_vars->next = NULL;
 		top_vars->flg_export = 0;
 		top_vars->flg_read_only = 1;
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
@@ -3596,8 +3596,12 @@ static char **make_list_in(char **inp, char *name)
 	return list;
 }
 
-/* Make new string for parser */
-static char * make_string(char ** inp)
+/*
+ * Make new string for parser
+ * inp     - array of argument strings to flatten
+ * nonnull - indicates argument was quoted when originally parsed
+ */
+static char *make_string(char **inp, int *nonnull)
 {
 	char *p;
 	char *str = NULL;
@@ -3611,13 +3615,17 @@ static char * make_string(char ** inp)
 		noeval = 1;
 	for (n = 0; inp[n]; n++) {
 		p = insert_var_value_sub(inp[n], noeval);
-		str = xrealloc(str, (len + strlen(p)));
+		str = xrealloc(str, (len + strlen(p) + (2 * nonnull[n])));
 		if (n) {
 			strcat(str, " ");
 		} else {
 			*str = '\0';
 		}
+		if (nonnull[n])
+			strcat(str, "'");
 		strcat(str, p);
+		if (nonnull[n])
+			strcat(str, "'");
 		len = strlen(str) + 3;
 		if (p != inp[n]) free(p);
 	}
@@ -3628,7 +3636,8 @@ static char * make_string(char ** inp)
 }
 
 #ifdef __U_BOOT__
-int do_showvar (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_showvar(cmd_tbl_t *cmdtp, int flag, int argc,
+		      char * const argv[])
 {
 	int i, k;
 	int rcode = 0;

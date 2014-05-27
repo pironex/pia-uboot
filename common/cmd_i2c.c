@@ -1,24 +1,13 @@
 /*
+ * (C) Copyright 2009
+ * Sergey Kubushyn, himself, ksi@koi8.net
+ *
+ * Changes for unified multibus/multiadapter I2C support.
+ *
  * (C) Copyright 2001
  * Gerald Van Baren, Custom IDEAS, vanbaren@cideas.com.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -78,10 +67,14 @@
 
 #include <common.h>
 #include <command.h>
+#include <edid.h>
 #include <environment.h>
 #include <i2c.h>
 #include <malloc.h>
 #include <asm/byteorder.h>
+#include <linux/compiler.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 /* Display values from last command.
  * Memory modify remembered values are different from display memory.
@@ -101,13 +94,13 @@ static uint	i2c_mm_last_alen;
  * pairs.  The following macros take care of this */
 
 #if defined(CONFIG_SYS_I2C_NOPROBES)
-#if defined(CONFIG_I2C_MULTI_BUS)
+#if defined(CONFIG_SYS_I2C) || defined(CONFIG_I2C_MULTI_BUS)
 static struct
 {
 	uchar	bus;
 	uchar	addr;
 } i2c_no_probes[] = CONFIG_SYS_I2C_NOPROBES;
-#define GET_BUS_NUM			i2c_get_bus_num()
+#define GET_BUS_NUM	i2c_get_bus_num()
 #define COMPARE_BUS(b,i)	(i2c_no_probes[(i)].bus == (b))
 #define COMPARE_ADDR(a,i)	(i2c_no_probes[(i)].addr == (a))
 #define NO_PROBE_ADDR(i)	i2c_no_probes[(i)].addr
@@ -117,50 +110,75 @@ static uchar i2c_no_probes[] = CONFIG_SYS_I2C_NOPROBES;
 #define COMPARE_BUS(b,i)	((b) == 0)	/* Make compiler happy */
 #define COMPARE_ADDR(a,i)	(i2c_no_probes[(i)] == (a))
 #define NO_PROBE_ADDR(i)	i2c_no_probes[(i)]
-#endif	/* CONFIG_MULTI_BUS */
-
-#define NUM_ELEMENTS_NOPROBE (sizeof(i2c_no_probes)/sizeof(i2c_no_probes[0]))
-#endif
-
-#if defined(CONFIG_I2C_MUX)
-static I2C_MUX_DEVICE	*i2c_mux_devices = NULL;
-static	int	i2c_mux_busid = CONFIG_SYS_MAX_I2C_BUS;
-
-DECLARE_GLOBAL_DATA_PTR;
-
+#endif	/* defined(CONFIG_SYS_I2C) */
 #endif
 
 #define DISP_LINE_LEN	16
 
-/* implement possible board specific board init */
-void __def_i2c_init_board(void)
-{
-	return;
-}
+/**
+ * i2c_init_board() - Board-specific I2C bus init
+ *
+ * This function is the default no-op implementation of I2C bus
+ * initialization. This function can be overriden by board-specific
+ * implementation if needed.
+ */
+__weak
 void i2c_init_board(void)
-	__attribute__((weak, alias("__def_i2c_init_board")));
+{
+}
 
 /* TODO: Implement architecture-specific get/set functions */
-unsigned int __def_i2c_get_bus_speed(void)
+
+/**
+ * i2c_get_bus_speed() - Return I2C bus speed
+ *
+ * This function is the default implementation of function for retrieveing
+ * the current I2C bus speed in Hz.
+ *
+ * A driver implementing runtime switching of I2C bus speed must override
+ * this function to report the speed correctly. Simple or legacy drivers
+ * can use this fallback.
+ *
+ * Returns I2C bus speed in Hz.
+ */
+#if !defined(CONFIG_SYS_I2C)
+/*
+ * TODO: Implement architecture-specific get/set functions
+ * Should go away, if we switched completely to new multibus support
+ */
+__weak
+unsigned int i2c_get_bus_speed(void)
 {
 	return CONFIG_SYS_I2C_SPEED;
 }
-unsigned int i2c_get_bus_speed(void)
-	__attribute__((weak, alias("__def_i2c_get_bus_speed")));
 
-int __def_i2c_set_bus_speed(unsigned int speed)
+/**
+ * i2c_set_bus_speed() - Configure I2C bus speed
+ * @speed:	Newly set speed of the I2C bus in Hz
+ *
+ * This function is the default implementation of function for setting
+ * the I2C bus speed in Hz.
+ *
+ * A driver implementing runtime switching of I2C bus speed must override
+ * this function to report the speed correctly. Simple or legacy drivers
+ * can use this fallback.
+ *
+ * Returns zero on success, negative value on error.
+ */
+__weak
+int i2c_set_bus_speed(unsigned int speed)
 {
 	if (speed != CONFIG_SYS_I2C_SPEED)
 		return -1;
 
 	return 0;
 }
-int i2c_set_bus_speed(unsigned int)
-	__attribute__((weak, alias("__def_i2c_set_bus_speed")));
+#endif
 
-/*
- * get_alen: small parser helper function to get address length
- * returns the address length
+/**
+ * get_alen() - Small parser helper function to get address length
+ *
+ * Returns the address length.
  */
 static uint get_alen(char *arg)
 {
@@ -178,11 +196,19 @@ static uint get_alen(char *arg)
 	return alen;
 }
 
-/*
+/**
+ * do_i2c_read() - Handle the "i2c read" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ *
  * Syntax:
  *	i2c read {i2c_chip} {devaddr}{.0, .1, .2} {len} {memaddr}
  */
-
 static int do_i2c_read ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	u_char	chip;
@@ -223,7 +249,64 @@ static int do_i2c_read ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
 	return 0;
 }
 
+static int do_i2c_write(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	u_char	chip;
+	uint	devaddr, alen, length;
+	u_char  *memaddr;
+
+	if (argc != 5)
+		return cmd_usage(cmdtp);
+
+	/*
+	 * memaddr is the address where to store things in memory
+	 */
+	memaddr = (u_char *)simple_strtoul(argv[1], NULL, 16);
+
+	/*
+	 * I2C chip address
+	 */
+	chip = simple_strtoul(argv[2], NULL, 16);
+
+	/*
+	 * I2C data address within the chip.  This can be 1 or
+	 * 2 bytes long.  Some day it might be 3 bytes long :-).
+	 */
+	devaddr = simple_strtoul(argv[3], NULL, 16);
+	alen = get_alen(argv[3]);
+	if (alen > 3)
+		return cmd_usage(cmdtp);
+
+	/*
+	 * Length is the number of objects, not number of bytes.
+	 */
+	length = simple_strtoul(argv[4], NULL, 16);
+
+	while (length-- > 0) {
+		if (i2c_write(chip, devaddr++, alen, memaddr++, 1) != 0) {
+			puts("Error writing to the chip.\n");
+			return 1;
+		}
 /*
+ * No write delay with FRAM devices.
+ */
+#if !defined(CONFIG_SYS_I2C_FRAM)
+		udelay(11000);
+#endif
+	}
+	return 0;
+}
+
+/**
+ * do_i2c_md() - Handle the "i2c md" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ *
  * Syntax:
  *	i2c md {i2c_chip} {addr}{.0, .1, .2} {len}
  */
@@ -315,8 +398,15 @@ static int do_i2c_md ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]
 	return 0;
 }
 
-
-/* Write (fill) memory
+/**
+ * do_i2c_mw() - Handle the "i2c mw" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
  *
  * Syntax:
  *	i2c mw {i2c_chip} {addr}{.0, .1, .2} {data} [{count}]
@@ -373,10 +463,20 @@ static int do_i2c_mw ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]
 #endif
 	}
 
-	return (0);
+	return 0;
 }
 
-/* Calculate a CRC on memory
+/**
+ * do_i2c_crc() - Handle the "i2c crc32" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Calculate a CRC on memory
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
  *
  * Syntax:
  *	i2c crc32 {i2c_chip} {addr}{.0, .1, .2} {count}
@@ -433,13 +533,22 @@ static int do_i2c_crc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]
 	return 0;
 }
 
-/* Modify memory.
+/**
+ * mod_i2c_mem() - Handle the "i2c mm" and "i2c nm" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Modify memory.
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
  *
  * Syntax:
  *	i2c mm{.b, .w, .l} {i2c_chip} {addr}{.0, .1, .2}
  *	i2c nm{.b, .w, .l} {i2c_chip} {addr}{.0, .1, .2}
  */
-
 static int
 mod_i2c_mem(cmd_tbl_t *cmdtp, int incrflag, int flag, int argc, char * const argv[])
 {
@@ -555,23 +664,42 @@ mod_i2c_mem(cmd_tbl_t *cmdtp, int incrflag, int flag, int argc, char * const arg
 	return 0;
 }
 
-/*
+/**
+ * do_i2c_probe() - Handle the "i2c probe" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ *
  * Syntax:
- *	i2c probe {addr}{.0, .1, .2}
+ *	i2c probe {addr}
+ *
+ * Returns zero (success) if one or more I2C devices was found
  */
 static int do_i2c_probe (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int j;
+	int addr = -1;
+	int found = 0;
 #if defined(CONFIG_SYS_I2C_NOPROBES)
 	int k, skip;
-	uchar bus = GET_BUS_NUM;
+	unsigned int bus = GET_BUS_NUM;
 #endif	/* NOPROBES */
+
+	if (argc == 2)
+		addr = simple_strtol(argv[1], 0, 16);
 
 	puts ("Valid chip addresses:");
 	for (j = 0; j < 128; j++) {
+		if ((0 <= addr) && (j != addr))
+			continue;
+
 #if defined(CONFIG_SYS_I2C_NOPROBES)
 		skip = 0;
-		for (k=0; k < NUM_ELEMENTS_NOPROBE; k++) {
+		for (k = 0; k < ARRAY_SIZE(i2c_no_probes); k++) {
 			if (COMPARE_BUS(bus, k) && COMPARE_ADDR(j, k)) {
 				skip = 1;
 				break;
@@ -580,24 +708,35 @@ static int do_i2c_probe (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv
 		if (skip)
 			continue;
 #endif
-		if (i2c_probe(j) == 0)
+		if (i2c_probe(j) == 0) {
 			printf(" %02X", j);
+			found++;
+		}
 	}
 	putc ('\n');
 
 #if defined(CONFIG_SYS_I2C_NOPROBES)
 	puts ("Excluded chip addresses:");
-	for (k=0; k < NUM_ELEMENTS_NOPROBE; k++) {
+	for (k = 0; k < ARRAY_SIZE(i2c_no_probes); k++) {
 		if (COMPARE_BUS(bus,k))
 			printf(" %02X", NO_PROBE_ADDR(k));
 	}
 	putc ('\n');
 #endif
 
-	return 0;
+	return (0 == found);
 }
 
-/*
+/**
+ * do_i2c_loop() - Handle the "i2c loop" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ *
  * Syntax:
  *	i2c loop {i2c_chip} {addr}{.0, .1, .2} [{length}] [{delay}]
  *	{length} - Number of bytes to read
@@ -658,6 +797,8 @@ static int do_i2c_loop(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]
 /*
  * The SDRAM command is separately configured because many
  * (most?) embedded boards don't use SDRAM DIMMs.
+ *
+ * FIXME: Document and probably move elsewhere!
  */
 #if defined(CONFIG_CMD_SDRAM)
 static void print_ddr2_tcyc (u_char const b)
@@ -1186,54 +1327,142 @@ static int do_sdram (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 }
 #endif
 
-#if defined(CONFIG_I2C_MUX)
-static int do_i2c_add_bus(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+/*
+ * Syntax:
+ *	i2c edid {i2c_chip}
+ */
+#if defined(CONFIG_I2C_EDID)
+int do_edid(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
-	int ret=0;
+	u_char chip;
+	struct edid1_info edid;
+
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
+
+	chip = simple_strtoul(argv[1], NULL, 16);
+	if (i2c_read(chip, 0, 1, (uchar *)&edid, sizeof(edid)) != 0) {
+		puts("Error reading EDID content.\n");
+		return 1;
+	}
+
+	if (edid_check_info(&edid)) {
+		puts("Content isn't valid EDID.\n");
+		return 1;
+	}
+
+	edid_print_info(&edid);
+	return 0;
+
+}
+#endif /* CONFIG_I2C_EDID */
+
+/**
+ * do_i2c_show_bus() - Handle the "i2c bus" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero always.
+ */
+#if defined(CONFIG_SYS_I2C)
+int do_i2c_show_bus(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	int	i;
+#ifndef CONFIG_SYS_I2C_DIRECT_BUS
+	int	j;
+#endif
 
 	if (argc == 1) {
 		/* show all busses */
-		I2C_MUX		*mux;
-		I2C_MUX_DEVICE	*device = i2c_mux_devices;
-
-		printf ("Busses reached over muxes:\n");
-		while (device != NULL) {
-			printf ("Bus ID: %x\n", device->busid);
-			printf ("  reached over Mux(es):\n");
-			mux = device->mux;
-			while (mux != NULL) {
-				printf ("    %s@%x ch: %x\n", mux->name, mux->chip, mux->channel);
-				mux = mux->next;
+		for (i = 0; i < CONFIG_SYS_NUM_I2C_BUSES; i++) {
+			printf("Bus %d:\t%s", i, I2C_ADAP_NR(i)->name);
+#ifndef CONFIG_SYS_I2C_DIRECT_BUS
+			for (j = 0; j < CONFIG_SYS_I2C_MAX_HOPS; j++) {
+				if (i2c_bus[i].next_hop[j].chip == 0)
+					break;
+				printf("->%s@0x%2x:%d",
+				       i2c_bus[i].next_hop[j].mux.name,
+				       i2c_bus[i].next_hop[j].chip,
+				       i2c_bus[i].next_hop[j].channel);
 			}
-			device = device->next;
+#endif
+			printf("\n");
 		}
 	} else {
-		(void)i2c_mux_ident_muxstring ((uchar *)argv[1]);
-		ret = 0;
+		/* show specific bus */
+		i = simple_strtoul(argv[1], NULL, 10);
+		if (i >= CONFIG_SYS_NUM_I2C_BUSES) {
+			printf("Invalid bus %d\n", i);
+			return -1;
+		}
+		printf("Bus %d:\t%s", i, I2C_ADAP_NR(i)->name);
+#ifndef CONFIG_SYS_I2C_DIRECT_BUS
+			for (j = 0; j < CONFIG_SYS_I2C_MAX_HOPS; j++) {
+				if (i2c_bus[i].next_hop[j].chip == 0)
+					break;
+				printf("->%s@0x%2x:%d",
+				       i2c_bus[i].next_hop[j].mux.name,
+				       i2c_bus[i].next_hop[j].chip,
+				       i2c_bus[i].next_hop[j].channel);
+			}
+#endif
+		printf("\n");
 	}
-	return ret;
-}
-#endif  /* CONFIG_I2C_MUX */
 
-#if defined(CONFIG_I2C_MULTI_BUS)
-static int do_i2c_bus_num(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+	return 0;
+}
+#endif
+
+/**
+ * do_i2c_bus_num() - Handle the "i2c dev" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ */
+#if defined(CONFIG_SYS_I2C) || defined(CONFIG_I2C_MULTI_BUS)
+int do_i2c_bus_num(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	int bus_idx, ret=0;
+	int		ret = 0;
+	unsigned int	bus_no;
 
 	if (argc == 1)
 		/* querying current setting */
 		printf("Current bus is %d\n", i2c_get_bus_num());
 	else {
-		bus_idx = simple_strtoul(argv[1], NULL, 10);
-		printf("Setting bus to %d\n", bus_idx);
-		ret = i2c_set_bus_num(bus_idx);
+		bus_no = simple_strtoul(argv[1], NULL, 10);
+#if defined(CONFIG_SYS_I2C)
+		if (bus_no >= CONFIG_SYS_NUM_I2C_BUSES) {
+			printf("Invalid bus %d\n", bus_no);
+			return -1;
+		}
+#endif
+		printf("Setting bus to %d\n", bus_no);
+		ret = i2c_set_bus_num(bus_no);
 		if (ret)
 			printf("Failure changing bus number (%d)\n", ret);
 	}
 	return ret;
 }
-#endif  /* CONFIG_I2C_MULTI_BUS */
+#endif  /* defined(CONFIG_SYS_I2C) */
 
+/**
+ * do_i2c_bus_speed() - Handle the "i2c speed" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ */
 static int do_i2c_bus_speed(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	int speed, ret=0;
@@ -1251,30 +1480,67 @@ static int do_i2c_bus_speed(cmd_tbl_t * cmdtp, int flag, int argc, char * const 
 	return ret;
 }
 
+/**
+ * do_i2c_mm() - Handle the "i2c mm" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ */
 static int do_i2c_mm(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	return mod_i2c_mem (cmdtp, 1, flag, argc, argv);
 }
 
+/**
+ * do_i2c_nm() - Handle the "i2c nm" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ */
 static int do_i2c_nm(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	return mod_i2c_mem (cmdtp, 0, flag, argc, argv);
 }
 
+/**
+ * do_i2c_reset() - Handle the "i2c reset" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero always.
+ */
 static int do_i2c_reset(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
+#if defined(CONFIG_SYS_I2C)
+	i2c_init(I2C_ADAP->speed, I2C_ADAP->slaveaddr);
+#else
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#endif
 	return 0;
 }
 
 static cmd_tbl_t cmd_i2c_sub[] = {
-#if defined(CONFIG_I2C_MUX)
-	U_BOOT_CMD_MKENT(bus, 1, 1, do_i2c_add_bus, "", ""),
-#endif  /* CONFIG_I2C_MUX */
+#if defined(CONFIG_SYS_I2C)
+	U_BOOT_CMD_MKENT(bus, 1, 1, do_i2c_show_bus, "", ""),
+#endif
 	U_BOOT_CMD_MKENT(crc32, 3, 1, do_i2c_crc, "", ""),
-#if defined(CONFIG_I2C_MULTI_BUS)
+#if defined(CONFIG_SYS_I2C) || \
+	defined(CONFIG_I2C_MULTI_BUS)
 	U_BOOT_CMD_MKENT(dev, 1, 1, do_i2c_bus_num, "", ""),
 #endif  /* CONFIG_I2C_MULTI_BUS */
+#if defined(CONFIG_I2C_EDID)
+	U_BOOT_CMD_MKENT(edid, 1, 1, do_edid, "", ""),
+#endif  /* CONFIG_I2C_EDID */
 	U_BOOT_CMD_MKENT(loop, 3, 1, do_i2c_loop, "", ""),
 	U_BOOT_CMD_MKENT(md, 3, 1, do_i2c_md, "", ""),
 	U_BOOT_CMD_MKENT(mm, 2, 1, do_i2c_mm, "", ""),
@@ -1282,6 +1548,7 @@ static cmd_tbl_t cmd_i2c_sub[] = {
 	U_BOOT_CMD_MKENT(nm, 2, 1, do_i2c_nm, "", ""),
 	U_BOOT_CMD_MKENT(probe, 0, 1, do_i2c_probe, "", ""),
 	U_BOOT_CMD_MKENT(read, 5, 1, do_i2c_read, "", ""),
+	U_BOOT_CMD_MKENT(write, 5, 0, do_i2c_write, "", ""),
 	U_BOOT_CMD_MKENT(reset, 0, 1, do_i2c_reset, "", ""),
 #if defined(CONFIG_CMD_SDRAM)
 	U_BOOT_CMD_MKENT(sdram, 1, 1, do_sdram, "", ""),
@@ -1295,6 +1562,16 @@ void i2c_reloc(void) {
 }
 #endif
 
+/**
+ * do_i2c() - Handle the "i2c" command-line command
+ * @cmdtp:	Command data struct pointer
+ * @flag:	Command flag
+ * @argc:	Command-line argument count
+ * @argv:	Array of command-line arguments
+ *
+ * Returns zero on success, CMD_RET_USAGE in case of misuse and negative
+ * on error.
+ */
 static int do_i2c(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	cmd_tbl_t *c;
@@ -1315,249 +1592,36 @@ static int do_i2c(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 }
 
 /***************************************************/
-
-U_BOOT_CMD(
-	i2c, 6, 1, do_i2c,
-	"I2C sub-system",
-#if defined(CONFIG_I2C_MUX)
-	"bus [muxtype:muxaddr:muxchannel] - add a new bus reached over muxes\ni2c "
-#endif  /* CONFIG_I2C_MUX */
+#ifdef CONFIG_SYS_LONGHELP
+static char i2c_help_text[] =
+#if defined(CONFIG_SYS_I2C)
+	"bus [muxtype:muxaddr:muxchannel] - show I2C bus info\n"
+#endif
 	"crc32 chip address[.0, .1, .2] count - compute CRC32 checksum\n"
-#if defined(CONFIG_I2C_MULTI_BUS)
+#if defined(CONFIG_SYS_I2C) || \
+	defined(CONFIG_I2C_MULTI_BUS)
 	"i2c dev [dev] - show or set current I2C bus\n"
 #endif  /* CONFIG_I2C_MULTI_BUS */
+#if defined(CONFIG_I2C_EDID)
+	"i2c edid chip - print EDID configuration information\n"
+#endif  /* CONFIG_I2C_EDID */
 	"i2c loop chip address[.0, .1, .2] [# of objects] - looping read of device\n"
 	"i2c md chip address[.0, .1, .2] [# of objects] - read from I2C device\n"
 	"i2c mm chip address[.0, .1, .2] - write to I2C device (auto-incrementing)\n"
 	"i2c mw chip address[.0, .1, .2] value [count] - write to I2C device (fill)\n"
 	"i2c nm chip address[.0, .1, .2] - write to I2C device (constant address)\n"
-	"i2c probe - show devices on the I2C bus\n"
+	"i2c probe [address] - test for and show device(s) on the I2C bus\n"
 	"i2c read chip address[.0, .1, .2] length memaddress - read to memory \n"
+	"i2c write memaddress chip address[.0, .1, .2] length - write memory to i2c\n"
 	"i2c reset - re-init the I2C Controller\n"
 #if defined(CONFIG_CMD_SDRAM)
 	"i2c sdram chip - print SDRAM configuration information\n"
 #endif
-	"i2c speed [speed] - show or set I2C bus speed"
-);
-
-#if defined(CONFIG_I2C_MUX)
-static int i2c_mux_add_device(I2C_MUX_DEVICE *dev)
-{
-	I2C_MUX_DEVICE	*devtmp = i2c_mux_devices;
-
-	if (i2c_mux_devices == NULL) {
-		i2c_mux_devices = dev;
-		return 0;
-	}
-	while (devtmp->next != NULL)
-		devtmp = devtmp->next;
-
-	devtmp->next = dev;
-	return 0;
-}
-
-I2C_MUX_DEVICE	*i2c_mux_search_device(int id)
-{
-	I2C_MUX_DEVICE	*device = i2c_mux_devices;
-
-	while (device != NULL) {
-		if (device->busid == id)
-			return device;
-		device = device->next;
-	}
-	return NULL;
-}
-
-/* searches in the buf from *pos the next ':'.
- * returns:
- *     0 if found (with *pos = where)
- *   < 0 if an error occured
- *   > 0 if the end of buf is reached
- */
-static int i2c_mux_search_next (int *pos, uchar	*buf, int len)
-{
-	while ((buf[*pos] != ':') && (*pos < len)) {
-		*pos += 1;
-	}
-	if (*pos >= len)
-		return 1;
-	if (buf[*pos] != ':')
-		return -1;
-	return 0;
-}
-
-static int i2c_mux_get_busid (void)
-{
-	int	tmp = i2c_mux_busid;
-
-	i2c_mux_busid ++;
-	return tmp;
-}
-
-/* Analyses a Muxstring and immediately sends the
-   commands to the muxes. Runs from flash.
- */
-int i2c_mux_ident_muxstring_f (uchar *buf)
-{
-	int	pos = 0;
-	int	oldpos;
-	int	ret = 0;
-	int	len = strlen((char *)buf);
-	int	chip;
-	uchar	channel;
-	int	was = 0;
-
-	while (ret == 0) {
-		oldpos = pos;
-		/* search name */
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret != 0)
-			printf ("ERROR\n");
-		/* search address */
-		pos ++;
-		oldpos = pos;
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret != 0)
-			printf ("ERROR\n");
-		buf[pos] = 0;
-		chip = simple_strtoul((char *)&buf[oldpos], NULL, 16);
-		buf[pos] = ':';
-		/* search channel */
-		pos ++;
-		oldpos = pos;
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret < 0)
-			printf ("ERROR\n");
-		was = 0;
-		if (buf[pos] != 0) {
-			buf[pos] = 0;
-			was = 1;
-		}
-		channel = simple_strtoul((char *)&buf[oldpos], NULL, 16);
-		if (was)
-			buf[pos] = ':';
-		if (i2c_write(chip, 0, 0, &channel, 1) != 0) {
-			printf ("Error setting Mux: chip:%x channel: \
-				%x\n", chip, channel);
-			return -1;
-		}
-		pos ++;
-		oldpos = pos;
-
-	}
-	i2c_init_board();
-
-	return 0;
-}
-
-/* Analyses a Muxstring and if this String is correct
- * adds a new I2C Bus.
- */
-I2C_MUX_DEVICE *i2c_mux_ident_muxstring (uchar *buf)
-{
-	I2C_MUX_DEVICE	*device;
-	I2C_MUX		*mux;
-	int	pos = 0;
-	int	oldpos;
-	int	ret = 0;
-	int	len = strlen((char *)buf);
-	int	was = 0;
-
-	device = (I2C_MUX_DEVICE *)malloc (sizeof(I2C_MUX_DEVICE));
-	device->mux = NULL;
-	device->busid = i2c_mux_get_busid ();
-	device->next = NULL;
-	while (ret == 0) {
-		mux = (I2C_MUX *)malloc (sizeof(I2C_MUX));
-		mux->next = NULL;
-		/* search name of mux */
-		oldpos = pos;
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret != 0)
-			printf ("%s no name.\n", __FUNCTION__);
-		mux->name = (char *)malloc (pos - oldpos + 1);
-		memcpy (mux->name, &buf[oldpos], pos - oldpos);
-		mux->name[pos - oldpos] = 0;
-		/* search address */
-		pos ++;
-		oldpos = pos;
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret != 0)
-			printf ("%s no mux address.\n", __FUNCTION__);
-		buf[pos] = 0;
-		mux->chip = simple_strtoul((char *)&buf[oldpos], NULL, 16);
-		buf[pos] = ':';
-		/* search channel */
-		pos ++;
-		oldpos = pos;
-		ret = i2c_mux_search_next(&pos, buf, len);
-		if (ret < 0)
-			printf ("%s no mux channel.\n", __FUNCTION__);
-		was = 0;
-		if (buf[pos] != 0) {
-			buf[pos] = 0;
-			was = 1;
-		}
-		mux->channel = simple_strtoul((char *)&buf[oldpos], NULL, 16);
-		if (was)
-			buf[pos] = ':';
-		if (device->mux == NULL)
-			device->mux = mux;
-		else {
-			I2C_MUX		*muxtmp = device->mux;
-			while (muxtmp->next != NULL) {
-				muxtmp = muxtmp->next;
-			}
-			muxtmp->next = mux;
-		}
-		pos ++;
-		oldpos = pos;
-	}
-	if (ret > 0) {
-		/* Add Device */
-		i2c_mux_add_device (device);
-		return device;
-	}
-
-	return NULL;
-}
-
-int i2x_mux_select_mux(int bus)
-{
-	I2C_MUX_DEVICE  *dev;
-	I2C_MUX		*mux;
-
-	if ((gd->flags & GD_FLG_RELOC) != GD_FLG_RELOC) {
-		/* select Default Mux Bus */
-#if defined(CONFIG_SYS_I2C_IVM_BUS)
-		i2c_mux_ident_muxstring_f ((uchar *)CONFIG_SYS_I2C_IVM_BUS);
-#else
-		{
-		unsigned char *buf;
-		buf = (unsigned char *) getenv("EEprom_ivm");
-		if (buf != NULL)
-			i2c_mux_ident_muxstring_f (buf);
-		}
+	"i2c speed [speed] - show or set I2C bus speed";
 #endif
-		return 0;
-	}
-	dev = i2c_mux_search_device(bus);
-	if (dev == NULL)
-		return -1;
 
-	mux = dev->mux;
-	while (mux != NULL) {
-		/* do deblocking on each level of mux, before mux config */
-		i2c_init_board();
-		if (i2c_write(mux->chip, 0, 0, &mux->channel, 1) != 0) {
-			printf ("Error setting Mux: chip:%x channel: \
-				%x\n", mux->chip, mux->channel);
-			return -1;
-		}
-		mux = mux->next;
-	}
-	/* do deblocking on each level of mux and after mux config */
-	i2c_init_board();
-	return 0;
-}
-#endif /* CONFIG_I2C_MUX */
+U_BOOT_CMD(
+	i2c, 6, 1, do_i2c,
+	"I2C sub-system",
+	i2c_help_text
+);

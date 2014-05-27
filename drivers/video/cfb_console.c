@@ -2,23 +2,7 @@
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -151,6 +135,10 @@
 #endif
 #endif
 
+#ifdef CONFIG_VIDEO_MXS
+#define VIDEO_FB_16BPP_WORD_SWAP
+#endif
+
 /*
  * Defines for the MB862xx driver
  */
@@ -176,6 +164,8 @@
  * Include video_fb.h after definitions of VIDEO_HW_RECTFILL etc.
  */
 #include <video_fb.h>
+
+#include <splash.h>
 
 /*
  * some Macros
@@ -207,7 +197,6 @@
 #include <linux/types.h>
 #include <stdio_dev.h>
 #include <video_font.h>
-#include <video_font_data.h>
 
 #if defined(CONFIG_CMD_DATE)
 #include <rtc.h>
@@ -216,11 +205,7 @@
 #if defined(CONFIG_CMD_BMP) || defined(CONFIG_SPLASH_SCREEN)
 #include <watchdog.h>
 #include <bmp_layout.h>
-
-#ifdef CONFIG_SPLASH_SCREEN_ALIGN
-#define BMP_ALIGN_CENTER	0x7FFF
-#endif
-
+#include <splash.h>
 #endif
 
 /*
@@ -385,6 +370,13 @@ static u32 eorx, fgx, bgx;	/* color pats */
 
 static int cfb_do_flush_cache;
 
+#ifdef CONFIG_CFB_CONSOLE_ANSI
+static char ansi_buf[10];
+static int ansi_buf_size;
+static int ansi_colors_need_revert;
+static int ansi_cursor_hidden;
+#endif
+
 static const int video_font_draw_table8[] = {
 	0x00000000, 0x000000ff, 0x0000ff00, 0x0000ffff,
 	0x00ff0000, 0x00ff00ff, 0x00ffff00, 0x00ffffff,
@@ -438,6 +430,16 @@ static const int video_font_draw_table32[16][4] = {
 	{0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff}
 };
 
+/*
+ * Implement a weak default function for boards that optionally
+ * need to skip the cfb initialization.
+ */
+__weak int board_cfb_skip(void)
+{
+	/* As default, don't skip cfb init */
+	return 0;
+}
+
 static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 {
 	u8 *cdat, *dest, *dest0;
@@ -459,6 +461,10 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 				((u32 *) dest)[0] =
 					(video_font_draw_table8[bits >> 4] &
 					 eorx) ^ bgx;
+
+				if (VIDEO_FONT_WIDTH == 4)
+					continue;
+
 				((u32 *) dest)[1] =
 					(video_font_draw_table8[bits & 15] &
 					 eorx) ^ bgx;
@@ -484,6 +490,10 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 					SHORTSWAP32((video_font_draw_table15
 						     [bits >> 4 & 3] & eorx) ^
 						    bgx);
+
+				if (VIDEO_FONT_WIDTH == 4)
+					continue;
+
 				((u32 *) dest)[2] =
 					SHORTSWAP32((video_font_draw_table15
 						     [bits >> 2 & 3] & eorx) ^
@@ -514,6 +524,10 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 					SHORTSWAP32((video_font_draw_table16
 						     [bits >> 4 & 3] & eorx) ^
 						    bgx);
+
+				if (VIDEO_FONT_WIDTH == 4)
+					continue;
+
 				((u32 *) dest)[2] =
 					SHORTSWAP32((video_font_draw_table16
 						     [bits >> 2 & 3] & eorx) ^
@@ -548,6 +562,11 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 				((u32 *) dest)[3] =
 					SWAP32((video_font_draw_table32
 						[bits >> 4][3] & eorx) ^ bgx);
+
+
+				if (VIDEO_FONT_WIDTH == 4)
+					continue;
+
 				((u32 *) dest)[4] =
 					SWAP32((video_font_draw_table32
 						[bits & 15][0] & eorx) ^ bgx);
@@ -561,8 +580,6 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 					SWAP32((video_font_draw_table32
 						[bits & 15][3] & eorx) ^ bgx);
 			}
-			if (cfb_do_flush_cache)
-				flush_cache((ulong)dest0, 32);
 			dest0 += VIDEO_FONT_WIDTH * VIDEO_PIXEL_SIZE;
 			s++;
 		}
@@ -585,6 +602,10 @@ static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 				((u32 *) dest)[2] =
 					(video_font_draw_table24[bits >> 4][2]
 					 & eorx) ^ bgx;
+
+				if (VIDEO_FONT_WIDTH == 4)
+					continue;
+
 				((u32 *) dest)[3] =
 					(video_font_draw_table24[bits & 15][0]
 					 & eorx) ^ bgx;
@@ -631,8 +652,6 @@ static void video_invertchar(int xx, int yy)
 		for (x = firstx; x < lastx; x++) {
 			u8 *dest = (u8 *)(video_fb_address) + x + y;
 			*dest = ~*dest;
-			if (cfb_do_flush_cache)
-				flush_cache((ulong)dest, 4);
 		}
 	}
 }
@@ -676,6 +695,8 @@ void console_cursor(int state)
 		}
 		cursor_state = state;
 	}
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
 }
 #endif
 
@@ -728,8 +749,6 @@ static void console_clear_line(int line, int begin, int end)
 			memsetl(offset + i * VIDEO_LINE_LEN, size, bgx);
 	}
 #endif
-	if (cfb_do_flush_cache)
-		flush_cache((ulong)CONSOLE_ROW_FIRST, CONSOLE_SIZE);
 }
 
 static void console_scrollup(void)
@@ -768,9 +787,97 @@ static void console_back(void)
 	}
 }
 
-static void console_newline(void)
+#ifdef CONFIG_CFB_CONSOLE_ANSI
+
+static void console_clear(void)
 {
-	console_row++;
+#ifdef VIDEO_HW_RECTFILL
+	video_hw_rectfill(VIDEO_PIXEL_SIZE,	/* bytes per pixel */
+			  0,			/* dest pos x */
+			  video_logo_height,	/* dest pos y */
+			  VIDEO_VISIBLE_COLS,	/* frame width */
+			  VIDEO_VISIBLE_ROWS,	/* frame height */
+			  bgx			/* fill color */
+	);
+#else
+	memsetl(CONSOLE_ROW_FIRST, CONSOLE_SIZE, bgx);
+#endif
+}
+
+static void console_cursor_fix(void)
+{
+	if (console_row < 0)
+		console_row = 0;
+	if (console_row >= CONSOLE_ROWS)
+		console_row = CONSOLE_ROWS - 1;
+	if (console_col < 0)
+		console_col = 0;
+	if (console_col >= CONSOLE_COLS)
+		console_col = CONSOLE_COLS - 1;
+}
+
+static void console_cursor_up(int n)
+{
+	console_row -= n;
+	console_cursor_fix();
+}
+
+static void console_cursor_down(int n)
+{
+	console_row += n;
+	console_cursor_fix();
+}
+
+static void console_cursor_left(int n)
+{
+	console_col -= n;
+	console_cursor_fix();
+}
+
+static void console_cursor_right(int n)
+{
+	console_col += n;
+	console_cursor_fix();
+}
+
+static void console_cursor_set_position(int row, int col)
+{
+	if (console_row != -1)
+		console_row = row;
+	if (console_col != -1)
+		console_col = col;
+	console_cursor_fix();
+}
+
+static void console_previousline(int n)
+{
+	/* FIXME: also scroll terminal ? */
+	console_row -= n;
+	console_cursor_fix();
+}
+
+static void console_swap_colors(void)
+{
+	eorx = fgx;
+	fgx = bgx;
+	bgx = eorx;
+	eorx = fgx ^ bgx;
+}
+
+static inline int console_cursor_is_visible(void)
+{
+	return !ansi_cursor_hidden;
+}
+#else
+static inline int console_cursor_is_visible(void)
+{
+	return 1;
+}
+#endif
+
+static void console_newline(int n)
+{
+	console_row += n;
 	console_col = 0;
 
 	/* Check if we need to scroll the terminal */
@@ -779,7 +886,7 @@ static void console_newline(void)
 		console_scrollup();
 
 		/* Decrement row number */
-		console_row--;
+		console_row = CONSOLE_ROWS - 1;
 	}
 }
 
@@ -788,11 +895,12 @@ static void console_cr(void)
 	console_col = 0;
 }
 
-void video_putc(const char c)
+static void parse_putc(const char c)
 {
 	static int nl = 1;
 
-	CURSOR_OFF;
+	if (console_cursor_is_visible())
+		CURSOR_OFF;
 
 	switch (c) {
 	case 13:		/* back to first column */
@@ -801,7 +909,7 @@ void video_putc(const char c)
 
 	case '\n':		/* next line */
 		if (console_col || (!console_col && nl))
-			console_newline();
+			console_newline(1);
 		nl = 1;
 		break;
 
@@ -810,7 +918,7 @@ void video_putc(const char c)
 		console_col &= ~0x0007;
 
 		if (console_col >= CONSOLE_COLS)
-			console_newline();
+			console_newline(1);
 		break;
 
 	case 8:		/* backspace */
@@ -827,11 +935,227 @@ void video_putc(const char c)
 
 		/* check for newline */
 		if (console_col >= CONSOLE_COLS) {
-			console_newline();
+			console_newline(1);
 			nl = 0;
 		}
 	}
-	CURSOR_SET;
+
+	if (console_cursor_is_visible())
+		CURSOR_SET;
+}
+
+void video_putc(const char c)
+{
+#ifdef CONFIG_CFB_CONSOLE_ANSI
+	int i;
+
+	if (c == 27) {
+		for (i = 0; i < ansi_buf_size; ++i)
+			parse_putc(ansi_buf[i]);
+		ansi_buf[0] = 27;
+		ansi_buf_size = 1;
+		return;
+	}
+
+	if (ansi_buf_size > 0) {
+		/*
+		 * 0 - ESC
+		 * 1 - [
+		 * 2 - num1
+		 * 3 - ..
+		 * 4 - ;
+		 * 5 - num2
+		 * 6 - ..
+		 * - cchar
+		 */
+		int next = 0;
+
+		int flush = 0;
+		int fail = 0;
+
+		int num1 = 0;
+		int num2 = 0;
+		int cchar = 0;
+
+		ansi_buf[ansi_buf_size++] = c;
+
+		if (ansi_buf_size >= sizeof(ansi_buf))
+			fail = 1;
+
+		for (i = 0; i < ansi_buf_size; ++i) {
+			if (fail)
+				break;
+
+			switch (next) {
+			case 0:
+				if (ansi_buf[i] == 27)
+					next = 1;
+				else
+					fail = 1;
+				break;
+
+			case 1:
+				if (ansi_buf[i] == '[')
+					next = 2;
+				else
+					fail = 1;
+				break;
+
+			case 2:
+				if (ansi_buf[i] >= '0' && ansi_buf[i] <= '9') {
+					num1 = ansi_buf[i]-'0';
+					next = 3;
+				} else if (ansi_buf[i] != '?') {
+					--i;
+					num1 = 1;
+					next = 4;
+				}
+				break;
+
+			case 3:
+				if (ansi_buf[i] >= '0' && ansi_buf[i] <= '9') {
+					num1 *= 10;
+					num1 += ansi_buf[i]-'0';
+				} else {
+					--i;
+					next = 4;
+				}
+				break;
+
+			case 4:
+				if (ansi_buf[i] != ';') {
+					--i;
+					next = 7;
+				} else
+					next = 5;
+				break;
+
+			case 5:
+				if (ansi_buf[i] >= '0' && ansi_buf[i] <= '9') {
+					num2 = ansi_buf[i]-'0';
+					next = 6;
+				} else
+					fail = 1;
+				break;
+
+			case 6:
+				if (ansi_buf[i] >= '0' && ansi_buf[i] <= '9') {
+					num2 *= 10;
+					num2 += ansi_buf[i]-'0';
+				} else {
+					--i;
+					next = 7;
+				}
+				break;
+
+			case 7:
+				if ((ansi_buf[i] >= 'A' && ansi_buf[i] <= 'H')
+					|| ansi_buf[i] == 'J'
+					|| ansi_buf[i] == 'K'
+					|| ansi_buf[i] == 'h'
+					|| ansi_buf[i] == 'l'
+					|| ansi_buf[i] == 'm') {
+					cchar = ansi_buf[i];
+					flush = 1;
+				} else
+					fail = 1;
+				break;
+			}
+		}
+
+		if (fail) {
+			for (i = 0; i < ansi_buf_size; ++i)
+				parse_putc(ansi_buf[i]);
+			ansi_buf_size = 0;
+			return;
+		}
+
+		if (flush) {
+			if (!ansi_cursor_hidden)
+				CURSOR_OFF;
+			ansi_buf_size = 0;
+			switch (cchar) {
+			case 'A':
+				/* move cursor num1 rows up */
+				console_cursor_up(num1);
+				break;
+			case 'B':
+				/* move cursor num1 rows down */
+				console_cursor_down(num1);
+				break;
+			case 'C':
+				/* move cursor num1 columns forward */
+				console_cursor_right(num1);
+				break;
+			case 'D':
+				/* move cursor num1 columns back */
+				console_cursor_left(num1);
+				break;
+			case 'E':
+				/* move cursor num1 rows up at begin of row */
+				console_previousline(num1);
+				break;
+			case 'F':
+				/* move cursor num1 rows down at begin of row */
+				console_newline(num1);
+				break;
+			case 'G':
+				/* move cursor to column num1 */
+				console_cursor_set_position(-1, num1-1);
+				break;
+			case 'H':
+				/* move cursor to row num1, column num2 */
+				console_cursor_set_position(num1-1, num2-1);
+				break;
+			case 'J':
+				/* clear console and move cursor to 0, 0 */
+				console_clear();
+				console_cursor_set_position(0, 0);
+				break;
+			case 'K':
+				/* clear line */
+				if (num1 == 0)
+					console_clear_line(console_row,
+							console_col,
+							CONSOLE_COLS-1);
+				else if (num1 == 1)
+					console_clear_line(console_row,
+							0, console_col);
+				else
+					console_clear_line(console_row,
+							0, CONSOLE_COLS-1);
+				break;
+			case 'h':
+				ansi_cursor_hidden = 0;
+				break;
+			case 'l':
+				ansi_cursor_hidden = 1;
+				break;
+			case 'm':
+				if (num1 == 0) { /* reset swapped colors */
+					if (ansi_colors_need_revert) {
+						console_swap_colors();
+						ansi_colors_need_revert = 0;
+					}
+				} else if (num1 == 7) { /* once swap colors */
+					if (!ansi_colors_need_revert) {
+						console_swap_colors();
+						ansi_colors_need_revert = 1;
+					}
+				}
+				break;
+			}
+			if (!ansi_cursor_hidden)
+				CURSOR_SET;
+		}
+	} else {
+		parse_putc(c);
+	}
+#else
+	parse_putc(c);
+#endif
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
 }
 
 void video_puts(const char *s)
@@ -1149,7 +1473,11 @@ int video_display_bitmap(ulong bmp_image, int x, int y)
 			printf("Error: malloc in gunzip failed!\n");
 			return 1;
 		}
-		if (gunzip(dst, CONFIG_SYS_VIDEO_LOGO_MAX_SIZE,
+		/*
+		 * NB: we need to force offset of +2
+		 * See doc/README.displaying-bmps
+		 */
+		if (gunzip(dst+2, CONFIG_SYS_VIDEO_LOGO_MAX_SIZE-2,
 			   (uchar *) bmp_image,
 			   &len) != 0) {
 			printf("Error: no valid bmp or bmp.gz image at %lx\n",
@@ -1165,7 +1493,7 @@ int video_display_bitmap(ulong bmp_image, int x, int y)
 		/*
 		 * Set addr to decompressed image
 		 */
-		bmp = (bmp_image_t *) dst;
+		bmp = (bmp_image_t *)(dst+2);
 
 		if (!((bmp->header.signature[0] == 'B') &&
 		      (bmp->header.signature[1] == 'M'))) {
@@ -1216,6 +1544,13 @@ int video_display_bitmap(ulong bmp_image, int x, int y)
 	else if (y < 0)
 		y = max(0, VIDEO_VISIBLE_ROWS - height + y + 1);
 #endif /* CONFIG_SPLASH_SCREEN_ALIGN */
+
+	/*
+	 * Just ignore elements which are completely beyond screen
+	 * dimensions.
+	 */
+	if ((x >= VIDEO_VISIBLE_COLS) || (y >= VIDEO_VISIBLE_ROWS))
+		return 0;
 
 	if ((x + width) > VIDEO_VISIBLE_COLS)
 		width = VIDEO_VISIBLE_COLS - x;
@@ -1478,6 +1813,8 @@ int video_display_bitmap(ulong bmp_image, int x, int y)
 	}
 #endif
 
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
 	return (0);
 }
 #endif
@@ -1653,30 +1990,13 @@ static void *video_logo(void)
 	__maybe_unused ulong addr;
 	__maybe_unused char *s;
 
-#ifdef CONFIG_SPLASH_SCREEN_ALIGN
-	s = getenv("splashpos");
-	if (s != NULL) {
-		if (s[0] == 'm')
-			video_logo_xpos = BMP_ALIGN_CENTER;
-		else
-			video_logo_xpos = simple_strtol(s, NULL, 0);
-
-		s = strchr(s + 1, ',');
-		if (s != NULL) {
-			if (s[1] == 'm')
-				video_logo_ypos = BMP_ALIGN_CENTER;
-			else
-				video_logo_ypos = simple_strtol(s + 1, NULL, 0);
-		}
-	}
-#endif /* CONFIG_SPLASH_SCREEN_ALIGN */
+	splash_get_pos(&video_logo_xpos, &video_logo_ypos);
 
 #ifdef CONFIG_SPLASH_SCREEN
 	s = getenv("splashimage");
 	if (s != NULL) {
-
+		splash_screen_prepare();
 		addr = simple_strtoul(s, NULL, 16);
-
 
 		if (video_display_bitmap(addr,
 					video_logo_xpos,
@@ -1710,6 +2030,8 @@ static void *video_logo(void)
 		return video_fb_address + video_logo_height * VIDEO_LINE_LEN;
 	}
 #endif
+	if (board_cfb_skip())
+		return 0;
 
 	sprintf(info, " %s", version_string);
 
@@ -1788,6 +2110,24 @@ defined(CONFIG_SANDBOX) || defined(CONFIG_X86)
 		return 1;
 #endif
 	return 0;
+}
+
+void video_clear(void)
+{
+	if (!video_fb_address)
+		return;
+#ifdef VIDEO_HW_RECTFILL
+	video_hw_rectfill(VIDEO_PIXEL_SIZE,	/* bytes per pixel */
+			  0,			/* dest pos x */
+			  0,			/* dest pos y */
+			  VIDEO_VISIBLE_COLS,	/* frame width */
+			  VIDEO_VISIBLE_ROWS,	/* frame height */
+			  bgx			/* fill color */
+	);
+#else
+	memsetl(video_fb_address,
+		(VIDEO_VISIBLE_ROWS * VIDEO_LINE_LEN) / sizeof(int), bgx);
+#endif
 }
 
 static int video_init(void)
@@ -1876,6 +2216,8 @@ static int video_init(void)
 	}
 	eorx = fgx ^ bgx;
 
+	video_clear();
+
 #ifdef CONFIG_VIDEO_LOGO
 	/* Plot the logo and get start point of console */
 	debug("Video: Drawing the logo ...\n");
@@ -1887,6 +2229,9 @@ static int video_init(void)
 	/* Initialize the console */
 	console_col = 0;
 	console_row = 0;
+
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
 
 	return 0;
 }
@@ -1915,6 +2260,9 @@ int drv_video_init(void)
 
 	/* Init video chip - returns with framebuffer cleared */
 	skip_dev_init = (video_init() == -1);
+
+	if (board_cfb_skip())
+		return 0;
 
 #if !defined(CONFIG_VGA_AS_SINGLE_DEVICE)
 	debug("KBD: Keyboard init ...\n");
@@ -1946,4 +2294,30 @@ int drv_video_init(void)
 
 	/* Return success */
 	return 1;
+}
+
+void video_position_cursor(unsigned col, unsigned row)
+{
+	console_col = min(col, CONSOLE_COLS - 1);
+	console_row = min(row, CONSOLE_ROWS - 1);
+}
+
+int video_get_pixel_width(void)
+{
+	return VIDEO_VISIBLE_COLS;
+}
+
+int video_get_pixel_height(void)
+{
+	return VIDEO_VISIBLE_ROWS;
+}
+
+int video_get_screen_rows(void)
+{
+	return CONSOLE_ROWS;
+}
+
+int video_get_screen_columns(void)
+{
+	return CONSOLE_COLS;
 }

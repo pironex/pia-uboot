@@ -8,19 +8,7 @@
  .       Developed by Simple Network Magic Corporation (SNMC)
  . Copyright (C) 1996 by Erik Stahlman (ES)
  .
- . This program is free software; you can redistribute it and/or modify
- . it under the terms of the GNU General Public License as published by
- . the Free Software Foundation; either version 2 of the License, or
- . (at your option) any later version.
- .
- . This program is distributed in the hope that it will be useful,
- . but WITHOUT ANY WARRANTY; without even the implied warranty of
- . MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- . GNU General Public License for more details.
- .
- . You should have received a copy of the GNU General Public License
- . along with this program; if not, write to the Free Software
- . Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  * SPDX-License-Identifier:	GPL-2.0+
  .
  . This file contains register information and access macros for
  . the LAN91C111 single chip ethernet controller.  It is a modified
@@ -260,17 +248,26 @@ struct smc91111_priv{
 #define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+((r)<<1))))
 #elif CONFIG_BLACKFIN
 #define	SMC_inw(a,r)	({ word __v = (*((volatile word *)((a)->iobase+(r)))); SSYNC(); __v;})
+#elif CONFIG_ARM64
+#define	SMC_inw(a, r)	(*((volatile word*)((a)->iobase+((dword)(r)))))
 #else
-#define	SMC_inw(a,r)	(*((volatile word *)((a)->iobase+(r))))
+#define SMC_inw(a, r)	(*((volatile word*)((a)->iobase+(r))))
 #endif
 #define  SMC_inb(a,r)	(((r)&1) ? SMC_inw((a),(r)&~1)>>8 : SMC_inw((a),(r)&0xFF))
 
 #ifdef CONFIG_ADNPESC1
 #define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+((r)<<1))) = d)
 #elif CONFIG_BLACKFIN
-#define	SMC_outw(a,d,r)	{(*((volatile word *)((a)->iobase+(r))) = d); SSYNC();}
+#define	SMC_outw(a, d, r)	\
+			({	(*((volatile word*)((a)->iobase+((r)))) = d); \
+				SSYNC(); \
+			})
+#elif CONFIG_ARM64
+#define	SMC_outw(a, d, r)	\
+			(*((volatile word*)((a)->iobase+((dword)(r)))) = d)
 #else
-#define	SMC_outw(a,d,r)	(*((volatile word *)((a)->iobase+(r))) = d)
+#define	SMC_outw(a, d, r)	\
+			(*((volatile word*)((a)->iobase+(r))) = d)
 #endif
 #define	SMC_outb(a,d,r)	({	word __d = (byte)(d);  \
 				word __w = SMC_inw((a),(r)&~1);  \

@@ -2,23 +2,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -390,14 +374,14 @@ smc_tstc(void)
 
 struct serial_device serial_smc_device =
 {
-	"serial_smc",
-	smc_init,
-	NULL,
-	smc_setbrg,
-	smc_getc,
-	smc_tstc,
-	smc_putc,
-	smc_puts,
+	.name	= "serial_smc",
+	.start	= smc_init,
+	.stop	= NULL,
+	.setbrg	= smc_setbrg,
+	.getc	= smc_getc,
+	.tstc	= smc_tstc,
+	.putc	= smc_putc,
+	.puts	= smc_puts,
 };
 
 #endif /* CONFIG_8xx_CONS_SMC1 || CONFIG_8xx_CONS_SMC2 */
@@ -660,14 +644,14 @@ scc_tstc(void)
 
 struct serial_device serial_scc_device =
 {
-	"serial_scc",
-	scc_init,
-	NULL,
-	scc_setbrg,
-	scc_getc,
-	scc_tstc,
-	scc_putc,
-	scc_puts,
+	.name	= "serial_scc",
+	.start	= scc_init,
+	.stop	= NULL,
+	.setbrg	= scc_setbrg,
+	.getc	= scc_getc,
+	.tstc	= scc_tstc,
+	.putc	= scc_putc,
+	.puts	= scc_puts,
 };
 
 #endif	/* CONFIG_8xx_CONS_SCCx */
@@ -678,6 +662,17 @@ __weak struct serial_device *default_serial_console(void)
 	return &serial_smc_device;
 #else
 	return &serial_scc_device;
+#endif
+}
+
+void mpc8xx_serial_initialize(void)
+{
+#if defined(CONFIG_8xx_CONS_SMC1) || defined(CONFIG_8xx_CONS_SMC2)
+	serial_register(&serial_smc_device);
+#endif
+#if	defined(CONFIG_8xx_CONS_SCC1) || defined(CONFIG_8xx_CONS_SCC2) || \
+	defined(CONFIG_8xx_CONS_SCC3) || defined(CONFIG_8xx_CONS_SCC4)
+	serial_register(&serial_scc_device);
 #endif
 }
 

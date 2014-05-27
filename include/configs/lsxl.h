@@ -2,23 +2,7 @@
  * Copyright (c) 2012 Michael Walle
  * Michael Walle <michael@walle.cc>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CONFIG_LSXL_H
@@ -29,12 +13,12 @@
  */
 #if defined(CONFIG_LSCHLV2)
 #define CONFIG_IDENT_STRING " LS-CHLv2"
-#define CONFIG_SYS_KWD_CONFIG $(SRCTREE)/$(CONFIG_BOARDDIR)/kwbimage-lschl.cfg
+#define CONFIG_SYS_KWD_CONFIG $(CONFIG_BOARDDIR)/kwbimage-lschl.cfg
 #define CONFIG_MACH_TYPE 3006
 #define CONFIG_SYS_TCLK 166666667 /* 166 MHz */
 #elif defined(CONFIG_LSXHL)
 #define CONFIG_IDENT_STRING " LS-XHL"
-#define CONFIG_SYS_KWD_CONFIG $(SRCTREE)/$(CONFIG_BOARDDIR)/kwbimage-lsxhl.cfg
+#define CONFIG_SYS_KWD_CONFIG $(CONFIG_BOARDDIR)/kwbimage-lsxhl.cfg
 #define CONFIG_MACH_TYPE 2663
 /* CONFIG_SYS_TCLK is 200000000 by default */
 #else
@@ -53,6 +37,7 @@
 #define CONFIG_SHOW_BOOT_PROGRESS
 
 #define CONFIG_RANDOM_MACADDR
+#define CONFIG_LIB_RAND
 #define CONFIG_KIRKWOOD_GPIO
 #define CONFIG_OF_LIBFDT
 
@@ -101,7 +86,6 @@
 
 
 #undef CONFIG_SYS_PROMPT
-#define CONFIG_SYS_PROMPT		"=> "
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
@@ -141,12 +125,12 @@
 		"&& bootm 0x00100000 0x00800000\0"			\
 	"bootcmd_rescue=run config_nc_dhcp; run nc\0"			\
 	"eraseenv=sf probe 0 "						\
-		"&& sf erase " MK_STR(CONFIG_ENV_OFFSET)		\
-			" +" MK_STR(CONFIG_ENV_SIZE) "\0"		\
+		"&& sf erase " __stringify(CONFIG_ENV_OFFSET)		\
+			" +" __stringify(CONFIG_ENV_SIZE) "\0"		\
 	"config_nc_dhcp=setenv autoload_old ${autoload}; "		\
 		"setenv autoload no "					\
 		"&& bootp "						\
-		"&& setenv ncip ${serverip} "				\
+		"&& setenv ncip "					\
 		"&& setenv autoload ${autoload_old}; "			\
 		"setenv autoload_old\0"					\
 	"standard_env=setenv ipaddr; setenv netmask; setenv serverip; "	\

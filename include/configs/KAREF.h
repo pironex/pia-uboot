@@ -1,23 +1,7 @@
 /*
  * (C) Copyright 2004 Sandburst Corporation
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /************************************************************************
@@ -39,7 +23,6 @@
 #define CONFIG_KAREF	     1		/* Board is Kamino Ref Variant */
 #define CONFIG_440GX		  1	     /* Specifc GX support	*/
 #define CONFIG_440		  1	     /* ... PPC440 family	*/
-#define CONFIG_4xx		  1	     /* ... PPC4xx family	*/
 #define CONFIG_BOARD_EARLY_INIT_F 1	     /* Call board_pre_init	*/
 #define CONFIG_MISC_INIT_F	  1	     /* Call board misc_init_f	*/
 #define CONFIG_MISC_INIT_R	  1	     /* Call board misc_init_r	*/
@@ -96,7 +79,6 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
-#define CONFIG_SERIAL_MULTI   1
 #define CONFIG_BAUDRATE	      9600
 
 #define CONFIG_SYS_BAUDRATE_TABLE  \
@@ -134,14 +116,15 @@
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
-#define CONFIG_HARD_I2C	      1		     /* I2C hardware support	*/
-#undef	CONFIG_SOFT_I2C			     /* I2C !bit-banged		*/
-#define CONFIG_PPC4XX_I2C		/* use PPC4xx driver		*/
-#define CONFIG_SYS_I2C_SPEED	      400000	     /* I2C speed 400kHz	*/
-#define CONFIG_SYS_I2C_SLAVE	      0x7F	     /* I2C slave address	*/
-#define CONFIG_SYS_I2C_NOPROBES      {0x69}	     /* Don't probe these addrs */
-#define CONFIG_I2C_BUS1	      1		     /* Include i2c bus 1 supp	*/
-
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_PPC4XX
+#define CONFIG_SYS_I2C_PPC4XX_CH0
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0 400000
+#define CONFIG_SYS_I2C_PPC4XX_SLAVE_0 0x7F
+#define CONFIG_SYS_I2C_PPC4XX_CH1
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_1 400000 /* I2C speed 400kHz */
+#define CONFIG_SYS_I2C_PPC4XX_SLAVE_1 0x7F
+#define CONFIG_SYS_I2C_NOPROBES { { 0, 0x69} } /* Don't probe these addrs */
 
 /*-----------------------------------------------------------------------
  * Environment
@@ -269,6 +252,7 @@
  *----------------------------------------------------------------------*/
 /* General PCI */
 #define CONFIG_PCI			     /* include pci support	*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			     /* do pci plug-and-play	*/
 #define CONFIG_PCI_SCAN_SHOW		     /* show pci devices	*/
 #define CONFIG_SYS_PCI_TARGBASE      (CONFIG_SYS_PCI_MEMBASE)
@@ -288,7 +272,6 @@
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE  230400	     /* kgdb serial port baud	*/
-#define CONFIG_KGDB_SER_INDEX 2		     /* kgdb serial port	*/
 #endif
 
 /*-----------------------------------------------------------------------
@@ -297,8 +280,5 @@
 #undef CONFIG_WATCHDOG			     /* watchdog disabled	*/
 #define CONFIG_SYS_LOAD_ADDR	      0x8000000	     /* default load address	*/
 #define CONFIG_SYS_EXTBDINFO	      1		     /* use extended board_info */
-
-#define CONFIG_SYS_HZ		      100	     /* decr freq: 1 ms ticks	*/
-
 
 #endif	/* __CONFIG_H */

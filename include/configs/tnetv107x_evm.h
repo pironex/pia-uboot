@@ -5,26 +5,13 @@
  *
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/clock.h>
 
@@ -32,6 +19,7 @@
 #define CONFIG_ARM1176
 #define CONFIG_TNETV107X
 #define CONFIG_TNETV107X_EVM
+#define CONFIG_TNETV107X_WATCHDOG
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SYS_UBOOT_BASE		CONFIG_SYS_TEXT_BASE
 #define CONFIG_DISABLE_TCM
@@ -42,7 +30,6 @@
 
 #define CONFIG_SYS_TIMERBASE		TNETV107X_TIMER0_BASE
 #define CONFIG_SYS_HZ_CLOCK		clk_get_rate(TNETV107X_LPSC_TIMER0)
-#define CONFIG_SYS_HZ			1000
 
 #define CONFIG_PLL_SYS_EXT_FREQ		25000000
 #define CONFIG_PLL_TDM_EXT_FREQ		19200000
@@ -81,8 +68,8 @@
 #define CONFIG_SYS_NAND_CS		2
 #define CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_NAND_BASE		TNETV107X_ASYNC_EMIF_DATA_CE0_BASE
-#define CONFIG_SYS_CLE_MASK		0x10
-#define CONFIG_SYS_ALE_MASK		0x8
+#define CONFIG_SYS_NAND_MASK_CLE		0x10
+#define CONFIG_SYS_NAND_MASK_ALE		0x8
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_MTD_PARTITIONS
 #define CONFIG_CMD_MTDPARTS

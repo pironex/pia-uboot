@@ -116,7 +116,7 @@ struct ext_filesystem {
 extern struct ext2_data *ext4fs_root;
 extern struct ext2fs_node *ext4fs_file;
 
-#if defined(CONFIG_CMD_EXT4_WRITE)
+#if defined(CONFIG_EXT4_WRITE)
 extern struct ext2_inode *g_parent_inode;
 extern int gd_index;
 extern int gindex;
@@ -134,8 +134,13 @@ int ext4fs_read(char *buf, unsigned len);
 int ext4fs_mount(unsigned part_length);
 void ext4fs_close(void);
 int ext4fs_ls(const char *dirname);
+int ext4fs_exists(const char *filename);
 void ext4fs_free_node(struct ext2fs_node *node, struct ext2fs_node *currroot);
-int ext4fs_devread(int sector, int byte_offset, int byte_len, char *buf);
+int ext4fs_devread(lbaint_t sector, int byte_offset, int byte_len, char *buf);
 void ext4fs_set_blk_dev(block_dev_desc_t *rbdd, disk_partition_t *info);
 long int read_allocated_block(struct ext2_inode *inode, int fileblock);
+int ext4fs_probe(block_dev_desc_t *fs_dev_desc,
+		 disk_partition_t *fs_partition);
+int ext4_read_file(const char *filename, void *buf, int offset, int len);
+int ext4_read_superblock(char *buffer);
 #endif

@@ -5,19 +5,7 @@
  * Copyright (C) 2003-2004 Robert Schwebel, Benedikt Spranger
  * Copyright (C) 2008 Nokia Corporation
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -43,7 +31,6 @@ extern struct platform_data brd;
 
 unsigned packet_received, packet_sent;
 
-#define DEV_CONFIG_CDC	1
 #define GFP_ATOMIC ((gfp_t) 0)
 #define GFP_KERNEL ((gfp_t) 0)
 
@@ -159,9 +146,9 @@ static struct usb_gadget_driver eth_driver;
 /* "main" config is either CDC, or its simple subset */
 static inline int is_cdc(struct eth_dev *dev)
 {
-#if	!defined(DEV_CONFIG_SUBSET)
+#if	!defined(CONFIG_USB_ETH_SUBSET)
 	return 1;		/* only cdc possible */
-#elif	!defined(DEV_CONFIG_CDC)
+#elif	!defined(CONFIG_USB_ETH_CDC)
 	return 0;		/* only subset possible */
 #else
 	return dev->cdc;	/* depends on what hardware we found */
@@ -405,7 +392,7 @@ rndis_config = {
  * get those drivers from MCCI, or bundled with various products.
  */
 
-#ifdef	DEV_CONFIG_CDC
+#ifdef	CONFIG_USB_ETH_CDC
 static struct usb_interface_descriptor
 control_intf = {
 	.bLength =		sizeof control_intf,
@@ -444,7 +431,7 @@ static const struct usb_cdc_header_desc header_desc = {
 	.bcdCDC =		__constant_cpu_to_le16(0x0110),
 };
 
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 
 static const struct usb_cdc_union_desc union_desc = {
 	.bLength =		sizeof union_desc,
@@ -478,7 +465,7 @@ static const struct usb_cdc_acm_descriptor acm_descriptor = {
 
 #endif
 
-#ifndef DEV_CONFIG_CDC
+#ifndef CONFIG_USB_ETH_CDC
 
 /*
  * "SAFE" loosely follows CDC WMC MDLM, violating the spec in various
@@ -528,7 +515,7 @@ static const struct usb_cdc_ether_desc ether_desc = {
 	.bNumberPowerFilters =	0,
 };
 
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 
 /*
  * include the status endpoint if we can, even where it's optional.
@@ -560,7 +547,7 @@ fs_status_desc = {
 };
 #endif
 
-#ifdef	DEV_CONFIG_CDC
+#ifdef	CONFIG_USB_ETH_CDC
 
 /* the default data interface has no endpoints ... */
 
@@ -615,7 +602,7 @@ rndis_data_intf = {
 
 #endif
 
-#ifdef DEV_CONFIG_SUBSET
+#ifdef CONFIG_USB_ETH_SUBSET
 
 /*
  * "Simple" CDC-subset option is a simple vendor-neutral model that most
@@ -648,6 +635,7 @@ fs_source_desc = {
 
 	.bEndpointAddress =	USB_DIR_IN,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
+	.wMaxPacketSize =	__constant_cpu_to_le16(64),
 };
 
 static struct usb_endpoint_descriptor
@@ -657,11 +645,12 @@ fs_sink_desc = {
 
 	.bEndpointAddress =	USB_DIR_OUT,
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
+	.wMaxPacketSize =	__constant_cpu_to_le16(64),
 };
 
 static const struct usb_descriptor_header *fs_eth_function[11] = {
 	(struct usb_descriptor_header *) &otg_descriptor,
-#ifdef DEV_CONFIG_CDC
+#ifdef CONFIG_USB_ETH_CDC
 	/* "cdc" mode descriptors */
 	(struct usb_descriptor_header *) &control_intf,
 	(struct usb_descriptor_header *) &header_desc,
@@ -675,12 +664,12 @@ static const struct usb_descriptor_header *fs_eth_function[11] = {
 	(struct usb_descriptor_header *) &fs_source_desc,
 	(struct usb_descriptor_header *) &fs_sink_desc,
 	NULL,
-#endif /* DEV_CONFIG_CDC */
+#endif /* CONFIG_USB_ETH_CDC */
 };
 
 static inline void fs_subset_descriptors(void)
 {
-#ifdef DEV_CONFIG_SUBSET
+#ifdef CONFIG_USB_ETH_SUBSET
 	/* behavior is "CDC Subset"; extra descriptors say "SAFE" */
 	fs_eth_function[1] = (struct usb_descriptor_header *) &subset_data_intf;
 	fs_eth_function[2] = (struct usb_descriptor_header *) &header_desc;
@@ -718,7 +707,7 @@ static const struct usb_descriptor_header *fs_rndis_function[] = {
  * descriptors, unless they only run at full speed.
  */
 
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 static struct usb_endpoint_descriptor
 hs_status_desc = {
 	.bLength =		USB_DT_ENDPOINT_SIZE,
@@ -728,7 +717,7 @@ hs_status_desc = {
 	.wMaxPacketSize =	__constant_cpu_to_le16(STATUS_BYTECOUNT),
 	.bInterval =		LOG2_STATUS_INTERVAL_MSEC + 4,
 };
-#endif /* DEV_CONFIG_CDC */
+#endif /* CONFIG_USB_ETH_CDC */
 
 static struct usb_endpoint_descriptor
 hs_source_desc = {
@@ -761,7 +750,7 @@ dev_qualifier = {
 
 static const struct usb_descriptor_header *hs_eth_function[11] = {
 	(struct usb_descriptor_header *) &otg_descriptor,
-#ifdef DEV_CONFIG_CDC
+#ifdef CONFIG_USB_ETH_CDC
 	/* "cdc" mode descriptors */
 	(struct usb_descriptor_header *) &control_intf,
 	(struct usb_descriptor_header *) &header_desc,
@@ -775,12 +764,12 @@ static const struct usb_descriptor_header *hs_eth_function[11] = {
 	(struct usb_descriptor_header *) &hs_source_desc,
 	(struct usb_descriptor_header *) &hs_sink_desc,
 	NULL,
-#endif /* DEV_CONFIG_CDC */
+#endif /* CONFIG_USB_ETH_CDC */
 };
 
 static inline void hs_subset_descriptors(void)
 {
-#ifdef DEV_CONFIG_SUBSET
+#ifdef CONFIG_USB_ETH_SUBSET
 	/* behavior is "CDC Subset"; extra descriptors say "SAFE" */
 	hs_eth_function[1] = (struct usb_descriptor_header *) &subset_data_intf;
 	hs_eth_function[2] = (struct usb_descriptor_header *) &header_desc;
@@ -842,11 +831,11 @@ static struct usb_string		strings[] = {
 	{ STRING_SERIALNUMBER,	serial_number, },
 	{ STRING_DATA,		"Ethernet Data", },
 	{ STRING_ETHADDR,	ethaddr, },
-#ifdef	DEV_CONFIG_CDC
+#ifdef	CONFIG_USB_ETH_CDC
 	{ STRING_CDC,		"CDC Ethernet", },
 	{ STRING_CONTROL,	"CDC Communications Control", },
 #endif
-#ifdef	DEV_CONFIG_SUBSET
+#ifdef	CONFIG_USB_ETH_SUBSET
 	{ STRING_SUBSET,	"CDC Ethernet Subset", },
 #endif
 #ifdef	CONFIG_USB_ETH_RNDIS
@@ -862,8 +851,11 @@ static struct usb_gadget_strings	stringtab = {
 };
 
 /*============================================================================*/
-static u8 control_req[USB_BUFSIZ];
-static u8 status_req[STATUS_BYTECOUNT] __attribute__ ((aligned(4)));
+DEFINE_CACHE_ALIGN_BUFFER(u8, control_req, USB_BUFSIZ);
+
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+DEFINE_CACHE_ALIGN_BUFFER(u8, status_req, STATUS_BYTECOUNT);
+#endif
 
 
 /**
@@ -950,7 +942,7 @@ set_ether_config(struct eth_dev *dev, gfp_t gfp_flags)
 	int					result = 0;
 	struct usb_gadget			*gadget = dev->gadget;
 
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 	/* status endpoint used for RNDIS and (optionally) CDC */
 	if (!subset_active(dev) && dev->status_ep) {
 		dev->status = ep_desc(gadget, &hs_status_desc,
@@ -1131,7 +1123,7 @@ static int eth_set_config(struct eth_dev *dev, unsigned number,
 
 /*-------------------------------------------------------------------------*/
 
-#ifdef	DEV_CONFIG_CDC
+#ifdef	CONFIG_USB_ETH_CDC
 
 /*
  * The interrupt endpoint is used in CDC networking models (Ethernet, ATM)
@@ -1351,10 +1343,18 @@ eth_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		if (gadget_is_pxa(gadget)) {
 			value = eth_set_config(dev, DEV_CONFIG_VALUE,
 						GFP_ATOMIC);
+			/*
+			 * PXA25x driver use non-CDC ethernet gadget.
+			 * But only _CDC and _RNDIS code can signalize
+			 * that network is working. So we signalize it
+			 * here.
+			 */
+			l_ethdev.network_started = 1;
+			debug("USB network up!\n");
 			goto done_set_intf;
 		}
 
-#ifdef DEV_CONFIG_CDC
+#ifdef CONFIG_USB_ETH_CDC
 		switch (wIndex) {
 		case 0:		/* control/master intf */
 			if (wValue != 0)
@@ -1396,7 +1396,7 @@ eth_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		 * all non-PXA hardware talks real CDC ...
 		 */
 		debug("set_interface ignored!\n");
-#endif /* DEV_CONFIG_CDC */
+#endif /* CONFIG_USB_ETH_CDC */
 
 done_set_intf:
 		break;
@@ -1419,7 +1419,7 @@ done_set_intf:
 		value = min(wLength, (u16) 1);
 		break;
 
-#ifdef DEV_CONFIG_CDC
+#ifdef CONFIG_USB_ETH_CDC
 	case USB_CDC_SET_ETHERNET_PACKET_FILTER:
 		/*
 		 * see 6.2.30: no data, wIndex = interface,
@@ -1443,7 +1443,7 @@ done_set_intf:
 	 * case USB_CDC_GET_ETHERNET_STATISTIC:
 	 */
 
-#endif /* DEV_CONFIG_CDC */
+#endif /* CONFIG_USB_ETH_CDC */
 
 #ifdef CONFIG_USB_ETH_RNDIS
 	/*
@@ -1536,6 +1536,8 @@ static int rx_submit(struct eth_dev *dev, struct usb_request *req,
 	 */
 
 	debug("%s\n", __func__);
+	if (!req)
+		return -EINVAL;
 
 	size = (ETHER_HDR_SIZE + dev->mtu + RX_EXTRA);
 	size += dev->out_ep->maxpacket - 1;
@@ -2014,7 +2016,7 @@ static int eth_bind(struct usb_gadget *gadget)
 	u8			tmp[7];
 
 	/* these flags are only ever cleared; compiler take note */
-#ifndef	DEV_CONFIG_CDC
+#ifndef	CONFIG_USB_ETH_CDC
 	cdc = 0;
 #endif
 #ifndef	CONFIG_USB_ETH_RNDIS
@@ -2126,7 +2128,7 @@ autoconf_fail:
 		goto autoconf_fail;
 	out_ep->driver_data = out_ep;	/* claim */
 
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 	/*
 	 * CDC Ethernet control interface doesn't require a status endpoint.
 	 * Since some hosts expect one, try to allocate one anyway.
@@ -2138,7 +2140,7 @@ autoconf_fail:
 		} else if (rndis) {
 			error("can't run RNDIS on %s", gadget->name);
 			return -ENODEV;
-#ifdef DEV_CONFIG_CDC
+#ifdef CONFIG_USB_ETH_CDC
 		} else if (cdc) {
 			control_intf.bNumEndpoints = 0;
 			/* FIXME remove endpoint from descriptor list */
@@ -2181,7 +2183,7 @@ autoconf_fail:
 				fs_source_desc.bEndpointAddress;
 		hs_sink_desc.bEndpointAddress =
 				fs_sink_desc.bEndpointAddress;
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 		if (status_ep)
 			hs_status_desc.bEndpointAddress =
 					fs_status_desc.bEndpointAddress;
@@ -2250,7 +2252,7 @@ autoconf_fail:
 	dev->req->complete = eth_setup_complete;
 
 	/* ... and maybe likewise for status transfer */
-#if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+#if defined(CONFIG_USB_ETH_CDC) || defined(CONFIG_USB_ETH_RNDIS)
 	if (dev->status_ep) {
 		dev->stat_req = usb_ep_alloc_request(dev->status_ep,
 							GFP_KERNEL);

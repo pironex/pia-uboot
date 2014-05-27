@@ -4,11 +4,10 @@
 #ifndef __ARCH_PPC_CACHE_H
 #define __ARCH_PPC_CACHE_H
 
-#include <linux/config.h>
 #include <asm/processor.h>
 
 /* bytes per L1 cache line */
-#if defined(CONFIG_8xx) || defined(CONFIG_IOP480)
+#if defined(CONFIG_8xx)
 #define	L1_CACHE_SHIFT	4
 #elif defined(CONFIG_PPC64BRIDGE)
 #define L1_CACHE_SHIFT	7

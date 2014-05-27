@@ -82,6 +82,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <environment.h>
 #include <net.h>
 #if defined(CONFIG_STATUS_LED)
 #include <miiphy.h>
@@ -180,7 +181,7 @@ IPaddr_t	NetNtpServerIP;
 int		NetTimeOffset;
 #endif
 
-uchar PktBuf[(PKTBUFSRX+1) * PKTSIZE_ALIGN + PKTALIGN];
+static uchar PktBuf[(PKTBUFSRX+1) * PKTSIZE_ALIGN + PKTALIGN];
 
 /* Receive packet */
 uchar *NetRxPackets[PKTBUFSRX];
@@ -206,7 +207,25 @@ static int net_check_prereq(enum proto_t protocol);
 
 static int NetTryCount;
 
+int __maybe_unused net_busy_flag;
+
 /**********************************************************************/
+
+static int on_bootfile(const char *name, const char *value, enum env_op op,
+	int flags)
+{
+	switch (op) {
+	case env_op_create:
+	case env_op_overwrite:
+		copy_filename(BootFile, value, sizeof(BootFile));
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+U_BOOT_ENV_CALLBACK(bootfile, on_bootfile);
 
 /*
  * Check if autoload is enabled. If so, use either NFS or TFTP to download
@@ -214,26 +233,24 @@ static int NetTryCount;
  */
 void net_auto_load(void)
 {
+#if defined(CONFIG_CMD_NFS)
 	const char *s = getenv("autoload");
 
-	if (s != NULL) {
-		if (*s == 'n') {
-			/*
-			 * Just use BOOTP/RARP to configure system;
-			 * Do not use TFTP to load the bootfile.
-			 */
-			net_set_state(NETLOOP_SUCCESS);
-			return;
-		}
-#if defined(CONFIG_CMD_NFS)
-		if (strcmp(s, "NFS") == 0) {
-			/*
-			 * Use NFS to load the bootfile.
-			 */
-			NfsStart();
-			return;
-		}
+	if (s != NULL && strcmp(s, "NFS") == 0) {
+		/*
+		 * Use NFS to load the bootfile.
+		 */
+		NfsStart();
+		return;
+	}
 #endif
+	if (getenv_yesno("autoload") == 0) {
+		/*
+		 * Just use BOOTP/RARP to configure system;
+		 * Do not use TFTP to load the bootfile.
+		 */
+		net_set_state(NETLOOP_SUCCESS);
+		return;
 	}
 	TftpStart(TFTPGET);
 }
@@ -256,7 +273,8 @@ static void NetInitLoop(void)
 #endif
 		env_changed_id = env_id;
 	}
-	memcpy(NetOurEther, eth_get_dev()->enetaddr, 6);
+	if (eth_get_dev())
+		memcpy(NetOurEther, eth_get_dev()->enetaddr, 6);
 
 	return;
 }
@@ -326,6 +344,9 @@ int NetLoop(enum proto_t protocol)
 		eth_init_state_only(bd);
 
 restart:
+#ifdef CONFIG_USB_KEYBOARD
+	net_busy_flag = 0;
+#endif
 	net_set_state(NETLOOP_CONTINUE);
 
 	/*
@@ -438,6 +459,9 @@ restart:
 		status_led_set(STATUS_LED_RED, STATUS_LED_ON);
 #endif /* CONFIG_SYS_FAULT_ECHO_LINK_DOWN, ... */
 #endif /* CONFIG_MII, ... */
+#ifdef CONFIG_USB_KEYBOARD
+	net_busy_flag = 1;
+#endif
 
 	/*
 	 *	Main packet reception loop.  Loop receiving packets until
@@ -513,15 +537,11 @@ restart:
 		case NETLOOP_SUCCESS:
 			net_cleanup_loop();
 			if (NetBootFileXferSize > 0) {
-				char buf[20];
 				printf("Bytes transferred = %ld (%lx hex)\n",
 					NetBootFileXferSize,
 					NetBootFileXferSize);
-				sprintf(buf, "%lX", NetBootFileXferSize);
-				setenv("filesize", buf);
-
-				sprintf(buf, "%lX", (unsigned long)load_addr);
-				setenv("fileaddr", buf);
+				setenv_hex("filesize", NetBootFileXferSize);
+				setenv_hex("fileaddr", load_addr);
 			}
 			if (protocol != NETCONS)
 				eth_halt();
@@ -547,6 +567,9 @@ restart:
 	}
 
 done:
+#ifdef CONFIG_USB_KEYBOARD
+	net_busy_flag = 0;
+#endif
 #ifdef CONFIG_CMD_TFTPPUT
 	/* Clear out the handlers */
 	net_set_udp_handler(NULL);

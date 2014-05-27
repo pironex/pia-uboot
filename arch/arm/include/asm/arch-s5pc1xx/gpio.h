@@ -2,20 +2,7 @@
  * (C) Copyright 2009 Samsung Electronics
  * Minkyu Kang <mk7.kang@samsung.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __ASM_ARCH_GPIO_H
@@ -138,15 +125,45 @@ void s5p_gpio_set_rate(struct s5p_gpio_bank *bank, int gpio, int mode);
 /* GPIO pins per bank  */
 #define GPIO_PER_BANK 8
 
+#define S5P_GPIO_PART_SHIFT	(24)
+#define S5P_GPIO_PART_MASK	(0xff)
+#define S5P_GPIO_BANK_SHIFT	(8)
+#define S5P_GPIO_BANK_MASK	(0xffff)
+#define S5P_GPIO_PIN_MASK	(0xff)
+
+#define S5P_GPIO_SET_PART(x) \
+			(((x) & S5P_GPIO_PART_MASK) << S5P_GPIO_PART_SHIFT)
+
+#define S5P_GPIO_GET_PART(x) \
+			(((x) >> S5P_GPIO_PART_SHIFT) & S5P_GPIO_PART_MASK)
+
+#define S5P_GPIO_SET_PIN(x) \
+			((x) & S5P_GPIO_PIN_MASK)
+
+#define S5PC100_SET_BANK(bank) \
+			(((unsigned)&(((struct s5pc100_gpio *) \
+			S5PC100_GPIO_BASE)->bank) - S5PC100_GPIO_BASE) \
+			& S5P_GPIO_BANK_MASK) << S5P_GPIO_BANK_SHIFT)
+
+#define S5PC110_SET_BANK(bank) \
+			((((unsigned)&(((struct s5pc110_gpio *) \
+			S5PC110_GPIO_BASE)->bank) - S5PC110_GPIO_BASE) \
+			& S5P_GPIO_BANK_MASK) << S5P_GPIO_BANK_SHIFT)
+
+#define s5pc100_gpio_get(bank, pin) \
+			(S5P_GPIO_SET_PART(0) | \
+			S5PC100_SET_BANK(bank) | \
+			S5P_GPIO_SET_PIN(pin))
+
+#define s5pc110_gpio_get(bank, pin) \
+			(S5P_GPIO_SET_PART(0) | \
+			S5PC110_SET_BANK(bank) | \
+			S5P_GPIO_SET_PIN(pin))
+
 static inline unsigned int s5p_gpio_base(int nr)
 {
-	return S5PC110_GPIO_BASE;
+	return samsung_get_base_gpio();
 }
-
-#define s5pc110_gpio_get_nr(bank, pin) \
-	((((((unsigned int)&(((struct s5pc110_gpio *)S5PC110_GPIO_BASE)->bank))\
-	    - S5PC110_GPIO_BASE) / sizeof(struct s5p_gpio_bank)) \
-	  * GPIO_PER_BANK) + pin)
 #endif
 
 /* Pin configurations */

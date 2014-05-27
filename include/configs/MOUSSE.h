@@ -5,23 +5,7 @@
  * (C) Copyright 2001
  * James F. Dougherty (jfd@cs.stanford.edu)
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -45,7 +29,6 @@
  * (easy to change)
  */
 
-#define CONFIG_MPC824X      1
 #define CONFIG_MPC8240      1
 #define CONFIG_MOUSSE       1
 
@@ -94,7 +77,6 @@
  * Miscellaneous configurable options
  */
 #undef CONFIG_SYS_LONGHELP                /* undef to save memory     */
-#define CONFIG_SYS_PROMPT      "=>"  /* Monitor Command Prompt   */
 #define CONFIG_SYS_CBSIZE      256        /* Console I/O Buffer Size  */
 #define CONFIG_SYS_PBSIZE      (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS     8           /* Max number of command args   */
@@ -169,7 +151,6 @@
 
 #define CONFIG_SYS_CLK_FREQ  33000000	/* external frequency to pll */
 #define CONFIG_PLL_PCI_TO_MEM_MULTIPLIER  2
-#define CONFIG_SYS_HZ               1000
 
 #define CONFIG_SYS_ETH_DEV_FN       0x00
 #define CONFIG_SYS_ETH_IOBASE       0x00104000
@@ -330,6 +311,7 @@
  *-----------------------------------------------------------------------
  */
 #define CONFIG_PCI			/* include pci support			*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #undef CONFIG_PCI_PNP
 
 

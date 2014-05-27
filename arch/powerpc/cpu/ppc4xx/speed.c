@@ -2,23 +2,7 @@
  * (C) Copyright 2000-2008
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -37,7 +21,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-#if defined(CONFIG_405GP) || defined(CONFIG_405CR)
+#if defined(CONFIG_405GP)
 
 void get_sys_info (PPC4xx_SYS_INFO * sysInfo)
 {
@@ -812,14 +796,6 @@ unsigned long determine_pci_clock_per(void)
 extern void get_sys_info (sys_info_t * sysInfo);
 extern ulong get_PCI_freq (void);
 
-#elif defined(CONFIG_AP1000)
-void get_sys_info (sys_info_t * sysInfo)
-{
-	sysInfo->freqProcessor = 240 * 1000 * 1000;
-	sysInfo->freqPLB = 80 * 1000 * 1000;
-	sysInfo->freqPCI = 33 * 1000 * 1000;
-}
-
 #elif defined(CONFIG_405)
 
 void get_sys_info (sys_info_t * sysInfo)
@@ -1190,22 +1166,12 @@ void get_sys_info (sys_info_t * sysInfo)
 
 int get_clocks (void)
 {
-#if defined(CONFIG_405GP) || defined(CONFIG_405CR) || \
-    defined(CONFIG_405EP) || defined(CONFIG_405EZ) || \
-    defined(CONFIG_405EX) || defined(CONFIG_405) || \
-    defined(CONFIG_440)
 	sys_info_t sys_info;
 
 	get_sys_info (&sys_info);
 	gd->cpu_clk = sys_info.freqProcessor;
 	gd->bus_clk = sys_info.freqPLB;
 
-#endif	/* defined(CONFIG_405GP) || defined(CONFIG_405CR) */
-
-#ifdef CONFIG_IOP480
-	gd->cpu_clk = 66000000;
-	gd->bus_clk = 66000000;
-#endif
 	return (0);
 }
 
@@ -1218,7 +1184,7 @@ ulong get_bus_freq (ulong dummy)
 {
 	ulong val;
 
-#if defined(CONFIG_405GP) || defined(CONFIG_405CR) || \
+#if defined(CONFIG_405GP) || \
     defined(CONFIG_405EP) || defined(CONFIG_405EZ) || \
     defined(CONFIG_405EX) || defined(CONFIG_405) || \
     defined(CONFIG_440)
@@ -1226,11 +1192,6 @@ ulong get_bus_freq (ulong dummy)
 
 	get_sys_info (&sys_info);
 	val = sys_info.freqPLB;
-
-#elif defined(CONFIG_IOP480)
-
-	val = 66;
-
 #else
 # error get_bus_freq() not implemented
 #endif
@@ -1238,7 +1199,6 @@ ulong get_bus_freq (ulong dummy)
 	return val;
 }
 
-#if !defined(CONFIG_IOP480)
 ulong get_OPB_freq (void)
 {
 	PPC4xx_SYS_INFO sys_info;
@@ -1247,4 +1207,3 @@ ulong get_OPB_freq (void)
 
 	return sys_info.freqOPB;
 }
-#endif

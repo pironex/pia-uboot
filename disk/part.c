@@ -2,23 +2,7 @@
  * (C) Copyright 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -34,13 +18,6 @@
 #else
 #define PRINTF(fmt,args...)
 #endif
-
-#if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
 
 struct block_drvr {
 	char *name;
@@ -66,11 +43,15 @@ static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_SYSTEMACE)
 	{ .name = "ace", .get_dev = systemace_get_dev, },
 #endif
+#if defined(CONFIG_SANDBOX)
+	{ .name = "host", .get_dev = host_get_dev, },
+#endif
 	{ },
 };
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef HAVE_BLOCK_DEVICE
 block_dev_desc_t *get_dev(const char *ifname, int dev)
 {
 	const struct block_drvr *drvr = block_drvr;
@@ -104,12 +85,7 @@ block_dev_desc_t *get_dev(const char *ifname, int dev)
 }
 #endif
 
-#if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
+#ifdef HAVE_BLOCK_DEVICE
 
 /* ------------------------------------------------------------------------- */
 /*
@@ -200,7 +176,7 @@ void dev_print (block_dev_desc_t *dev_desc)
 		break;
 	}
 	puts ("\n");
-	if ((dev_desc->lba * dev_desc->blksz)>0L) {
+	if (dev_desc->lba > 0L && dev_desc->blksz > 0L) {
 		ulong mb, mb_quot, mb_rem, gb, gb_quot, gb_rem;
 		lbaint_t lba;
 
@@ -239,18 +215,7 @@ void dev_print (block_dev_desc_t *dev_desc)
 }
 #endif
 
-#if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC)		|| \
-     defined(CONFIG_SYSTEMACE) )
-
-#if defined(CONFIG_MAC_PARTITION) || \
-    defined(CONFIG_DOS_PARTITION) || \
-    defined(CONFIG_ISO_PARTITION) || \
-    defined(CONFIG_AMIGA_PARTITION) || \
-    defined(CONFIG_EFI_PARTITION)
+#ifdef HAVE_BLOCK_DEVICE
 
 void init_part (block_dev_desc_t * dev_desc)
 {
@@ -293,6 +258,12 @@ void init_part (block_dev_desc_t * dev_desc)
 }
 
 
+#if defined(CONFIG_MAC_PARTITION) || \
+	defined(CONFIG_DOS_PARTITION) || \
+	defined(CONFIG_ISO_PARTITION) || \
+	defined(CONFIG_AMIGA_PARTITION) || \
+	defined(CONFIG_EFI_PARTITION)
+
 static void print_part_header (const char *type, block_dev_desc_t * dev_desc)
 {
 	puts ("\nPartition Map for ");
@@ -318,6 +289,9 @@ static void print_part_header (const char *type, block_dev_desc_t * dev_desc)
 	case IF_TYPE_MMC:
 		puts ("MMC");
 		break;
+	case IF_TYPE_HOST:
+		puts("HOST");
+		break;
 	default:
 		puts ("UNKNOWN");
 		break;
@@ -325,6 +299,8 @@ static void print_part_header (const char *type, block_dev_desc_t * dev_desc)
 	printf (" device %d  --   Partition Type: %s\n\n",
 			dev_desc->dev, type);
 }
+
+#endif /* any CONFIG_..._PARTITION */
 
 void print_part (block_dev_desc_t * dev_desc)
 {
@@ -372,24 +348,12 @@ void print_part (block_dev_desc_t * dev_desc)
 	puts ("## Unknown partition table\n");
 }
 
-
-#else	/* neither MAC nor DOS nor ISO nor AMIGA nor EFI partition configured */
-# error neither CONFIG_MAC_PARTITION nor CONFIG_DOS_PARTITION
-# error nor CONFIG_ISO_PARTITION nor CONFIG_AMIGA_PARTITION
-# error nor CONFIG_EFI_PARTITION configured!
-#endif
-
-#endif
+#endif /* HAVE_BLOCK_DEVICE */
 
 int get_partition_info(block_dev_desc_t *dev_desc, int part
 					, disk_partition_t *info)
 {
-#if defined(CONFIG_CMD_IDE) || \
-	defined(CONFIG_CMD_SATA) || \
-	defined(CONFIG_CMD_SCSI) || \
-	defined(CONFIG_CMD_USB) || \
-	defined(CONFIG_MMC) || \
-	defined(CONFIG_SYSTEMACE)
+#ifdef HAVE_BLOCK_DEVICE
 
 #ifdef CONFIG_PARTITION_UUIDS
 	/* The common case is no UUID support */
@@ -444,7 +408,7 @@ int get_partition_info(block_dev_desc_t *dev_desc, int part
 	default:
 		break;
 	}
-#endif
+#endif /* HAVE_BLOCK_DEVICE */
 
 	return -1;
 }
@@ -557,10 +521,14 @@ int get_device_and_partition(const char *ifname, const char *dev_part_str,
 			goto cleanup;
 		}
 
+		(*dev_desc)->log2blksz = LOG2((*dev_desc)->blksz);
+
 		info->start = 0;
 		info->size = (*dev_desc)->lba;
 		info->blksz = (*dev_desc)->blksz;
 		info->bootable = 0;
+		strcpy((char *)info->type, BOOT_PART_TYPE);
+		strcpy((char *)info->name, "Whole Disk");
 #ifdef CONFIG_PARTITION_UUIDS
 		info->uuid[0] = 0;
 #endif
@@ -624,9 +592,9 @@ int get_device_and_partition(const char *ifname, const char *dev_part_str,
 			 */
 			if (p == MAX_SEARCH_PARTITIONS + 1)
 				*info = tmpinfo;
-			ret = 0;
 		} else {
 			printf("** No valid partitions found **\n");
+			ret = -1;
 			goto cleanup;
 		}
 	}
@@ -637,6 +605,8 @@ int get_device_and_partition(const char *ifname, const char *dev_part_str,
 		ret  = -1;
 		goto cleanup;
 	}
+
+	(*dev_desc)->log2blksz = LOG2((*dev_desc)->blksz);
 
 	ret = part;
 	goto cleanup;

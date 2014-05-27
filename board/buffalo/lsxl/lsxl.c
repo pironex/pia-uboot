@@ -5,23 +5,7 @@
  * Based on sheevaplug/sheevaplug.c by
  *   Marvell Semiconductor <www.marvell.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -49,9 +33,8 @@
  * you can do this only with a working network connection. Therefore, a random
  * ethernet address is generated if none is set and a DHCP request is sent.
  * After a successful DHCP response is received, the network settings are
- * configured and the ncip parameter is set to the serverip. Eg. for a working
- * resuce mode, you should set 'next-server' to the host where the netconsole
- * client is started.
+ * configured and the ncip is unset. Therefore, all netconsole packets are
+ * broadcasted.
  * Additionally, the bootsource is set to 'rescue'.
  */
 
@@ -76,7 +59,7 @@ int board_early_init_f(void)
 	 * Multi-Purpose Pins Functionality configuration
 	 * These strappings are taken from the original vendor uboot port.
 	 */
-	u32 kwmpp_config[] = {
+	static const u32 kwmpp_config[] = {
 		MPP0_SPI_SCn,
 		MPP1_SPI_MOSI,
 		MPP2_SPI_SCK,

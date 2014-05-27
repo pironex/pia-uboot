@@ -41,9 +41,9 @@ ulong		BootpID;
 int		BootpTry;
 
 #if defined(CONFIG_CMD_DHCP)
-dhcp_state_t dhcp_state = INIT;
-unsigned long dhcp_leasetime;
-IPaddr_t NetDHCPServerIP;
+static dhcp_state_t dhcp_state = INIT;
+static unsigned long dhcp_leasetime;
+static IPaddr_t NetDHCPServerIP;
 static void DhcpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			unsigned len);
 
@@ -439,7 +439,7 @@ static int DhcpExtended(u8 *e, int message_type, IPaddr_t ServerID,
 			*e++ = 17;
 			*e++ = 0;	/* type 0 - UUID */
 
-			uuid_str_to_bin(uuid, e);
+			uuid_str_to_bin(uuid, e, UUID_STR_FORMAT_STD);
 			e += 16;
 		} else {
 			printf("Invalid pxeuuid: %s\n", uuid);

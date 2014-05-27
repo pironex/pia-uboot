@@ -4,22 +4,12 @@
  * Modified to support C structur SoC access by
  * Andreas Bießmann <biessmann@corscience.de>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <watchdog.h>
+#include <serial.h>
+#include <linux/compiler.h>
 
 #include <asm/io.h>
 #include <asm/arch/clk.h>
@@ -29,7 +19,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-void serial_setbrg(void)
+static void atmel_serial_setbrg(void)
 {
 	atmel_usart3_t *usart = (atmel_usart3_t *)CONFIG_USART_BASE;
 	unsigned long divisor;
@@ -45,7 +35,7 @@ void serial_setbrg(void)
 	writel(USART3_BF(CD, divisor), &usart->brgr);
 }
 
-int serial_init(void)
+static int atmel_serial_init(void)
 {
 	atmel_usart3_t *usart = (atmel_usart3_t *)CONFIG_USART_BASE;
 
@@ -73,7 +63,7 @@ int serial_init(void)
 	return 0;
 }
 
-void serial_putc(char c)
+static void atmel_serial_putc(char c)
 {
 	atmel_usart3_t *usart = (atmel_usart3_t *)CONFIG_USART_BASE;
 
@@ -84,13 +74,7 @@ void serial_putc(char c)
 	writel(c, &usart->thr);
 }
 
-void serial_puts(const char *s)
-{
-	while (*s)
-		serial_putc(*s++);
-}
-
-int serial_getc(void)
+static int atmel_serial_getc(void)
 {
 	atmel_usart3_t *usart = (atmel_usart3_t *)CONFIG_USART_BASE;
 
@@ -99,8 +83,29 @@ int serial_getc(void)
 	return readl(&usart->rhr);
 }
 
-int serial_tstc(void)
+static int atmel_serial_tstc(void)
 {
 	atmel_usart3_t *usart = (atmel_usart3_t *)CONFIG_USART_BASE;
 	return (readl(&usart->csr) & USART3_BIT(RXRDY)) != 0;
+}
+
+static struct serial_device atmel_serial_drv = {
+	.name	= "atmel_serial",
+	.start	= atmel_serial_init,
+	.stop	= NULL,
+	.setbrg	= atmel_serial_setbrg,
+	.putc	= atmel_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= atmel_serial_getc,
+	.tstc	= atmel_serial_tstc,
+};
+
+void atmel_serial_initialize(void)
+{
+	serial_register(&atmel_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &atmel_serial_drv;
 }

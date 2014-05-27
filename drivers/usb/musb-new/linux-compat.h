@@ -12,11 +12,6 @@
 #define __iomem
 #define __deprecated
 
-#define __releases(lock)
-#define __acquires(lock)
-
-typedef enum { false = 0, true = 1 } bool;
-
 struct unused {};
 typedef struct unused unused_t;
 
@@ -44,28 +39,12 @@ typedef unsigned long dmaaddr_t;
 #define cpu_relax() do {} while (0)
 
 #define pr_debug(fmt, args...) debug(fmt, ##args)
-#define dev_dbg(dev, fmt, args...)		\
-	debug(fmt, ##args)
-#define dev_vdbg(dev, fmt, args...)		\
-	debug(fmt, ##args)
-#define dev_info(dev, fmt, args...)		\
-	printf(fmt, ##args)
-#define dev_err(dev, fmt, args...)		\
-	printf(fmt, ##args)
-#define printk printf
 
 #define WARN(condition, fmt, args...) ({	\
 	int ret_warn = !!condition;		\
 	if (ret_warn)				\
 		printf(fmt, ##args);		\
-	ret_warn;})
-
-#define KERN_DEBUG
-#define KERN_NOTICE
-#define KERN_WARNING
-#define KERN_ERR
-
-#define kfree(ptr) free(ptr)
+	ret_warn; })
 
 #define pm_runtime_get_sync(dev) do {} while (0)
 #define pm_runtime_put(dev) do {} while (0)
@@ -104,7 +83,7 @@ typedef unsigned long dmaaddr_t;
 #define platform_data device_data
 
 #ifndef wmb
-#define wmb()			asm volatile (""   : : :"memory")
+#define wmb()			asm volatile (""   : : : "memory")
 #endif
 
 #define msleep(a)	udelay(a * 1000)

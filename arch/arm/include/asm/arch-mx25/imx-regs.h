@@ -2,7 +2,7 @@
  * Copyright (C) 2009, DENX Software Engineering
  * Author: John Rigby <jcrigby@gmail.com
  *
- *   Based on arch-mx31/mx31-regs.h
+ *   Based on arch-mx31/imx-regs.h
  *	Copyright (C) 2009 Ilya Yanok,
  *		Emcraft Systems <yanok@emcraft.com>
  *   and arch-mx27/imx-regs.h
@@ -11,35 +11,14 @@
  *	Copyright (C) 2009 Ilya Yanok,
  *		Emcraft Systems <yanok@emcraft.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _IMX_REGS_H
 #define _IMX_REGS_H
 
-#ifndef __ASSEMBLY__
-
+#if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
-
-#ifdef CONFIG_FEC_MXC
-extern void mx25_fec_init_pins(void);
-#endif
 
 /* Clock Control Module (CCM) registers */
 struct ccm_regs {
@@ -118,8 +97,12 @@ struct iim_regs {
 	u32 iim_sdat;
 	u32 iim_prev;
 	u32 iim_srev;
-	u32 iim_prog_p;
-	u32 res1[0x1f5];
+	u32 iim_prg_p;
+	u32 iim_scs0;
+	u32 iim_scs1;
+	u32 iim_scs2;
+	u32 iim_scs3;
+	u32 res1[0x1f1];
 	struct fuse_bank {
 		u32 fuse_regs[0x20];
 		u32 fuse_rsvd[0xe0];
@@ -127,8 +110,17 @@ struct iim_regs {
 };
 
 struct fuse_bank0_regs {
-	u32 fuse0_25[0x1a];
+	u32 fuse0_7[8];
+	u32 uid[8];
+	u32 fuse16_25[0xa];
 	u32 mac_addr[6];
+};
+
+struct fuse_bank1_regs {
+	u32 fuse0_21[0x16];
+	u32 usr5;
+	u32 fuse23_29[7];
+	u32 usr6[2];
 };
 
 /* Multi-Layer AHB Crossbar Switch (MAX) registers */
@@ -192,6 +184,7 @@ struct aips_regs {
 #define IMX_CSPI1_BASE		(0x43FA4000)
 #define IMX_KPP_BASE		(0x43FA8000)
 #define IMX_IOPADMUX_BASE	(0x43FAC000)
+#define IOMUXC_BASE_ADDR	IMX_IOPADMUX_BASE
 #define IMX_IOPADCTL_BASE	(0x43FAC22C)
 #define IMX_IOPADGRPCTL_BASE	(0x43FAC418)
 #define IMX_IOPADINPUTSEL_BASE	(0x43FAC460)
@@ -245,7 +238,9 @@ struct aips_regs {
 #define IMX_PWM1_BASE		(0x53FE0000)
 #define IMX_RTIC_BASE		(0x53FEC000)
 #define IMX_IIM_BASE		(0x53FF0000)
+#define IIM_BASE_ADDR		IMX_IIM_BASE
 #define IMX_USB_BASE		(0x53FF4000)
+#define IMX_USB_PORT_OFFSET	0x200
 #define IMX_CSI_BASE		(0x53FF8000)
 #define IMX_DRYICE_BASE		(0x53FFC000)
 
@@ -254,6 +249,7 @@ struct aips_regs {
 
 /* 128K Internal Static RAM */
 #define IMX_RAM_BASE		(0x78000000)
+#define IMX_RAM_SIZE		(128 * 1024)
 
 /* SDRAM BANKS */
 #define IMX_SDRAM_BANK0_BASE	(0x80000000)
@@ -357,5 +353,6 @@ struct aips_regs {
 
 #define CHIP_REV_1_0		0x10
 #define CHIP_REV_1_1		0x11
+#define CHIP_REV_1_2		0x12
 
 #endif				/* _IMX_REGS_H */

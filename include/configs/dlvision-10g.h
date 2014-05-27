@@ -2,30 +2,13 @@
  * (C) Copyright 2010
  * Dirk Eibach,  Guntermann & Drunck GmbH, eibach@gdsys.de
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
 #define CONFIG_405EP		1	/* this is a PPC405 CPU */
-#define CONFIG_4xx		1	/*  member of PPC4xx family */
 #define CONFIG_DLVISION_10G	1	/*  on a DLVision-10G board */
 
 #define	CONFIG_SYS_TEXT_BASE	0xFFFC0000
@@ -34,7 +17,7 @@
  * Include common defines/options for all AMCC eval boards
  */
 #define CONFIG_HOSTNAME		dlvsion-10g
-#define CONFIG_IDENT_STRING	" dlvision-10g 0.03"
+#define CONFIG_IDENT_STRING	" dlvision-10g 0.05"
 #include "amcc-common.h"
 
 #define CONFIG_BOARD_EARLY_INIT_F
@@ -114,7 +97,7 @@
 /*
  * I2C stuff
  */
-#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		100000
 
 /* Temp sensor/hwmon/dtt */
 #define CONFIG_DTT_LM63		1	/* National LM63	*/
@@ -139,9 +122,15 @@
 
 #define CONFIG_SYS_FPGA_COUNT		2
 
+#define CONFIG_SYS_FPGA_PTR { \
+	(struct ihs_fpga *)CONFIG_SYS_FPGA0_BASE, \
+	(struct ihs_fpga *)CONFIG_SYS_FPGA1_BASE }
+
+#define CONFIG_SYS_FPGA_COMMON
+
 #define CONFIG_SYS_LATCH0_RESET		0xffff
 #define CONFIG_SYS_LATCH0_BOOT		0xffff
-#define CONFIG_SYS_LATCH1_RESET		0xffcf
+#define CONFIG_SYS_LATCH1_RESET		0xffbf
 #define CONFIG_SYS_LATCH1_BOOT		0xffff
 
 #define CONFIG_SYS_FPGA_NO_RFL_HI
@@ -161,7 +150,6 @@
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Timeout for Flash Write/ms */
 
 #define CONFIG_SYS_FLASH_USE_BUFFER_WRITE 1	/* use buff'd writes */
-#define CONFIG_SYS_FLASH_PROTECTION	1	/* use hardware flash protect */
 
 #define CONFIG_SYS_FLASH_EMPTY_INFO	/* 'E' for empty sector on flinfo */
 #define CONFIG_SYS_FLASH_QUIET_TEST	1	/* no warn upon unknown flash */
@@ -229,9 +217,8 @@
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_DATA_ADDR /* in SDRAM */
 #define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_OCM_DATA_SIZE /* End of used area */
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size/bytes res'd for init data*/
 #define CONFIG_SYS_GBL_DATA_OFFSET \
-	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+	(CONFIG_SYS_INIT_RAM_END - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*

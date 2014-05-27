@@ -1,33 +1,17 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <fdtdec.h>
 #include <asm/io.h>
-#include <asm/arch/ap20.h>
+#include <asm/arch-tegra/ap.h>
 #include <asm/arch/apb_misc.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/emc.h>
-#include <asm/arch/tegra20.h>
+#include <asm/arch/tegra.h>
 
 /*
  * The EMC registers have shadow registers.  When the EMC clock is updated
@@ -257,7 +241,7 @@ static int decode_emc(const void *blob, unsigned rate, struct emc_ctlr **emcp,
 int tegra_set_emc(const void *blob, unsigned rate)
 {
 	struct emc_ctlr *emc;
-	const u32 *table;
+	const u32 *table = NULL;
 	int err, i;
 
 	err = decode_emc(blob, rate, &emc, &table);

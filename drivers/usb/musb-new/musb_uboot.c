@@ -1,4 +1,5 @@
 #include <common.h>
+#include <watchdog.h>
 #include <asm/errno.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
@@ -111,7 +112,7 @@ int submit_int_msg(struct usb_device *dev, unsigned long pipe,
 	return submit_urb(&hcd, urb);
 }
 
-int usb_lowlevel_init(void)
+int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
 {
 	u8 power;
 	void *mbase;
@@ -147,7 +148,7 @@ int usb_lowlevel_init(void)
 	return 0;
 }
 
-int usb_lowlevel_stop(void)
+int usb_lowlevel_stop(int index)
 {
 	if (!host) {
 		printf("MUSB host is not registered\n");
@@ -164,6 +165,7 @@ static struct musb *gadget;
 
 int usb_gadget_handle_interrupts(void)
 {
+	WATCHDOG_RESET();
 	if (!gadget || !gadget->isr)
 		return -EINVAL;
 
@@ -174,7 +176,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 {
 	int ret;
 
-	if (!driver || driver->speed < USB_SPEED_HIGH || !driver->bind ||
+	if (!driver || driver->speed < USB_SPEED_FULL || !driver->bind ||
 	    !driver->setup) {
 		printf("bad parameter.\n");
 		return -EINVAL;

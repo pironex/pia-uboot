@@ -16,6 +16,7 @@
 #ifndef __CONFIG_AM335X_PIA_H
 #define __CONFIG_AM335X_PIA_H
 
+#include <configs/ti_am335x_common.h>
 #define CONFIG_AM33XX
 
 /*#define PIA_ON_BONE*/
@@ -44,12 +45,18 @@
 #endif
 
 #define CONFIG_BOARD_LATE_INIT
+/* disable some common configs */
+#undef CONFIG_HW_WATCHDOG
+#undef CONFIG_OMAP_WATCHDOG
 
-#include <asm/arch/cpu.h>
-#include <asm/arch/hardware.h>
+/* Always 128 KiB env size */
+#define CONFIG_ENV_SIZE			(128 << 10)
 
-#define CONFIG_DMA_COHERENT
-#define CONFIG_DMA_COHERENT_SIZE	(1 << 20)
+/* Enhance our eMMC support / experience. */
+#define CONFIG_CMD_GPT
+#define CONFIG_EFI_PARTITION
+#define CONFIG_PARTITION_UUIDS
+#define CONFIG_CMD_PART
 
 #define CONFIG_SYS_MALLOC_LEN		(1024 << 10)
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
@@ -66,14 +73,8 @@
 
 #define CONFIG_SYS_CACHELINE_SIZE       64
 
-/* commands to include */
-#include <config_cmd_default.h>
-
-#if defined(CONFIG_PIA_NAND)
+#if defined(CONFIG_NAND)
 /* no NAND on MMI but doesn't hurt to enable anyway */
-#define CONFIG_MTD_DEVICE	/* missing this causes error 'undefined reference to `get_mtd_device_nm' (was defined with SPI) */
-#define CONFIG_CMD_MTDPARTS
-#define MTDIDS_DEFAULT		"nand0=omap2-nand.0"
 #ifdef NAND_4K_PAGES
 #define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:256k(SPL)," \
 				"256k(SPL.backup1),256k(SPL.backup2)," \
@@ -85,13 +86,30 @@
 				"128k(SPL.backup3),1920k(u-boot)," \
 				"128k(u-boot-env),5m(kernel),-(rootfs)"
 #endif
+
+#define NANDARGS \
+	"mtdids=" MTDIDS_DEFAULT "\0" \
+	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"nandargs=setenv bootargs console=${console} " \
+		"${optargs} " \
+		"root=${nandroot} " \
+		"rootfstype=${nandrootfstype}\0" \
+	"nandroot=ubi0:rootfs rw ubi.mtd=7,2048\0" \
+	"nandrootfstype=ubifs rootwait=1\0" \
+	"nandboot=echo Booting from nand ...; " \
+		"run nandargs; " \
+		"nand read ${fdtaddr} u-boot-spl-os; " \
+		"nand read ${loadaddr} kernel; " \
+		"bootz ${loadaddr} - ${fdtaddr}\0"
+#else
+#define NANDARGS ""
 #endif
 
 #define CONFIG_CMD_ASKENV
 #define CONFIG_VERSION_VARIABLE
 
-#if !(defined(CONFIG_USB_SPL) && defined(CONFIG_SPL_BUILD))
-#if defined(CONFIG_PIA_NAND)
+#if !defined(CONFIG_SPL_BUILD)
+/*#if defined(CONFIG_PIA_NAND)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x80200000\0" \
 	"kloadaddr=0x80007fc0\0" \
@@ -103,14 +121,7 @@
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
 	"mmcrootfstype=ext4 rootwait\0" \
-	"nandroot=ubi0:rootfs rw ubi.mtd=7,2048\0" \
-	"nandrootfstype=ubifs rootwait=1\0" \
-	"nandsrcaddr=0x280000\0" \
-	"nandimgsize=0x500000\0" \
-	"mtdids=" MTDIDS_DEFAULT "\0" \
-	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"rootpath=/export/rootfs\0" \
-	"nfsopts=nolock\0" \
 	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
 	"ramrootfstype=ext2\0" \
 	"ip_method=none\0" \
@@ -122,11 +133,7 @@
 	"mmcargs=run bootargs_defaults;" \
 		"setenv bootargs ${bootargs} " \
 		"root=${mmcroot} " \
-		"rootfstype=${mmcrootfstype} ip=${ip_method}\0" \
-	"nandargs=run bootargs_defaults;" \
-		"setenv bootargs ${bootargs} " \
-		"root=${nandroot} noinitrd " \
-		"rootfstype=${nandrootfstype} ip=${ip_method}\0" \
+		"rootfstype=${mmcrootfstype}\0" \
 	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
 	"ramrootfstype=ext2\0" \
 	"netargs=run bootargs_defaults;" \
@@ -145,146 +152,55 @@
 	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
 	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
 	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"bootm ${kloadaddr}\0" \
+	"mmcloados=run mmcargs; " \
+		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"if run loadfdt; then " \
+				"bootz ${loadaddr} - ${fdtaddr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootz; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootz; " \
+		"fi;\0" \
+	"mmcboot=mmc dev ${mmcdev}; " \
+		"if mmc rescan; then " \
+			"echo SD/MMC found on device ${mmcdev};" \
+			"if run loadbootenv; then " \
+				"echo Loaded environment from ${bootenv};" \
+				"run importbootenv;" \
+			"fi;" \
+			"if test -n $uenvcmd; then " \
+				"echo Running uenvcmd ...;" \
+				"run uenvcmd;" \
+			"fi;" \
+			"if run loadimage; then " \
+				"run mmcloados;" \
+			"fi;" \
+		"fi;\0" \
 	"nandboot=echo Booting from nand ...; " \
 		"run nandargs; " \
 		"nand read.i ${kloadaddr} ${nandsrcaddr} ${nandimgsize}; " \
 		"bootm ${kloadaddr}\0" \
-	"netboot=echo Booting from network ...; " \
-		"setenv autoload no; " \
-		"dhcp; " \
-		"tftp ${kloadaddr} ${bootfile}; " \
-		"run netargs; " \
-		"bootm ${kloadaddr}\0" \
 	"ramboot=echo Booting from ramdisk ...; " \
 		"run ramargs; " \
 		"bootm ${loadaddr}\0" \
-    CONFIG_DFU_ALT
+	NANDARGS \
+	DFUARGS
+#endif /* !SPL_BUILD */
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
-		"echo SD/MMC found on device ${mmcdev};" \
-		"if run loadbootenv; then " \
-			"echo Loaded environment from ${bootenv};" \
-			"run importbootenv;" \
-		"fi;" \
-		"if test -n $uenvcmd; then " \
-			"echo Running uenvcmd ...;" \
-			"run uenvcmd;" \
-		"fi;" \
-		"if run loaduimagefat; then " \
-			"run mmcboot;" \
-		"elif run loaduimage; then " \
-			"run mmcboot;" \
-		"else " \
-			"echo Cound not find ${bootfile} ;" \
-		"fi;" \
-	"else " \
-		"run nandboot;" \
-	"fi;"
-
-#else /*if defined(CONFIG_PIA_MMI)*/
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"loadaddr=0x80200000\0" \
-	"kloadaddr=0x80007fc0\0" \
-	"fdtaddr=0x80F80000\0" \
-	"rdaddr=0x81000000\0" \
-	"bootfile=uImage\0" \
-	"console=ttyO0,115200n8\0" \
-	"optargs=\0" \
-	"mmcdev=0\0" \
-	"mmcroot=/dev/mmcblk0p2 ro\0" \
-	"mmcrootfstype=ext4 rootwait\0" \
-	"rootpath=/export/rootfs\0" \
-	"nfsopts=nolock\0" \
-	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
-	"ramrootfstype=ext2\0" \
-	"ip_method=none\0" \
-	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
-		"::off\0" \
-	"debug=early_printk debug\0" \
-	"bootargs_defaults=setenv bootargs " \
-		"console=${console} ${debug} ${optargs}\0" \
-	"mmcargs=run bootargs_defaults;" \
-		"setenv bootargs ${bootargs} " \
-		"root=${mmcroot} " \
-		"rootfstype=${mmcrootfstype} ip=${ip_method}\0" \
-	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
-	"ramrootfstype=ext2\0" \
-	"netargs=run bootargs_defaults;" \
-		"setenv bootargs ${bootargs} " \
-		"root=/dev/nfs " \
-		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
-		"ip=dhcp\0" \
-	"bootenv=uEnv.txt\0" \
-	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
-	"importbootenv=echo Importing environment from mmc ...; " \
-		"env import -t $loadaddr $filesize\0" \
-	"ramargs=setenv bootargs console=${console} " \
-		"${optargs} " \
-		"root=${ramroot} " \
-		"rootfstype=${ramrootfstype}\0" \
-	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
-	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
-	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"bootm ${kloadaddr}\0" \
-	"netboot=echo Booting from network ...; " \
-		"setenv autoload no; " \
-		"dhcp; " \
-		"tftp ${kloadaddr} ${bootfile}; " \
-		"run netargs; " \
-		"bootm ${kloadaddr}\0" \
-	"ramboot=echo Booting from ramdisk ...; " \
-		"run ramargs; " \
-		"bootm ${loadaddr}\0" \
-    CONFIG_DFU_ALT
-
-#define CONFIG_BOOTCOMMAND \
-	"mmc dev 0;" \
-	"if mmc rescan ;" \
-		"then echo MMC found on mmc0; " \
-		"setenv mmcdev 0; " \
-	"else echo no MMC found on mmc0, trying mmc1; " \
-		"setenv mmcdev 1; " \
-	"fi; " \
-	"mmc dev ${mmcdev} ;" \
-	"if mmc rescan ${mmcdev}; then " \
-		"echo SD/MMC found on device ${mmcdev};" \
-		"if run loadbootenv; then " \
-			"echo Loaded environment from ${bootenv};" \
-			"run importbootenv;" \
-		"fi;" \
-		"if test -n $uenvcmd; then " \
-			"echo Running uenvcmd ...;" \
-			"run uenvcmd;" \
-		"fi;" \
-		"if run loaduimagefat; then " \
-			"run mmcboot;" \
-		"elif run loaduimage; then " \
-			"run mmcboot;" \
-		"else " \
-			"echo Cound not find ${bootfile} ;" \
-		"fi;" \
-	"fi;"
-#endif /* no NAND */
+	"run mmcboot;" \
+	"setenv mmcdev 1; " \
+	"setenv bootpart 1:2; " \
+	"run mmcboot;" \
+	"run nandboot;"
 
 /* set to negative value for no autoboot */
 #define CONFIG_BOOTDELAY		1
-
-#else
-#define CONFIG_BOOTDELAY		0
-
-#define CONFIG_BOOTCOMMAND			\
-	"setenv autoload no; "			\
-	"dhcp; "				\
-	"if tftp 80000000 debrick.scr; then "	\
-		"source 80000000; "		\
-	"fi"
-#endif
 
 /* Clock Defines */
 #define V_OSCK				24000000  /* Clock output from T2 */
@@ -292,8 +208,9 @@
 
 #define CONFIG_CMD_ECHO
 
-/* max number of command args */
-#define CONFIG_SYS_MAXARGS		16
+/* Bootcount using the RTC block */
+#define CONFIG_BOOTCOUNT_LIMIT
+#define CONFIG_BOOTCOUNT_AM33XX
 
 /* Console I/O Buffer Size */
 #define CONFIG_SYS_CBSIZE		512
@@ -313,7 +230,6 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START \
 					+ (8 * 1024 * 1024))
 
-#define CONFIG_SYS_LOAD_ADDR		0x81000000 /* Default load address */
 #define CONFIG_SYS_HZ			1000 /* 1ms clock */
 
 #define CONFIG_MMC
@@ -326,18 +242,16 @@
 #define CONFIG_CMD_EXT2
 #define CONFIG_FAT_WRITE
 
-/* TODO SPI can be removed completely? */
-#if 0
-#define CONFIG_SPI
 #define CONFIG_OMAP3_SPI
-#define CONFIG_MTD_DEVICE
 #if 0
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_CMD_SF
 #define CONFIG_SF_DEFAULT_SPEED		(24000000)
 #endif
-#endif
+
+/* PMIC */
+#define CONFIG_POWER_TPS65910
 
 /* TODO no usb gadget on piA */
 /* USB Composite download gadget - g_dnl */
@@ -352,46 +266,14 @@
 #define CONFIG_G_DNL_MANUFACTURER "Texas Instruments"
 #endif
 
-/* USB Device Firmware Update (DFU) support */
-#define DFU_ALT_INFO_NAND \
-	"dfu_alt_info=" \
-	"SPL part 0 1;" \
-	"SPL.backup1 part 0 2;" \
-	"SPL.backup2 part 0 3;" \
-	"SPL.backup3 part 0 4;" \
-	"u-boot part 0 5;" \
-	"kernel part 0 7;" \
-	"rootfs part 0 8\0" \
-
-#define DFU_ALT_INFO_MMC \
-	"dfu_alt_info=" \
-	"boot part 0 1;" \
-	"rootfs part 0 2;" \
-	"MLO fat 0 1;" \
-	"u-boot.img fat 0 1;" \
-	"uEnv.txt fat 0 1\0"
-
-/* TODO firmware update not possible on piA */
-#define CONFIG_DFU_FUNCTION
-#ifdef CONFIG_DFU_MMC
-#define CONFIG_DFU_ALT			DFU_ALT_INFO_MMC
-#elif CONFIG_DFU_NAND
-#endif
-#define CONFIG_DFU_ALT			DFU_ALT_INFO_NAND
-#if 0
-#define CONFIG_CMD_DFU
-#endif
-
 /* CPSW ethernet */
 #if 0 /* no ethernet boot required */
 #define CONFIG_CMD_NET
 #endif
 /* below only for testing, not really used */
-#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
 #define CONFIG_DRIVER_TI_CPSW
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -410,12 +292,8 @@
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1		/*  1 bank of DRAM */
 #define PHYS_DRAM_1			0x80000000	/* DRAM Bank #1 */
-#if 0 /* FIXME not in EVM config */
-#define PHYS_DRAM_1_SIZE		0x10000000 /*(0x80000000 / 8) 256 MB */
-#endif
 #define CONFIG_MAX_RAM_BANK_SIZE	(1024 << 20)	/* 1GB */
 
-#define CONFIG_SYS_SDRAM_BASE		PHYS_DRAM_1
 #define CONFIG_SYS_INIT_SP_ADDR         (NON_SECURE_SRAM_END - \
 						GENERATED_GBL_DATA_SIZE)
 /* Platform/Board specific defs */
@@ -427,19 +305,16 @@
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	(-4)
-#define CONFIG_SYS_NS16550_CLK		(48000000)
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */
 
 /* I2C Configuration */
 #define CONFIG_I2C
 #define CONFIG_CMD_I2C
 #define CONFIG_HARD_I2C
-#define CONFIG_SYS_I2C_SPEED		100000
-#define CONFIG_SYS_I2C_SLAVE		1
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_DRIVER_OMAP24XX_I2C
 #define CONFIG_CMD_EEPROM
-#define no_CONFIG_ENV_EEPROM_IS_ON_I2C
+#define CONFIG_ENV_EEPROM_IS_ON_I2C
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* Main EEPROM */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
@@ -447,8 +322,6 @@
 #define CONFIG_OMAP_GPIO
 
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 110, 300, 600, 1200, 2400, \
-4800, 9600, 14400, 19200, 28800, 38400, 56000, 57600, 115200 }
 
 /*
  * select serial console configuration
@@ -459,6 +332,7 @@
 
 #define CONFIG_ENV_IS_NOWHERE
 
+#ifdef CONFIG_NAND
 #ifndef NAND_4K_PAGES
 /* NAND Configuration.
  * Page  2K + 64 Bytes
@@ -512,16 +386,16 @@
 #define CONFIG_SYS_NAND_ECCSTEPS	8
 #define	CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * \
 						CONFIG_SYS_NAND_ECCSTEPS)
-#endif
+#endif /* 4K_PAGES */
+#endif /* NAND */
+
 /* Defines for SPL */
 #define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x402F0400
-#define CONFIG_SPL_MAX_SIZE		(101 * 1024)
 #define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR
 
 #define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/omap-common/u-boot-spl.lds"
-#define CONFIG_SPL_BSS_START_ADDR	0x80000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 /* Core features. */
@@ -531,6 +405,7 @@
 #define CONFIG_SPL_I2C_SUPPORT
 #define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SPL_GPIO_SUPPORT
+#define CONFIG_SPL_POWER_SUPPORT
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_PANIC_HANG		/* Do not call do_reset() */
 #endif
@@ -585,8 +460,6 @@
  * other needs.
  */
 #define CONFIG_SYS_TEXT_BASE		0x80800000
-#define CONFIG_SYS_SPL_MALLOC_START	0x80208000
-#define CONFIG_SYS_SPL_MALLOC_SIZE	0x100000
 
 /* Since SPL did pll and ddr initialization for us,
  * we don't need to do it twice.
@@ -618,15 +491,9 @@
 #endif
 
 #ifdef CONFIG_MUSB_GADGET
-#if 0
 #define CONFIG_USB_ETHER
 #define CONFIG_USB_ETH_RNDIS
-#define CONFIG_USBNET_DEV_ADDR	"aa:bb:cc:00:11:33"
 #define CONFIG_USBNET_HOST_ADDR	"aa:bb:cc:00:11:44"
-#endif
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_TFTP
 #endif /* CONFIG_MUSB_GADGET */
 
 /* ENV in SPI */
@@ -660,7 +527,6 @@
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x260000 /* environment starts here */
-#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 #endif
 #endif
 #elif 0 /*defined(CONFIG_EMMC_BOOT)*/
@@ -669,12 +535,56 @@
 #define CONFIG_SYS_MMC_ENV_DEV		1 /* eMMC device */
 #define CONFIG_SYS_MMC_ENV_PART		2 /* eMMC Boot 2*/
 /* #define CONFIG_EMMC_RESET */
-#define CONFIG_ENV_SIZE			4096	/* 128 KiB */
 #define CONFIG_CMD_SAVEENV
 #else
 #define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE			4096	/* 128 KiB */
 #endif
+
+/* USB Device Firmware Update (DFU) support */
+/* TODO firmware update not possible on piA */
+#define CONFIG_DFU_FUNCTION
+#define CONFIG_DFU_MMC
+#define nCONFIG_CMD_DFU
+#define DFU_ALT_INFO_MMC \
+	"dfu_alt_info_mmc=" \
+	"boot part 0 1;" \
+	"rootfs part 0 2;" \
+	"MLO fat 0 1;" \
+	"MLO.raw mmc 100 100;" \
+	"u-boot.img.raw mmc 300 400;" \
+	"spl-os-args.raw mmc 80 80;" \
+	"spl-os-image.raw mmc 900 2000;" \
+	"spl-os-args fat 0 1;" \
+	"spl-os-image fat 0 1;" \
+	"u-boot.img fat 0 1;" \
+	"uEnv.txt fat 0 1\0"
+#ifdef CONFIG_NAND
+#define CONFIG_DFU_NAND
+#define DFU_ALT_INFO_NAND \
+	"dfu_alt_info_nand=" \
+	"SPL part 0 1;" \
+	"SPL.backup1 part 0 2;" \
+	"SPL.backup2 part 0 3;" \
+	"SPL.backup3 part 0 4;" \
+	"u-boot part 0 5;" \
+	"u-boot-spl-os part 0 6;" \
+	"kernel part 0 8;" \
+	"rootfs part 0 9\0"
+#else
+#define DFU_ALT_INFO_NAND ""
+#endif /* NAND */
+
+#define CONFIG_DFU_RAM
+#define DFU_ALT_INFO_RAM \
+	"dfu_alt_info_ram=" \
+	"kernel ram 0x80200000 0xD80000;" \
+	"fdt ram 0x80F80000 0x80000;" \
+	"ramdisk ram 0x81000000 0x4000000\0"
+#define DFUARGS \
+	"dfu_alt_info_emmc=rawemmc mmc 0 3751936\0" \
+	DFU_ALT_INFO_MMC \
+	DFU_ALT_INFO_RAM \
+	DFU_ALT_INFO_NAND
 
 /* E2 settings */
 
@@ -697,7 +607,7 @@
 #define CONFIG_MMI_ACC_INT2_GPIO  	((0 * 32) + 7)	//gpio0_7
 #define CONFIG_MMI_XDMA_EVENT_INTR0_GPIO  	((0 * 32) + 19)	//gpio0_19
 
-/* TODO remove */
+/* TODO implement NOR settings */
 #if 0
 /*
  * NOR Size = 16 MB

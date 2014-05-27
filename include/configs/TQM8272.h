@@ -2,23 +2,7 @@
  * (C) Copyright 2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -33,7 +17,6 @@
  * (easy to change)
  */
 
-#define CONFIG_MPC8260		1	/* This is a MPC8260 CPU		*/
 #define CONFIG_MPC8272_FAMILY   1
 #define CONFIG_TQM8272		1
 
@@ -97,11 +80,10 @@
 
 #if CONFIG_I2C
 /* enable I2C and select the hardware/software driver */
-#undef  CONFIG_HARD_I2C			/* I2C with hardware support	*/
-#define CONFIG_SOFT_I2C		1	/* I2C bit-banged		*/
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SOFT_SPEED	400000
+#define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
 /*
  * Software (bit-bang) I2C driver configuration
  */
@@ -135,8 +117,9 @@
 #define CONFIG_SYS_DTT_HYSTERESIS	3
 
 #else
+#undef CONFIG_SYS_I2C
 #undef CONFIG_HARD_I2C
-#undef CONFIG_SOFT_I2C
+#undef CONFIG_SYS_I2C_SOFT
 #endif
 
 /*
@@ -306,7 +289,6 @@
  * Miscellaneous configurable options
  */
 #define	CONFIG_SYS_LONGHELP			/* undef to save memory		*/
-#define	CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #if 0
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
@@ -326,8 +308,6 @@
 #define CONFIG_SYS_MEMTEST_END	0x0C00000	/* 4 ... 12 MB in DRAM	*/
 
 #define	CONFIG_SYS_LOAD_ADDR	0x300000	/* default load address	*/
-
-#define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
 #define	CONFIG_SYS_RESET_ADDRESS 0x40000104	/* "bad" address		*/
 
@@ -443,6 +423,7 @@
 
 #define	CONFIG_PCI
 #ifdef CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f	*/
 #define CONFIG_PCI_PNP
 #define CONFIG_EEPRO100

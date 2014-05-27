@@ -4,23 +4,7 @@
  * Matrix Vision mvBlueLYNX-M7 configuration file
  * based on Freescale's MPC8349ITX.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 
@@ -33,7 +17,6 @@
  * High Level Configuration Options
  */
 #define CONFIG_E300	1
-#define CONFIG_MPC83xx	1
 #define CONFIG_MPC834x	1
 #define CONFIG_MPC8343	1
 
@@ -42,8 +25,8 @@
 #define CONFIG_SYS_IMMR		0xE0000000
 
 #define CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_SKIP_HOST_BRIDGE
-#define CONFIG_HARD_I2C
 #define CONFIG_TSEC_ENET
 #define CONFIG_MPC8XXX_SPI
 #define CONFIG_HARD_SPI
@@ -51,13 +34,14 @@
 #define CONFIG_MISC_INIT_R
 
 /* I2C */
-#define CONFIG_FSL_I2C
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
-
-#define CONFIG_SYS_I2C_SPEED		100000
-#define CONFIG_SYS_I2C_SLAVE		0x7F
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	100000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	100000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
 
 /*
  * DDR Setup
@@ -243,6 +227,7 @@
 #define CONFIG_BOOTP_NTPSERVER
 #define CONFIG_BOOTP_RANDOM_DELAY
 #define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_LIB_RAND
 
 /* USB */
 #define CONFIG_SYS_USB_HOST
@@ -307,7 +292,6 @@
 			(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS	16
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-#define CONFIG_SYS_HZ		1000
 
 /*
  * For booting Linux, the board info and command line data
@@ -455,23 +439,23 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS				\
 	"console_nr=0\0"					\
-	"baudrate=" MK_STR(CONFIG_BAUDRATE) "\0"		\
+	"baudrate=" __stringify(CONFIG_BAUDRATE) "\0"		\
 	"stdin=serial\0"					\
 	"stdout=serial\0"					\
 	"stderr=serial\0"					\
 	"fpga=0\0"						\
-	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"			\
-	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"		\
-	"script_addr=" MK_STR(MV_SCRIPT_ADDR) "\0"		\
-	"script_addr2=" MK_STR(MV_SCRIPT_ADDR2) "\0"		\
-	"mv_kernel_addr=" MK_STR(MV_KERNEL_ADDR) "\0"		\
-	"mv_kernel_addr_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"	\
-	"mv_initrd_addr=" MK_STR(MV_INITRD_ADDR) "\0"		\
-	"mv_initrd_addr_ram=" MK_STR(MV_INITRD_ADDR_RAM) "\0"	\
-	"mv_initrd_length=" MK_STR(MV_INITRD_LENGTH) "\0"	\
-	"mv_dtb_addr=" MK_STR(MV_DTB_ADDR) "\0"			\
-	"mv_dtb_addr_ram=" MK_STR(MV_DTB_ADDR_RAM) "\0"		\
-	"dtb_name=" MK_STR(MV_DTB_NAME) "\0"			\
+	"fpgadata=" __stringify(MV_FPGA_DATA) "\0"			\
+	"fpgadatasize=" __stringify(MV_FPGA_SIZE) "\0"		\
+	"script_addr=" __stringify(MV_SCRIPT_ADDR) "\0"		\
+	"script_addr2=" __stringify(MV_SCRIPT_ADDR2) "\0"		\
+	"mv_kernel_addr=" __stringify(MV_KERNEL_ADDR) "\0"		\
+	"mv_kernel_addr_ram=" __stringify(MV_KERNEL_ADDR_RAM) "\0"	\
+	"mv_initrd_addr=" __stringify(MV_INITRD_ADDR) "\0"		\
+	"mv_initrd_addr_ram=" __stringify(MV_INITRD_ADDR_RAM) "\0"	\
+	"mv_initrd_length=" __stringify(MV_INITRD_LENGTH) "\0"	\
+	"mv_dtb_addr=" __stringify(MV_DTB_ADDR) "\0"			\
+	"mv_dtb_addr_ram=" __stringify(MV_DTB_ADDR_RAM) "\0"		\
+	"dtb_name=" __stringify(MV_DTB_NAME) "\0"			\
 	"mv_version=" U_BOOT_VERSION "\0"			\
 	"dhcp_client_id=" MV_CI "\0"				\
 	"dhcp_vendor-class-identifier=" MV_VCI "\0"		\
@@ -499,7 +483,7 @@
 	""
 
 #define CONFIG_FPGA_COUNT	1
-#define CONFIG_FPGA		CONFIG_SYS_ALTERA_CYCLON2
+#define CONFIG_FPGA
 #define CONFIG_FPGA_ALTERA
 #define CONFIG_FPGA_CYCLON2
 

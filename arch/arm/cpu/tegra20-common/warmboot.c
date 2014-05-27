@@ -2,39 +2,23 @@
  * (C) Copyright 2010 - 2011
  * NVIDIA Corporation <www.nvidia.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <asm/errno.h>
-#include <asm/arch/ap20.h>
-#include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/pmc.h>
-#include <asm/arch/pinmux.h>
-#include <asm/arch/tegra20.h>
-#include <asm/arch/fuse.h>
 #include <asm/arch/emc.h>
 #include <asm/arch/gp_padctrl.h>
-#include <asm/arch/warmboot.h>
+#include <asm/arch/pinmux.h>
 #include <asm/arch/sdram_param.h>
+#include <asm/arch/tegra.h>
+#include <asm/arch-tegra/ap.h>
+#include <asm/arch-tegra/clk_rst.h>
+#include <asm/arch-tegra/pmc.h>
+#include <asm/arch-tegra/fuse.h>
+#include <asm/arch-tegra/warmboot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -46,7 +30,7 @@ DECLARE_GLOBAL_DATA_PTR;
  * This is the place in SRAM where the SDRAM parameters are stored. There
  * are 4 blocks, one for each RAM code
  */
-#define SDRAM_PARAMS_BASE	(AP20_BASE_PA_SRAM + 0x188)
+#define SDRAM_PARAMS_BASE	(NV_PA_BASE_SRAM + 0x188)
 
 /* TODO: If we later add support for the Misc GP controller, refactor this */
 union xm2cfga_reg {
@@ -361,8 +345,8 @@ int warmboot_prepare_code(u32 seg_address, u32 seg_length)
 	/* Populate the header. */
 	dst_header->length_insecure = length + sizeof(struct wb_header);
 	dst_header->length_secure = length + sizeof(struct wb_header);
-	dst_header->destination = AP20_WB_RUN_ADDRESS;
-	dst_header->entry_point = AP20_WB_RUN_ADDRESS;
+	dst_header->destination = NV_WB_RUN_ADDRESS;
+	dst_header->entry_point = NV_WB_RUN_ADDRESS;
 	dst_header->code_length = length;
 
 	if (is_encrypted) {

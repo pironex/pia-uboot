@@ -4,29 +4,14 @@
  *
  * (C) Copyright 2009 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <div64.h>
 #include <asm/arch/imx-regs.h>
+#include <asm/arch/clock.h>
 
 /* General purpose timers registers */
 struct mxc_gpt {
@@ -44,24 +29,20 @@ static struct mxc_gpt *cur_gpt = (struct mxc_gpt *)GPT1_BASE_ADDR;
 #define GPTCR_FRR		(1 << 9)	/* Freerun / restart */
 #define GPTCR_CLKSOURCE_32	(4 << 6)	/* Clock source */
 #define GPTCR_TEN		1		/* Timer enable */
-#define CLK_32KHZ		32768		/* 32Khz input */
 
 DECLARE_GLOBAL_DATA_PTR;
-
-#define timestamp (gd->tbl)
-#define lastinc (gd->lastinc)
 
 static inline unsigned long long tick_to_time(unsigned long long tick)
 {
 	tick *= CONFIG_SYS_HZ;
-	do_div(tick, CLK_32KHZ);
+	do_div(tick, MXC_CLK32);
 
 	return tick;
 }
 
 static inline unsigned long long us_to_tick(unsigned long long usec)
 {
-	usec = usec * CLK_32KHZ + 999999;
+	usec = usec * MXC_CLK32 + 999999;
 	do_div(usec, 1000000);
 
 	return usec;
@@ -70,7 +51,6 @@ static inline unsigned long long us_to_tick(unsigned long long usec)
 int timer_init(void)
 {
 	int i;
-	ulong val;
 
 	/* setup GP Timer 1 */
 	__raw_writel(GPTCR_SWR, &cur_gpt->control);
@@ -85,9 +65,8 @@ int timer_init(void)
 	i = __raw_readl(&cur_gpt->control);
 	__raw_writel(i | GPTCR_CLKSOURCE_32 | GPTCR_TEN, &cur_gpt->control);
 
-	val = __raw_readl(&cur_gpt->counter);
-	lastinc = val / (CLK_32KHZ / CONFIG_SYS_HZ);
-	timestamp = 0;
+	gd->arch.tbl = __raw_readl(&cur_gpt->counter);
+	gd->arch.tbu = 0;
 
 	return 0;
 }
@@ -96,25 +75,18 @@ unsigned long long get_ticks(void)
 {
 	ulong now = __raw_readl(&cur_gpt->counter); /* current tick value */
 
-	if (now >= lastinc) {
-		/*
-		 * normal mode (non roll)
-		 * move stamp forward with absolut diff ticks
-		 */
-		timestamp += (now - lastinc);
-	} else {
-		/* we have rollover of incrementer */
-		timestamp += (0xFFFFFFFF - lastinc) + now;
-	}
-	lastinc = now;
-	return timestamp;
+	/* increment tbu if tbl has rolled over */
+	if (now < gd->arch.tbl)
+		gd->arch.tbu++;
+	gd->arch.tbl = now;
+	return (((unsigned long long)gd->arch.tbu) << 32) | gd->arch.tbl;
 }
 
 ulong get_timer_masked(void)
 {
 	/*
 	 * get_ticks() returns a long long (64 bit), it wraps in
-	 * 2^64 / CONFIG_MX25_CLK32 = 2^64 / 2^15 = 2^49 ~ 5 * 10^14 (s) ~
+	 * 2^64 / MXC_CLK32 = 2^64 / 2^15 = 2^49 ~ 5 * 10^14 (s) ~
 	 * 5 * 10^9 days... and get_ticks() * CONFIG_SYS_HZ wraps in
 	 * 5 * 10^6 days - long enough.
 	 */
@@ -145,5 +117,5 @@ void __udelay(unsigned long usec)
  */
 ulong get_tbclk(void)
 {
-	return CLK_32KHZ;
+	return MXC_CLK32;
 }
