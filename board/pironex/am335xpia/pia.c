@@ -434,17 +434,6 @@ static inline int test_pia(void) {
 }
 #endif /* PIA_TESTING */
 
-int board_late_init()
-{
-	/* use this as testing function, ETH is not initialized here */
-	debug("+pia:board_late_init()\n");
-
-#ifdef PIA_TESTING
-	test_pia();
-#endif
-	return 0;
-}
-
 int board_phy_config(struct phy_device *phydev)
 {
 	if (board_is_e2(header)) {
@@ -605,6 +594,21 @@ static int init_tps65910(void)
 		}
 	}
 
+	return 0;
+}
+
+int board_late_init()
+{
+	/* use this as testing function, ETH is not initialized here */
+	debug("+pia:board_late_init()\n");
+	init_tps65910();
+
+	if (board_is_e2(header))
+		init_rtc_rx8801();
+
+#ifdef PIA_TESTING
+	test_pia();
+#endif
 	return 0;
 }
 #endif /* !SPL_BUILD */
