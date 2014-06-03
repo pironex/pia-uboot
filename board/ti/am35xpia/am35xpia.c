@@ -289,9 +289,12 @@ int misc_init_r(void)
 		} else if (expansion_config.revision == 1) {
 			MUX_PIA_EMS_IO();
 			setenv("buddy", "pia_ems_io2");
-		} else {
+		} else if (expansion_config.revision == 3) {
 			MUX_PIA_EMS_IO_V3();
 			setenv("buddy", "pia_ems_io3");
+		} else {
+			MUX_PIA_EMS_IO_V3();
+			setenv("buddy", "pia_ems_io4");
 		}
 		break;
 	case PIA_NEW_EEPROM:
