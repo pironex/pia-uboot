@@ -686,6 +686,7 @@ void am33xx_spl_board_init(void)
 
 const struct dpll_params *get_dpll_ddr_params(void)
 {
+	debug(__FUNCTION__);
 	/* this is called very early in the boot process
 	 * init i2c and read eeprom here */
 	enable_i2c0_pin_mux();
@@ -700,11 +701,13 @@ const struct dpll_params *get_dpll_ddr_params(void)
 /* called at the beginning of s_init */
 void set_uart_mux_conf(void)
 {
+	debug(__FUNCTION__);
 	enable_uart0_pin_mux();
 }
 
 void set_mux_conf_regs(void)
 {
+	debug(__FUNCTION__);
 	if (read_eeprom() < 0)
 		puts("Could not get board ID.\n");
 
@@ -751,12 +754,6 @@ void sdram_init(void)
 	/* safe config for all boards */
 	config_ddr(303, &ioregs_pia, &ddr3_data,
 		   &ddr3_cmd_ctrl_data, &ddr3_emif_reg_data, 0);
-#if DDR400
-		config_ddr(400, &ioregs_bonelt,
-			   &ddr3_beagleblack_data,
-			   &ddr3_beagleblack_cmd_ctrl_data,
-			   &ddr3_beagleblack_emif_reg_data, 0);
-#endif
 }
 #endif /* SPL_BUILD */
 

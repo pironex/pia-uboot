@@ -977,7 +977,4 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_eb_tft);
 		init_pia_ebtft_gpios();
 	}
-
-	/* There is no hook for additional GPIO initialization */
-	//init_pia_gpios();
 }
