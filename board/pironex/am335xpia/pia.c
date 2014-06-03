@@ -178,7 +178,9 @@ static int init_eeprom(int expansion)
 int am33xx_first_start(void)
 {
 	init_eeprom(0);
+#ifdef CONFIG_EXP_NAME
 	init_eeprom(1);
+#endif
 
 	if (board_is_e2(header))
 		init_rtc_rx8801();
