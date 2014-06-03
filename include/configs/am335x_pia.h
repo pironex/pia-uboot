@@ -31,6 +31,8 @@
 #define DEBUG
 #endif /* PIA_DEBUG */
 
+#undef CONFIG_SPL_OS_BOOT /* defined in ti_armv7_common */
+
 #ifdef CONFIG_PIA_FIRSTSTART
  #define CONFIG_PIA_REVISION CONFIG_PIA_FIRSTSTART
  #if defined(CONFIG_MMI_EXTENDED) || defined(CONFIG_MMI_BASIC)
