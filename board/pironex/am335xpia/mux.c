@@ -41,7 +41,7 @@
 #define PULLUDDIS	(0x1 << 3) /* Pull up disabled */
 #define MODE(val)	val	/* used for Readability */
 #endif
-#define	PIN_OUTPUT          (0)
+#define	PIN_OUTPUT          (0 | P_DIS)
 #define	PIN_OUTPUT_PULLUP   (P_UP)
 #define	PIN_INPUT           (IEN | P_DIS)
 #define	PIN_INPUT_PULLUP    (IEN | P_UP | P_EN)
