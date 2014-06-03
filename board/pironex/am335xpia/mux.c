@@ -947,6 +947,15 @@ static void init_pia_ebtft_gpios(void)
 	gpio_direction_output(69, 1);
 }
 
+static void init_lokisa_em_gpios(void)
+{
+	gpio_direction_output(0*32 + 26, 1); /* RS485_4 DE (debug) on */
+	gpio_direction_output(2*32 + 23, 0); /* GSM_PWRKEY off */
+	gpio_direction_output(2*32 + 25, 0); /* GSM_EMERG_OFF off */
+	gpio_direction_output(0*32 + 22, 0); /* WLAN_EN off */
+	gpio_direction_output(2*32 +  8, 0); /* BT_EN off */
+}
+
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
 {
 	// TODO use eeprom header spec
@@ -976,5 +985,8 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(pia335x_eb_tft);
 		init_pia_ebtft_gpios();
+	} else if (board_is_em(header)) {
+		configure_module_pin_mux(lokisa_em);
+		init_lokisa_em_gpios();
 	}
 }

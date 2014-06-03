@@ -253,6 +253,9 @@ static int read_eeprom(void)
 	} else if (board_is_ebtft(header)) {
 		puts("  EB_TFT_Baseboard found\n");
 		i++;
+	} else if (board_is_em(header)) {
+		puts("  Lokisa EM found\n");
+		i++;
 	}
 
 	if (!i) {
