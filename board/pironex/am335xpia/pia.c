@@ -50,7 +50,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TC(t) \
 	t = ((t & 0x0f) + (10 *(t >> 4 && 0xf)))
 
-static struct am335x_baseboard_id header;
 
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 #define DEVICE_ID_REVSHIFT 28
@@ -104,45 +103,45 @@ static int init_eeprom(int expansion)
 	int bus = 0;
 	int addr = CONFIG_SYS_I2C_EEPROM_ADDR;
 
-	struct am335x_baseboard_id *config;
-	struct am335x_baseboard_id expansion_config;
+	struct am335x_baseboard_id config;
 
-	if (expansion)
-		config = &expansion_config;
-	else
-		config = &header;
+	if (config.magic == 0xEE3355AA) {
+		printf("EEPROM already initialized\n");
+		return 0;
+	}
 
-	config->magic = 0xEE3355AA;
-	strncpy((char *)&config->serial, "000000000000", 12);
-	memset(&config->config, 0, 32);
+
+	config.magic = 0xEE3355AA;
+	strncpy((char *)&config.serial, "000000000000", 12);
+	memset(&config.config, 0, 32);
 	if (expansion) {
 #if defined (CONFIG_EXP_NAME)
 		printf("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config->name, CONFIG_EXP_NAME, 8);
-		strncpy((char *)&config->version, CONFIG_EXP_REV, 4);
+		strncpy((char *)&config.name, CONFIG_EXP_NAME, 8);
+		strncpy((char *)&config.version, CONFIG_EXP_REV, 4);
 		bus = 1;
 #ifdef CONFIG_PIA_MMI
 		addr = 0x51; /* LCD-EEPROM on 0x51 */
-		config->config[2] = 'C';
+		config.config[2] = 'C';
 #endif
 #endif /* CONFIG_EXP_NAME */
 	} else {
 #if defined (CONFIG_BOARD_NAME)
 		printf("(Re)Writing EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config->name, CONFIG_BOARD_NAME, 8);
-		strncpy((char *)&config->version, CONFIG_PIA_REVISION, 4);
+		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
+		strncpy((char *)&config.version, CONFIG_PIA_REVISION, 4);
 		/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
-		config->config[0] = 'B';
+		config.config[0] = 'B';
 #else
-		config->config[0] = 'X';
+		config.config[0] = 'X';
 #endif
 #endif /* CONFIG_MMI_EXTENDED */
 #if (defined CONFIG_PIA_E2)
-		config->config[1] = 'N'; // NAND present
+		config.config[1] = 'N'; // NAND present
 #endif
 #endif /* CONFIG_BOARD_NAME */
 	}
@@ -157,13 +156,13 @@ static int init_eeprom(int expansion)
 	}
 	printf("Writing EEPROM %d:0x%02x using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			bus, addr,
-			config->magic, config->name, config->version, config->serial);
+			config.magic, config.name, config.version, config.serial);
 	do {
 		to = 10;
 		/* page size is 8 bytes */
 		do {
 			if (!i2c_write(addr, pos, 1,
-					&((uchar *)config)[pos], 8)) {
+					&((uchar *)&config)[pos], 8)) {
 				to = 0;
 			} else {
 				udelay(1000);
@@ -181,7 +180,7 @@ int am33xx_first_start(void)
 	init_eeprom(0);
 	init_eeprom(1);
 
-	if (board_is_e2(&header))
+	if (board_is_e2(header))
 		init_rtc_rx8801();
 
 	return 0;
@@ -228,28 +227,28 @@ static int read_eeprom(void)
 	 * but use only a 1 byte address
 	 */
 	if (i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR, 0, 1,
-			(uchar *)&header, sizeof(header))) {
+			(uchar *)header, sizeof(struct am335x_baseboard_id))) {
 		puts("Could not read the EEPROM; something "
 				"fundamentally wrong on the I2C bus.\n");
 		return -EIO;
 	}
 
 
-	if (header.magic != 0xEE3355AA || header.config[31] != 0) {
+	if (header->magic != 0xEE3355AA || header->config[31] != 0) {
 		printf("Incorrect magic number (0x%x) in EEPROM\n",
-				header.magic);
+				header->magic);
 		return -EIO;
 	}
 
 	puts("Detecting board... ");
 	i = 0;
-	if (board_is_e2(&header)) {
+	if (board_is_e2(header)) {
 		puts("  PIA335E2 found\n");
 		i++;
-	} else if (board_is_mmi(&header)) {
+	} else if (board_is_mmi(header)) {
 		puts("  PIA335MI found\n");
 		i++;
-	} else if (board_is_ebtft(&header)) {
+	} else if (board_is_ebtft(header)) {
 		puts("  EB_TFT_Baseboard found\n");
 		i++;
 	}
@@ -260,13 +259,13 @@ static int read_eeprom(void)
 
 	puts("  Options: ");
 	for (i = 0; i < 32; ++i) {
-		if (header.config[i]) {
-			putc(header.config[i]);
+		if (header->config[i]) {
+			putc(header->config[i]);
 		}
 	}
 	putc('\n');
 	printf("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
-			header.magic, header.name, header.version, header.serial);
+			header->magic, header->name, header->version, header->serial);
 
 	return 0;
 }
@@ -412,13 +411,13 @@ static int test_pia(void)
 
 	printf("\nRunning board tests on %.8s Rev%.4s\n\n",
 			header.name, header.version);
-	if (board_is_e2(&header)) {
+	if (board_is_e2(header)) {
 		rc |= test_supervisor_e2();
 		rc |= test_rtc_rx8801();
 		puts("Enabling POE output\n");
 		gpio_direction_output(105, 1);
 		gpio_direction_output(116, 1);
-	} else if (board_is_mmi(&header)) {
+	} else if (board_is_mmi(header)) {
 		rc |= test_supervisor_mmi();
 		rc |= test_rtc_tps();
 	}
@@ -448,7 +447,7 @@ int board_late_init()
 
 int board_phy_config(struct phy_device *phydev)
 {
-	if (board_is_e2(&header)) {
+	if (board_is_e2(header)) {
 		int reg, i, eth_cnt = 5;
 
 		puts("Initializing ethernet switch\n");
@@ -583,7 +582,8 @@ static int init_tps65910(void)
 		return -EIO;
 	}
 	udelay(10000);
-	if (board_is_ebtft(&header) || board_is_mmi(&header)) {
+	if (board_is_ebtft(header) || board_is_mmi(header) ||
+		board_is_em(header)) {
 		/* start clock, safe to set again */
 		regval = 0x01; /* 24 hour, direct reg access, rtc running */
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
@@ -655,7 +655,7 @@ void am33xx_spl_board_init(void)
 	tps65910_start_rtc(1);
 
 	/* disable VDIG1, it's not used on PM module */
-	if (board_is_ebtft(&header)) {
+	if (board_is_ebtft(header)) {
 		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1);
 		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
 		buf[0] = 0;
@@ -702,7 +702,7 @@ void set_mux_conf_regs(void)
 	if (read_eeprom() < 0)
 		puts("Could not get board ID.\n");
 
-	enable_board_pin_mux(&header);
+	enable_board_pin_mux(header);
 }
 
 const struct ctrl_ioregs ioregs_pia = {
@@ -775,8 +775,8 @@ int board_init(void)
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
 
-	if (board_is_e2(&header))
-			gpmc_init();
+	if (board_is_e2(header))
+		gpmc_init();
 
 	return 0;
 }
