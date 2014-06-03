@@ -468,14 +468,14 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(gpmc_ad5),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D5 */
 	{ OFFSET(gpmc_ad6),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D6 */
 	{ OFFSET(gpmc_ad7),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D7 */
-	{ OFFSET(gpmc_ad8),         (M7 | PIN_INPUT) }, /* GPIO 0_22 */
-	{ OFFSET(gpmc_ad9),         (M7 | PIN_INPUT) }, /* GPIO 0_23 */
-	{ OFFSET(gpmc_ad10),        (M7 | PIN_INPUT) }, /* GPIO 0_26 */
-	{ OFFSET(gpmc_ad11),        (M7 | PIN_INPUT) }, /* GPIO 0_27 */
-	{ OFFSET(gpmc_ad12),        (M7 | PIN_INPUT) }, /* GPIO 1_12 */
-	{ OFFSET(gpmc_ad13),        (M7 | PIN_INPUT) }, /* GPIO 1_13 */
-	{ OFFSET(gpmc_ad14),        (M7 | PIN_INPUT) }, /* GPIO 1_14 */
-	{ OFFSET(gpmc_ad15),        (M7 | PIN_INPUT) }, /* GPIO 1_15 */
+	{ OFFSET(gpmc_ad8),         (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 0_22 WLAN_EN */
+	{ OFFSET(gpmc_ad9),         (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(gpmc_ad10),        (M7 | PIN_OUTPUT_PULLUP) }, /* RS485_DE4 */
+	{ OFFSET(gpmc_ad11),        (M7 | PIN_INPUT_PULLDOWN) }, /* nc (PMIC_SLEEP) */
+	{ OFFSET(gpmc_ad12),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2_D0 */
+	{ OFFSET(gpmc_ad13),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2_D1 */
+	{ OFFSET(gpmc_ad14),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2_D2 */
+	{ OFFSET(gpmc_ad15),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2_D3 */
 	{ OFFSET(gpmc_a0),          (M1 | PIN_OUTPUT) }, /* MII2 TXEN */
 	{ OFFSET(gpmc_a1),          (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXDV */
 	{ OFFSET(gpmc_a2),          (M1 | PIN_OUTPUT) }, /* MII2 TXD3 */
@@ -489,91 +489,91 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(gpmc_a10),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD1 */
 	{ OFFSET(gpmc_a11),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD0 */
 	{ OFFSET(gpmc_wait0),       (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 CRS */
-	{ OFFSET(gpmc_wpn),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXER */
+	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* nc  */
 	{ OFFSET(gpmc_be1n),        (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 COL */
-	{ OFFSET(gpmc_csn0),        (M7 | PIN_INPUT) }, /* GPIO 1_29 LED1*/
+	{ OFFSET(gpmc_csn0),        (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 1_29 S0_I */
 	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
 	{ OFFSET(gpmc_csn2),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CMD */
-	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* GPIO 2_0 */
-	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* optional Cap Touch Int */
-	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 */
-	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 */
-	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 */
-	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT) }, /* GPIO 2_5 */
-	{ OFFSET(lcd_data0),        (M7 | PIN_INPUT) }, /* GPIO 2_6 */
-	{ OFFSET(lcd_data1),        (M7 | PIN_INPUT) }, /* GPIO 2_7 */
-	{ OFFSET(lcd_data2),        (M7 | PIN_INPUT) }, /* GPIO 2_8 */
-	{ OFFSET(lcd_data3),        (M7 | PIN_INPUT) }, /* GPIO 2_9 */
-	{ OFFSET(lcd_data4),        (M7 | PIN_INPUT) }, /* GPIO 2_10 */
-	{ OFFSET(lcd_data5),        (M7 | PIN_INPUT) }, /* GPIO 2_11 */
-	{ OFFSET(lcd_data6),        (M7 | PIN_INPUT) }, /* GPIO 2_12 */
-	{ OFFSET(lcd_data7),        (M7 | PIN_INPUT) }, /* GPIO 2_13 */
-	{ OFFSET(lcd_data8),        (M7 | PIN_INPUT) }, /* GPIO 2_14 */
-	{ OFFSET(lcd_data9),        (M7 | PIN_INPUT) }, /* GPIO 2_15 */
-	{ OFFSET(lcd_data10),       (M7 | PIN_INPUT) }, /* GPIO 2_16 */
-	{ OFFSET(lcd_data11),       (M7 | PIN_INPUT) }, /* GPIO 2_17 */
-	{ OFFSET(lcd_data12),       (M7 | PIN_INPUT) }, /* GPIO 0_8 */
-	{ OFFSET(lcd_data13),       (M7 | PIN_INPUT) }, /* GPIO 0_9 */
-	{ OFFSET(lcd_data14),       (M7 | PIN_INPUT) }, /* GPIO 0_10 */
-	{ OFFSET(lcd_data15),       (M7 | PIN_INPUT) }, /* GPIO 0_11 */
-	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT) }, /* GPIO 2_22 */
-	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT) }, /* GPIO 2_24 */
-	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT) }, /* GPIO 2_24 */
-	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_INPUT) }, /* GPIO 2_25 */
-	{ OFFSET(mmc0_dat3),        (M7 | PIN_INPUT) }, /* GPIO 2_26 */
-	{ OFFSET(mmc0_dat2),        (M7 | PIN_INPUT) }, /* GPIO 2_27 */
-	{ OFFSET(mmc0_dat1),        (M7 | PIN_INPUT) }, /* GPIO 2_28 */
-	{ OFFSET(mmc0_dat0),        (M7 | PIN_INPUT) }, /* GPIO 2_29 */
-	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_30 */
-	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT) }, /* GPIO 2_31 */
-	{ OFFSET(mii1_col),         (M7 | PIN_INPUT) }, /* GPIO 3_0 */
+	{ OFFSET(gpmc_csn3),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2_CMD */
+	{ OFFSET(gpmc_clk),         (M3 | PIN_INPUT_PULLUP) }, /* MMC2_CLK */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* GPIO 2_2 RS485_DE3 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) }, /* GPIO 2_3 RS485_DE2 */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GPIO 2_4 RS485_DE1 */
+	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_5 eMMC_RSTn */
+	{ OFFSET(lcd_data0),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_6 UART2_RI */
+	{ OFFSET(lcd_data1),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_7 WLAN_IRQ*/
+	{ OFFSET(lcd_data2),        (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 2_8 BT_EN*/
+	{ OFFSET(lcd_data3),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data4),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data5),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data6),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_12 MMC0_CD */
+	{ OFFSET(lcd_data7),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data8),        (M6 | PIN_INPUT_PULLUP) }, /* UART2_CTS*/
+	{ OFFSET(lcd_data9),        (M6 | PIN_OUTPUT) }, /* UART2_RTS */
+	{ OFFSET(lcd_data10),       (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_16 OSC1 */
+	{ OFFSET(lcd_data11),       (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_17 OSC2 */
+	{ OFFSET(lcd_data12),       (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data13),       (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(lcd_data14),       (M6 | PIN_INPUT_PULLUP) }, /* UART5_CTS */
+	{ OFFSET(lcd_data15),       (M6 | PIN_OUTPUT) }, /* UART5_RTS */
+	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_22 SC_RESET*/
+	{ OFFSET(lcd_hsync),        (M7 | PIN_OUTPUT) }, /* GPIO 2_24 GSM_PWRKEY*/
+	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 2_24 SC_Bootldr */
+	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_OUTPUT) }, /* GPIO 2_25 GSM_EMERG_OFF */
+	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
+	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
+	{ OFFSET(mmc0_dat1),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
+	{ OFFSET(mmc0_dat0),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D0 */
+	{ OFFSET(mmc0_clk),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CLK */
+	{ OFFSET(mmc0_cmd),         (M0 | PIN_INPUT_PULLUP) }, /* MMC0 CMD */
+	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) }, /* UART5_RX */
 	{ OFFSET(mii1_crs),         (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SDA */
 	{ OFFSET(mii1_rxerr),       (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SCL */
-	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* GPIO 3_3 */
-	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT) }, /* GPIO 3_4 */
-	{ OFFSET(mii1_txd3),        (M7 | PIN_INPUT) }, /* GPIO 0_16 */
-	{ OFFSET(mii1_txd2),        (M7 | PIN_INPUT) }, /* GPIO 0_17 */
-	{ OFFSET(mii1_txd1),        (M7 | PIN_INPUT) }, /* GPIO 0_21 */
-	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* GPIO 0_28 */
-	{ OFFSET(mii1_txclk),       (M7 | PIN_INPUT) }, /* GPIO 3_9 */
-	{ OFFSET(mii1_rxclk),       (M7 | PIN_INPUT) }, /* GPIO 3_10 */
-	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT) }, /* GPIO 2_18 */
-	{ OFFSET(mii1_rxd2),        (M7 | PIN_INPUT) }, /* GPIO 2_19 */
-	{ OFFSET(mii1_rxd1),        (M7 | PIN_INPUT) }, /* GPIO 2_20 */
-	{ OFFSET(mii1_rxd0),        (M7 | PIN_INPUT) }, /* GPIO 2_21 */
-	{ OFFSET(rmii1_refclk),     (M7 | PIN_INPUT) }, /* GPIO 0_29 */
+	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mii1_rxdv),        (M3 | PIN_OUTPUT) }, /* UART5_TX */
+	{ OFFSET(mii1_txd3),        (M3 | PIN_INPUT_PULLUP) }, /* UART4_RX */
+	{ OFFSET(mii1_txd2),        (M3 | PIN_OUTPUT) }, /* UART4_TX */
+	{ OFFSET(mii1_txd1),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 0_21 PMIC_INT1*/
+	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 0_28 RSTB */
+	{ OFFSET(mii1_txclk),       (M1 | PIN_INPUT_PULLUP) }, /* UART2_RX */
+	{ OFFSET(mii1_rxclk),       (M1 | PIN_OUTPUT) }, /* UART2_TX */
+	{ OFFSET(mii1_rxd3),        (M1 | PIN_INPUT_PULLUP) }, /* UART3_RX */
+	{ OFFSET(mii1_rxd2),        (M1 | PIN_OUTPUT) }, /* UART3_TX */
+	{ OFFSET(mii1_rxd1),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mii1_rxd0),        (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(rmii1_refclk),     (M7 | PIN_INPUT) }, /* nc */
 	{ OFFSET(mdio_data),        (M0 | PIN_INPUT_PULLUP) }, /* MDIO data */
 	{ OFFSET(mdio_clk),         (M0 | PIN_OUTPUT_PULLUP) }, /* MDIO CLK */
 	{ OFFSET(spi0_sclk),        (M0 | PIN_INPUT_PULLUP) }, /* SPI0 CLK */
 	{ OFFSET(spi0_d0),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D0 */
 	{ OFFSET(spi0_d1),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D1 */
-	{ OFFSET(spi0_cs0),         (M0 | PIN_INPUT_PULLUP) }, /* SPI0 CS0 */
-	{ OFFSET(spi0_cs1),         (M7 | PIN_INPUT) }, /* GPIO 0_6 */
-	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT) }, /* GPIO 0_7 */
-	{ OFFSET(uart0_ctsn),       (M7 | PIN_INPUT) }, /* GPIO 1_8 */
-	{ OFFSET(uart0_rtsn),       (M7 | PIN_INPUT) }, /* GPIO 1_9 */
+	{ OFFSET(spi0_cs0),         (M0 | PIN_INPUT) }, /* nc */
+	{ OFFSET(spi0_cs1),         (M7 | PIN_INPUT_PULLUP) }, /* SPI0_CS1 */
+	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) }, /* DCAN1_TX */
+	{ OFFSET(uart0_rtsn),       (M2 | PIN_INPUT) }, /* DCAN1_RX */
 	{ OFFSET(uart0_rxd),        (M0 | PIN_INPUT) }, /* UART0 RX */
 	{ OFFSET(uart0_txd),        (M0 | PIN_OUTPUT) },/* UART0 TX */
-	{ OFFSET(uart1_ctsn),       (M7 | PIN_INPUT) }, /* GPIO 0_12 */
-	{ OFFSET(uart1_rtsn),       (M7 | PIN_INPUT) }, /* GPIO 0_13 */
-	{ OFFSET(uart1_rxd),        (M7 | PIN_INPUT) }, /* GPIO 0_14 */
-	{ OFFSET(uart1_txd),        (M7 | PIN_INPUT) }, /* GPIO 0_15 */
+	{ OFFSET(uart1_ctsn),       (M2 | PIN_OUTPUT) }, /* DCAN0_TX */
+	{ OFFSET(uart1_rtsn),       (M2 | PIN_INPUT) }, /* DCAN0_RX */
+	{ OFFSET(uart1_rxd),        (M0 | PIN_INPUT_PULLUP) }, /* UART1_RX */
+	{ OFFSET(uart1_txd),        (M0 | PIN_OUTPUT) }, /* UART1_TX */
 	{ OFFSET(i2c0_sda),         (M0 | PIN_INPUT_PULLUP) }, /* I2C0 SDA */
 	{ OFFSET(i2c0_scl),         (M0 | PIN_INPUT_PULLUP) }, /* I2C0 SCL */
-	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_INPUT) }, /* GPIO 3_14 */
-	{ OFFSET(mcasp0_fsx),       (M7 | PIN_INPUT) }, /* GPIO 3_15 */
-	{ OFFSET(mcasp0_axr0),      (M7 | PIN_INPUT) }, /* GPIO 3_16 */
-	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT) }, /* GPIO 3_17 LED1 */
-	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT) }, /* GPIO 3_18 */
-	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT) }, /* GPIO 3_19 */
-	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT) }, /* GPIO 3_20 */
-	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT) }, /* GPIO 3_21 */
-	{ OFFSET(xdma_event_intr0), (M7 | PIN_INPUT) }, /* GPIO 0_19 */
-	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT) }, /* GPIO 0_20 */
-	{ OFFSET(emu0),             (M7 | PIN_INPUT) }, /* GPIO 3_7 */
-	{ OFFSET(emu1),             (M7 | PIN_INPUT) }, /* GPIO 3_8 */
-	{ OFFSET(usb0_drvvbus),     (M7 | PIN_INPUT) }, /* GPIO 0_18 */
-	{ OFFSET(usb1_drvvbus),     (M7 | PIN_INPUT) }, /* GPIO 3_13 */
+	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mcasp0_fsx),       (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mcasp0_axr0),      (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GPIO 3_17 FOIL_IRQ */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT) }, /* GPIO 3_19 EMU2 remux if needed */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT) }, /* GPIO 3_20 EMU3 remux if needed */
+	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT) }, /* GPIO 3_21 EMU4 remux if needed */
+	{ OFFSET(xdma_event_intr0), (M7 | PIN_INPUT) }, /* nc */
+	{ OFFSET(xdma_event_intr1), (M4 | PIN_OUTPUT) }, /* CLKOUT2 */
+	{ OFFSET(emu0),             (M7 | PIN_INPUT) }, /* GPIO 3_7 EMU0 remux if needed */
+	{ OFFSET(emu1),             (M7 | PIN_INPUT) }, /* GPIO 3_8 EMU1 remux if needed */
+	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* GPIO 0_18 */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* GPIO 3_13 */
 	{ -1 },
 };
 
