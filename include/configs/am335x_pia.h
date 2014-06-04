@@ -103,8 +103,10 @@
 		"nand read ${fdtaddr} u-boot-spl-os; " \
 		"nand read ${loadaddr} kernel; " \
 		"bootz ${loadaddr} - ${fdtaddr}\0"
+#define NANDBOOT "run nandboot;"
 #else
 #define NANDARGS ""
+#define NANDBOOT ""
 #endif
 
 #define CONFIG_CMD_ASKENV
@@ -187,10 +189,6 @@
 				"run mmcloados;" \
 			"fi;" \
 		"fi;\0" \
-	"nandboot=echo Booting from nand ...; " \
-		"run nandargs; " \
-		"nand read.i ${kloadaddr} ${nandsrcaddr} ${nandimgsize}; " \
-		"bootm ${kloadaddr}\0" \
 	"ramboot=echo Booting from ramdisk ...; " \
 		"run ramargs; " \
 		"bootz ${loadaddr}\0" \
@@ -204,7 +202,7 @@
 	"setenv bootpart 2; " \
 	"setenv bootdir /boot;" \
 	"run mmcboot;" \
-	"run nandboot;"
+	NANDBOOT
 
 /* set to negative value for no autoboot */
 #define CONFIG_BOOTDELAY		1
