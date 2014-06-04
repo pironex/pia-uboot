@@ -618,8 +618,6 @@ int board_late_init()
 }
 #endif /* !SPL_BUILD */
 
-#include "pmic.h"
-
 #define MPU     0
 #define CORE    1
 
