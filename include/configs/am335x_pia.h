@@ -117,7 +117,10 @@
 	"kloadaddr=0x80007fc0\0" \
 	"fdtaddr=0x80F80000\0" \
 	"rdaddr=0x81000000\0" \
-	"bootfile=uImage\0" \
+	"boot_fdt=no\0" \
+	"bootpart=1\0" \
+	"bootdir=\0" \
+	"bootfile=zImage\0" \
 	"console=ttyO0,115200n8\0" \
 	"optargs=\0" \
 	"mmcdev=0\0" \
@@ -154,6 +157,7 @@
 	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
 	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
 	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
+	"loadimage=load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
 	"mmcloados=run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"if run loadfdt; then " \
@@ -189,7 +193,7 @@
 		"bootm ${kloadaddr}\0" \
 	"ramboot=echo Booting from ramdisk ...; " \
 		"run ramargs; " \
-		"bootm ${loadaddr}\0" \
+		"bootz ${loadaddr}\0" \
 	NANDARGS \
 	DFUARGS
 #endif /* !SPL_BUILD */
@@ -197,7 +201,8 @@
 #define CONFIG_BOOTCOMMAND \
 	"run mmcboot;" \
 	"setenv mmcdev 1; " \
-	"setenv bootpart 1:2; " \
+	"setenv bootpart 2; " \
+	"setenv bootdir /boot;" \
 	"run mmcboot;" \
 	"run nandboot;"
 
