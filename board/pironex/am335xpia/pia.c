@@ -662,6 +662,8 @@ void am33xx_spl_board_init(void)
 	/* Tell the TPS65910 to use i2c */
 	tps65910_set_i2c_control();
 	tps65910_start_rtc(1);
+	buf[0] = 0x34; /* make sure IT_POL is active low */
+	i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x40, 1, buf, 1);
 
 	/* disable VDIG1, it's not used on PM module */
 	if (board_is_ebtft(header)) {
