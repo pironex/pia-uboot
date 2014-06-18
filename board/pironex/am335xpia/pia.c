@@ -92,6 +92,8 @@ static int init_rtc_rx8801(void)
 
 	return 0;
 }
+#else
+static inline int init_rtc_rx8801(void) { return 0; }
 #endif
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
