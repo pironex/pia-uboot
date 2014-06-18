@@ -295,6 +295,8 @@
 #define CONFIG_CMD_MII
 
 /* Physical Memory Map */
+#define CONFIG_CMD_MEMTEST
+#define CONFIG_CMD_MEMINFO
 #define CONFIG_NR_DRAM_BANKS		1		/*  1 bank of DRAM */
 #define PHYS_DRAM_1			0x80000000	/* DRAM Bank #1 */
 #define CONFIG_MAX_RAM_BANK_SIZE	(1024 << 20)	/* 1GB */
