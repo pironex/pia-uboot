@@ -516,9 +516,9 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(lcd_data13),       (M7 | PIN_INPUT) }, /* nc */
 	{ OFFSET(lcd_data14),       (M6 | PIN_INPUT_PULLUP) }, /* UART5_CTS */
 	{ OFFSET(lcd_data15),       (M6 | PIN_OUTPUT) }, /* UART5_RTS */
-	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT_PULLUP) }, /* GPIO 2_22 SC_RESET*/
+	{ OFFSET(lcd_vsync),        (M7 | PIN_OUTPUT) }, /* GPIO 2_22 SC_RESET*/
 	{ OFFSET(lcd_hsync),        (M7 | PIN_OUTPUT) }, /* GPIO 2_24 GSM_PWRKEY*/
-	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 2_24 SC_Bootldr */
+	{ OFFSET(lcd_pclk),         (M7 | PIN_OUTPUT) }, /* GPIO 2_24 SC_Bootldr */
 	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_OUTPUT) }, /* GPIO 2_25 GSM_EMERG_OFF */
 	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
 	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
@@ -954,6 +954,10 @@ static void init_lokisa_em_gpios(void)
 	gpio_direction_output(2*32 + 25, 0); /* GSM_EMERG_OFF off */
 	gpio_direction_output(0*32 + 22, 0); /* WLAN_EN off */
 	gpio_direction_output(2*32 +  8, 0); /* BT_EN off */
+	/* keep LPC1103 in RESET */
+	gpio_direction_output(2*32 + 24, 1);
+	gpio_direction_output(2*32 + 22, 0);
+	gpio_direction_output(0*32 + 28, 1);
 }
 
 void enable_board_pin_mux(struct am335x_baseboard_id *header)
