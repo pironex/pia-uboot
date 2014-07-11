@@ -517,9 +517,9 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(lcd_data14),       (M6 | PIN_INPUT_PULLUP) }, /* UART5_CTS */
 	{ OFFSET(lcd_data15),       (M6 | PIN_OUTPUT) }, /* UART5_RTS */
 	{ OFFSET(lcd_vsync),        (M7 | PIN_OUTPUT) }, /* GPIO 2_22 SC_RESET*/
-	{ OFFSET(lcd_hsync),        (M7 | PIN_OUTPUT) }, /* GPIO 2_24 GSM_PWRKEY*/
+	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 2_24 GSM_PWRKEY*/
 	{ OFFSET(lcd_pclk),         (M7 | PIN_OUTPUT) }, /* GPIO 2_24 SC_Bootldr */
-	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_OUTPUT) }, /* GPIO 2_25 GSM_EMERG_OFF */
+	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 2_25 GSM_EMERG_OFF */
 	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
 	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
 	{ OFFSET(mmc0_dat1),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
