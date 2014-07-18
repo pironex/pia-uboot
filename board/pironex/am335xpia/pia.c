@@ -663,20 +663,20 @@ void am33xx_spl_board_init(void)
 	tps65910_set_i2c_control();
 	tps65910_start_rtc(1);
 	buf[0] = 0x34; /* make sure IT_POL is active low */
-	i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x40, 1, buf, 1);
+	i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_DEVCTRL2_REG, 1, buf, 1);
 
 	/* disable VDIG1, it's not used on PM module */
 	if (board_is_ebtft(header)) {
-#ifdef CONFIG_EMMC_BOOT
+#if 0
+	/* FIXME use gd->arch.omap_boot_params.omap_bootdevice */
 		/* use BCK1 register to store the boot device */
-		i2c_read(PMIC_CTRL_I2C_ADDR, PMIC_BCK1_REG, 1, buf, 1) {
-			if (buf[0] != boot_params.omap_bootdevice) {
-				buf[0] = boot_params.omap_bootdevice;
-				i2c_write(PMIC_CTRL_I2C_ADDR, PMIC_BCK1_REG, 1, buf, 1);
-			}
+		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
+		if (buf[0] != boot_params.omap_bootdevice) {
+			buf[0] = boot_params.omap_bootdevice;
+			i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
 		}
 #endif
-		i2c_read(PMIC_CTRL_I2C_ADDR, PMIC_VDIG1_REG, 1, buf, 1);
+		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1);
 		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
 		buf[0] = 0;
 		if (i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1))
