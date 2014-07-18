@@ -244,6 +244,22 @@ static int read_eeprom(void)
 		}
 	}
 
+	/* TODO we don't care about PM for now, this could change
+	 * use temp variable in reading function instead of 2 copies on error */
+	if (board_is_pm(header)) {
+#ifdef CONFIG_SPL_BUILD
+		enable_i2c1_pin_mux();
+#endif
+		struct am335x_baseboard_id oldheader;
+		memcpy(&oldheader, header, sizeof(struct am335x_baseboard_id));
+		if (read_eeprom_on_bus(1) < 0) {
+			puts("Could not read baseboard EEPROM; only PM module"
+				"will be configured! Check baseboards EEPROM"
+				"content!\n");
+			memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
+		}
+	}
+
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 	puts("Special FIRSTSTART version\n");
 	/* force reinitialization, normally the ID EEPROM is written here */
@@ -253,19 +269,19 @@ static int read_eeprom(void)
 		return err;
 
 	puts("Detecting board... ");
-	i = 0;
+	i = 1;
 	if (board_is_e2(header)) {
 		puts("  PIA335E2 found\n");
-		i++;
 	} else if (board_is_mmi(header)) {
 		puts("  PIA335MI found\n");
-		i++;
-	} else if (board_is_ebtft(header)) {
+	} else if (board_is_pm(header)) {
+		puts("  PIA335MI found\n");
+	} else  if (board_is_ebtft(header)) {
 		puts("  EB_TFT_Baseboard found\n");
-		i++;
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
-		i++;
+	} else {
+		i--;
 	}
 
 	if (!i) {

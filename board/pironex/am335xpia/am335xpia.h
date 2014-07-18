@@ -66,6 +66,11 @@ static inline int board_is_mmi(struct am335x_baseboard_id *header)
 	return (strncmp(header->name, "PIA335MI", 8) == 0);
 }
 
+static inline int board_is_pm(struct am335x_baseboard_id *header)
+{
+	return (strncmp(header->name, "PIA335PM", 8) == 0);
+}
+
 void enable_uart0_pin_mux(void);
 void enable_i2c0_pin_mux(void);
 void enable_board_pin_mux(struct am335x_baseboard_id *header);
