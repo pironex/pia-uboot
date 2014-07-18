@@ -17,12 +17,14 @@
 
 /* PMIC Register offsets */
 enum {
+	TPS65910_BCK1_REG				= 0x17,
 	TPS65910_VDD1_REG				= 0x21,
 	TPS65910_VDD1_OP_REG				= 0x22,
 	TPS65910_VDD2_REG				= 0x24,
 	TPS65910_VDD2_OP_REG				= 0x25,
 	TPS65910_VDIG1_REG				= 0x30,
 	TPS65910_DEVCTRL_REG				= 0x3F,
+	TPS65910_DEVCTRL2_REG				= 0x40,
 };
 
 /* VDD2 & VDD1 control register (VDD2_REG & VDD1_REG) */
