@@ -98,7 +98,7 @@ static inline int init_rtc_rx8801(void) { return 0; }
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
-static int init_eeprom(int expansion)
+static int init_eeprom(int expansion, int rewrite)
 {
 	int size, pos;
 	int to; /* 10 ms timeout */
@@ -107,7 +107,7 @@ static int init_eeprom(int expansion)
 
 	struct am335x_baseboard_id config;
 
-	if (config.magic == 0xEE3355AA) {
+	if (!rewrite && config.magic == 0xEE3355AA) {
 		printf("EEPROM already initialized\n");
 		return 0;
 	}
@@ -179,16 +179,16 @@ static int init_eeprom(int expansion)
 
 int am33xx_first_start(void)
 {
-	init_eeprom(0);
+	init_eeprom(0, 1);
 #ifdef CONFIG_EXP_NAME
-	init_eeprom(1);
+	init_eeprom(1, 1);
 #endif
 
 	if (board_is_e2(header))
 		init_rtc_rx8801();
 
 	puts("Board initialized, turn off the device and reboot "
-		"with a real system.");
+		"with a real system.\n");
 	return 0;
 }
 #endif
