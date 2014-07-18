@@ -187,6 +187,8 @@ int am33xx_first_start(void)
 	if (board_is_e2(header))
 		init_rtc_rx8801();
 
+	puts("Board initialized, turn off the device and reboot "
+		"with a real system.");
 	return 0;
 }
 #endif
@@ -196,40 +198,17 @@ int am33xx_first_start(void)
  * in special FIRSTSTART build we write a new EEPROM configuration
  */
 void enable_i2c1_pin_mux(void);
-static int read_eeprom(void)
+static int read_eeprom_on_bus(int i2cbus)
 {
-	int i;
-	int i2cbus = 0;
-
-	debug(">>pia:read_eeprom()\n");
+	debug(">>pia:read_eeprom(%d)\n", i2cbus);
 	i2c_set_bus_num(i2cbus);
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
-		puts("Could not probe the EEPROM on I2C0; trying I2C1...\n");
-#ifdef CONFIG_SPL_BUILD
-		enable_i2c1_pin_mux();
-#endif
-		i2cbus = 1;
-		i2c_set_bus_num(i2cbus);
-		if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
-			puts("Could not probe the EEPROM; something fundamentally "
-					"wrong on the I2C bus.\n");
-			return -ENODEV;
-		}
+		printf("Could not probe the EEPROM on I2C%d\n", i2cbus);
+		return -ENODEV;
 	}
 
-#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
-	puts("Special FIRSTSTART version\n");
-	/* force reinitialization, normally the ID EEPROM is written here */
-	am33xx_first_start();
-#endif
-
-	i2c_set_bus_num(i2cbus);
-	/*
-	 * read the eeprom using i2c again,
-	 * but use only a 1 byte address
-	 */
 	if (i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR, 0, 1,
 			(uchar *)header, sizeof(struct am335x_baseboard_id))) {
 		puts("Could not read the EEPROM; something "
@@ -243,6 +222,35 @@ static int read_eeprom(void)
 				header->magic);
 		return -EIO;
 	}
+
+	return 0;
+}
+static int read_eeprom(void)
+{
+	int i, err = 0;
+
+	debug(">>pia:read_eeprom()\n");
+	err = read_eeprom_on_bus(0);
+
+	if (err == -ENODEV) {
+#ifdef CONFIG_SPL_BUILD
+		enable_i2c1_pin_mux();
+#endif
+		err = read_eeprom_on_bus(1);
+		if (err == -ENODEV) {
+			puts("Could not probe the EEPROM; something fundamentally "
+					"wrong on the I2C bus.\n");
+			return -ENODEV;
+		}
+	}
+
+#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
+	puts("Special FIRSTSTART version\n");
+	/* force reinitialization, normally the ID EEPROM is written here */
+	am33xx_first_start();
+#endif
+	if (err < 0)
+		return err;
 
 	puts("Detecting board... ");
 	i = 0;
@@ -261,7 +269,8 @@ static int read_eeprom(void)
 	}
 
 	if (!i) {
-		printf("board not specified\n");
+		printf("Board not specified or unknown! "
+			"Check ID EEPROM content:\n");
 	}
 
 	puts("  Options: ");
