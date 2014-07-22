@@ -356,14 +356,14 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT) }, /* GPIO 3_4 */
 	{ OFFSET(mii1_txd3),        (M7 | PIN_INPUT) }, /* GPIO 0_16 */
 	{ OFFSET(mii1_txd2),        (M7 | PIN_INPUT) }, /* GPIO 0_17 */
-	{ OFFSET(mii1_txd1),        (M7 | PIN_INPUT) }, /* GPIO 0_21 */
+	{ OFFSET(mii1_txd1),        (M7 | PIN_INPUT_PULLUP) }, /* PMIC_INT */
 	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* GPIO 0_28 */
 	{ OFFSET(mii1_txclk),       (M7 | PIN_INPUT) }, /* GPIO 3_9 */
 	{ OFFSET(mii1_rxclk),       (M7 | PIN_INPUT) }, /* GPIO 3_10 */
 	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT) }, /* GPIO 2_18 */
 	{ OFFSET(mii1_rxd2),        (M7 | PIN_INPUT) }, /* GPIO 2_19 */
-	{ OFFSET(mii1_rxd1),        (M7 | PIN_INPUT) }, /* GPIO 2_20 */
-	{ OFFSET(mii1_rxd0),        (M7 | PIN_INPUT) }, /* GPIO 2_21 */
+	{ OFFSET(mii1_rxd1),        (M7 | PIN_INPUT_PULLUP) }, /* NOR.WPn GPIO 2_20 */
+	{ OFFSET(mii1_rxd0),        (M7 | PIN_INPUT_PULLUP) }, /* NOR.RESn GPIO 2_21 */
 	{ OFFSET(rmii1_refclk),     (M7 | PIN_INPUT) }, /* GPIO 0_29 */
 	{ OFFSET(mdio_data),        (M0 | PIN_INPUT_PULLUP) }, /* MDIO data */
 	{ OFFSET(mdio_clk),         (M0 | PIN_OUTPUT_PULLUP) }, /* MDIO CLK */
