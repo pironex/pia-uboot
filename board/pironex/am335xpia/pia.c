@@ -96,6 +96,8 @@ static int init_rtc_rx8801(void)
 static inline int init_rtc_rx8801(void) { return 0; }
 #endif
 
+void enable_i2c1_pin_mux(void);
+
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
 static int init_eeprom(int expansion, int rewrite)
@@ -181,6 +183,7 @@ int am33xx_first_start(void)
 {
 	init_eeprom(0, 1);
 #ifdef CONFIG_EXP_NAME
+	enable_i2c1_pin_mux();
 	init_eeprom(1, 1);
 #endif
 
@@ -197,7 +200,6 @@ int am33xx_first_start(void)
  * Read header information from EEPROM into global structure.
  * in special FIRSTSTART build we write a new EEPROM configuration
  */
-void enable_i2c1_pin_mux(void);
 static int read_eeprom_on_bus(int i2cbus)
 {
 	debug(">>pia:read_eeprom(%d)\n", i2cbus);
