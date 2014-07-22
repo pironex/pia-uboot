@@ -34,13 +34,6 @@
 #define P_EN   (0x0 << 3) /* Pull enabled */
 #define P_DIS   (0x1 << 3) /* Pull up disabled */
 
-#if 0
-#define RXACTIVE (0x1 << 5)
-#define PULLUP_EN	(0x1 << 4) /* Pull UP Selection */
-#define PULLUDEN	(0x0 << 3) /* Pull up enabled */
-#define PULLUDDIS	(0x1 << 3) /* Pull up disabled */
-#define MODE(val)	val	/* used for Readability */
-#endif
 #define	PIN_OUTPUT          (0 | P_DIS)
 #define	PIN_OUTPUT_PULLUP   (P_UP)
 #define	PIN_INPUT           (IEN | P_DIS)
@@ -711,29 +704,6 @@ static struct module_pin_mux mmc0_pin_mux[] = {
 };
 #endif /* PIA_ON_BONE */
 
-static struct module_pin_mux e2_mmc0_pin_mux[] = {
-	{OFFSET(mmc0_dat3), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT3 */
-	{OFFSET(mmc0_dat2), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT2 */
-	{OFFSET(mmc0_dat1), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT1 */
-	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
-	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
-	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
-	// dedicated CD pin was not used in Rev 0.01 and is not present in newer
-	// hw revisions
-	//{OFFSET(mii1_txd2), M7| PIN_INPUT_PULLUP},	/* MMC0_CD */
-	{-1},
-};
-
-static struct module_pin_mux mmi_mmc0_pin_mux[] = {
-	{OFFSET(mmc0_dat3), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT3 */
-	{OFFSET(mmc0_dat2), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT2 */
-	{OFFSET(mmc0_dat1), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT1 */
-	{OFFSET(mmc0_dat0), M0 | PIN_INPUT_PULLUP},	/* MMC0_DAT0 */
-	{OFFSET(mmc0_clk),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CLK */
-	{OFFSET(mmc0_cmd),  M0 | PIN_INPUT_PULLUP},	/* MMC0_CMD */
-	//{OFFSET(spi0_d0), M7 | PIN_INPUT_PULLUP},	/* MMC0_CD */	//not used on MMI board
-	{-1},
-};
 #endif
 
 /* I2C0 - piA-AM335x-KM-E2 and piA-AM335x-KM-MMI */
@@ -863,11 +833,7 @@ void enable_uart0_pin_mux(void)
 void enable_mmc0_pin_mux(struct am335x_baseboard_id *header)
 {
 	debug(">>pia:enable_mmc0_pin_mux()\n");
-	if (board_is_e2(header)) {
-		configure_module_pin_mux(mmc0_pin_mux);
-	} else if (board_is_mmi(header)) {
-		configure_module_pin_mux(mmi_mmc0_pin_mux);
-	}
+	configure_module_pin_mux(mmc0_pin_mux);
 }
 #endif
 
@@ -986,7 +952,7 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	if (board_is_e2(header)) {
 		configure_module_pin_mux(i2c1_pin_mux);
 		configure_module_pin_mux(mii2_pin_mux);
-		configure_module_pin_mux(e2_mmc0_pin_mux);
+		configure_module_pin_mux(mmc0_pin_mux);
 		if (0 == strncmp(header->version, "0.01", 4))
 			configure_module_pin_mux(e2_supervisor_pin_mux);
 		else
@@ -997,7 +963,7 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	} else if (board_is_mmi(header)) {
 		configure_module_pin_mux(mmi_i2c1_pin_mux);
 		configure_module_pin_mux(mmi_mii1_pin_mux);
-		configure_module_pin_mux(mmi_mmc0_pin_mux);
+		configure_module_pin_mux(mmc0_pin_mux);
 		configure_module_pin_mux(mmi_supervisor_pin_mux);
 		configure_module_pin_mux(mmi_pmic_pin_mux);
 		configure_module_pin_mux(mmi_accl_pin_mux);
