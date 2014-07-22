@@ -458,6 +458,31 @@ static struct module_pin_mux pia335x_eb_tft[] = {
 	{ -1 },
 };
 
+/* piA-AM335x-SK */
+static struct module_pin_mux pia335x_sk[] = {
+	{ OFFSET(mii1_txd3),        (M3 | PIN_INPUT_PULLUP) }, /* UART4.RX GPIO 0_16 */
+	{ OFFSET(mii1_txd2),        (M7 | PIN_OUTPUT) }, /* UART4.TX GPIO 0_17 */
+	{ OFFSET(mii1_txclk),       (M1 | PIN_INPUT_PULLUP) }, /* UART2.RX GPIO 3_9 */
+	{ OFFSET(mii1_rxclk),       (M1 | PIN_OUTPUT) }, /* UART2.TX GPIO 3_10 */
+	{ OFFSET(rmii1_refclk),     (M2 | PIN_INPUT_PULLUP) }, /* SPI1.CS0 GPIO 0_29 */
+	{ OFFSET(ecap0_in_pwm0_out),(M2 | PIN_INPUT_PULLUP) }, /* SPI1.CS1 GPIO 0_7 */
+	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) }, /* DCAN1.TX GPIO 1_8 */
+	{ OFFSET(uart0_rtsn),       (M2 | PIN_INPUT) }, /* DCAN1.RX GPIO 1_9 */
+	{ OFFSET(uart0_rxd),        (M0 | PIN_INPUT) }, /* UART0 RX */
+	{ OFFSET(uart0_txd),        (M0 | PIN_OUTPUT) },/* UART0 TX */
+	{ OFFSET(uart1_ctsn),       (M3 | PIN_INPUT_PULLUP) }, /* I2C2.SDA GPIO 0_12 */
+	{ OFFSET(uart1_rtsn),       (M3 | PIN_INPUT_PULLUP) }, /* I2C2.SCL GPIO 0_13 */
+	{ OFFSET(uart1_rxd),        (M0 | PIN_INPUT_PULLUP) }, /* UART1.RX GPIO 0_14 */
+	{ OFFSET(uart1_txd),        (M0 | PIN_OUTPUT) }, /* UART1.TX GPIO 0_15 */
+	{ OFFSET(mcasp0_aclkx),     (M3 | PIN_INPUT_PULLUP) }, /* SPI1.SCLK GPIO 3_14 */
+	{ OFFSET(mcasp0_fsx),       (M3 | PIN_INPUT_PULLUP) }, /* SPI1.D0 GPIO 3_15 */
+	{ OFFSET(mcasp0_axr0),      (M3 | PIN_INPUT_PULLUP) }, /* SPI1.D1 GPIO 3_16 */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_OUTPUT) }, /* LED2 GPIO 3_17 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) }, /* LED3 GPIO 3_18 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLUP) }, /* MMC0.CD GPIO 3_20 */
+	{ -1 },
+};
+
 /* LOKISA EnergyManager */
 static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(gpmc_ad0),         (M1 | PIN_INPUT_PULLUP) }, /* MMC1 D0 */
@@ -986,5 +1011,9 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 	} else if (board_is_em(header)) {
 		configure_module_pin_mux(lokisa_em);
 		init_lokisa_em_gpios();
+	} else if (board_is_sk(header)) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(mmc0_pin_mux);
+		configure_module_pin_mux(pia335x_sk);
 	}
 }
