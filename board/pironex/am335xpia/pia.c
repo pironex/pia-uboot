@@ -234,21 +234,9 @@ static int read_eeprom(void)
 	debug(">>pia:read_eeprom()\n");
 	err = read_eeprom_on_bus(0);
 
-	if (err == -ENODEV) {
-#ifdef CONFIG_SPL_BUILD
-		enable_i2c1_pin_mux();
-#endif
-		err = read_eeprom_on_bus(1);
-		if (err == -ENODEV) {
-			puts("Could not probe the EEPROM; something fundamentally "
-					"wrong on the I2C bus.\n");
-			return -ENODEV;
-		}
-	}
-
 	/* TODO we don't care about PM for now, this could change
 	 * use temp variable in reading function instead of 2 copies on error */
-	if (board_is_pm(header)) {
+	if (err = -ENODEV && board_is_pm(header)) {
 #ifdef CONFIG_SPL_BUILD
 		enable_i2c1_pin_mux();
 #endif
@@ -277,7 +265,7 @@ static int read_eeprom(void)
 	} else if (board_is_mmi(header)) {
 		puts("  PIA335MI found\n");
 	} else if (board_is_pm(header)) {
-		puts("  PIA335MI found\n");
+		puts("  PIA335PM found\n");
 	} else  if (board_is_ebtft(header)) {
 		puts("  EB_TFT_Baseboard found\n");
 	} else if (board_is_em(header)) {
