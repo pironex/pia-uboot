@@ -38,11 +38,12 @@
  #if defined(CONFIG_MMI_EXTENDED) || defined(CONFIG_MMI_BASIC)
   #define CONFIG_EXP_NAME "LCDKMMMI"
   #define CONFIG_EXP_REV "0.01"
- #elif defined(CONFIG_PIA_EBTFT)
+ #elif defined(CONFIG_PIA_PM)
 /*  #define CONFIG_EXP_NAME CONFIG_BOARD_NAME */
   #define CONFIG_EXP_REV "0.01"
  #endif
-#else
+#endif
+#ifndef CONFIG_PIA_REVISION
  #define CONFIG_PIA_REVISION "0.00"
 #endif
 
