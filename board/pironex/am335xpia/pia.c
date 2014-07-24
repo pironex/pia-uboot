@@ -236,7 +236,7 @@ static int read_eeprom(void)
 
 	/* TODO we don't care about PM for now, this could change
 	 * use temp variable in reading function instead of 2 copies on error */
-	if (err = -ENODEV && board_is_pm(header)) {
+	if (err == -ENODEV || board_is_pm(header)) {
 #ifdef CONFIG_SPL_BUILD
 		enable_i2c1_pin_mux();
 #endif
@@ -270,6 +270,8 @@ static int read_eeprom(void)
 		puts("  EB_TFT_Baseboard found\n");
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
+	} else if (board_is_sk(header)) {
+		puts("  SK found\n");
 	} else {
 		i--;
 	}

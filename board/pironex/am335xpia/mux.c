@@ -846,15 +846,18 @@ void enable_i2c0_pin_mux(void)
 void enable_i2c1_pin_mux(void)
 {
 	debug(">>pia:enable_i2c1_pin_mux()\n");
-#if defined CONFIG_PIA_FIRSTSTART
 	/* for first start config, we need the second i2c bus in MLO */
+#ifdef CONFIG_PIA_FIRSSTART
 #if defined(CONFIG_PIA_E2)
 	configure_module_pin_mux(i2c1_pin_mux);
 #elif defined(CONFIG_PIA_MMI)
 	configure_module_pin_mux(mmi_i2c1_pin_mux);
-#elif defined(CONFIG_PIA_PM)
+#else
 	configure_module_pin_mux(pm_i2c1_pin_mux);
 #endif
+#else
+	/* for now, we only need second eeprom with PM */
+	configure_module_pin_mux(pm_i2c1_pin_mux);
 #endif
 }
 
