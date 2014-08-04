@@ -930,8 +930,17 @@ static void init_pia_mmi_gpios(void)
 
 static void init_pia_ebtft_gpios(void)
 {
-	gpio_request(69, "emmc_reset");
-	gpio_direction_output(69, 1);
+	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
+}
+
+static void init_sk_gpios(void)
+{
+	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
+}
+
+static void init_apc_gpios(void)
+{
+	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
 }
 
 static void init_lokisa_em_gpios(void)
@@ -983,5 +992,6 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
 		configure_module_pin_mux(pia335x_sk);
+		init_sk_gpios();
 	}
 }

@@ -638,6 +638,8 @@
 #define CONFIG_MMI_ACC_INT2_GPIO  	((0 * 32) + 7)	//gpio0_7
 #define CONFIG_MMI_XDMA_EVENT_INTR0_GPIO  	((0 * 32) + 19)	//gpio0_19
 
+#define CONFIG_PM_EMMC_RESET_GPIO	((2 * 32) + 5)
+
 /* TODO implement NOR settings */
 #if 0
 /*
