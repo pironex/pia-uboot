@@ -46,6 +46,11 @@ static struct am335x_baseboard_id header_;
 static struct am335x_baseboard_id *header = &header_;
 #endif
 
+static inline int board_is_apc(struct am335x_baseboard_id *header)
+{
+	return (strncmp(header->name, "P335BAPC", 8) == 0);
+}
+
 static inline int board_is_e2(struct am335x_baseboard_id *header)
 {
 	return (strncmp(header->name, "PIA335E2", 8) == 0);
