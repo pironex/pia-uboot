@@ -33,19 +33,42 @@
 
 #undef CONFIG_SPL_OS_BOOT /* defined in ti_armv7_common */
 
+#if defined(CONFIG_PIA_APC) || defined(CONFIG_PIA_EBTFT) || defined(CONFIG_PIA_SK)
+#define CONFIG_PIA_PM 2 /* number is current PM revision */
+#define CONFIG_EMMC_BOOT
+#endif
+
 #ifdef CONFIG_PIA_FIRSTSTART
- #define CONFIG_PIA_REVISION CONFIG_PIA_FIRSTSTART
- #if defined(CONFIG_MMI_EXTENDED) || defined(CONFIG_MMI_BASIC)
+ #if defined(CONFIG_PIA_PM)
+  #define CONFIG_BOARD_NAME     "PIA335PM"
+  #define CONFIG_BOARD_REVISION "0.02"
+  #if defined(CONFIG_PIA_EBTFT)
+   #define CONFIG_EXP_NAME "P335BEBT"
+   #define CONFIG_EXP_REV "0.01"
+  #elif defined(CONFIG_PIA_APC)
+   #define CONFIG_EXP_NAME "P335BAPC"
+   #define CONFIG_EXP_REV "0.01"
+  #elif defined(CONFIG_PIA_SK)
+   #define CONFIG_EXP_NAME "P335BSK"
+   #define CONFIG_EXP_REV "0.01"
+  #endif
+ #elif defined(CONFIG_PIA_EM)
+  #define CONFIG_BOARD_NAME "PIA335EM"
+  #define CONFIG_BOARD_REVISION "0.01"
+ #elif defined(CONFIG_PIA_E2)
+  #define CONFIG_BOARD_NAME "PIA335E2"
+  #define CONFIG_BOARD_REVISION "0.03"
+ #elif defined(CONFIG_PIA_MMI)
+  #define CONFIG_BOARD_NAME "PIA335MI"
+  #define CONFIG_BOARD_REVISION "0.02"
   #define CONFIG_EXP_NAME "LCDKMMMI"
   #define CONFIG_EXP_REV "0.01"
- #elif defined(CONFIG_PIA_PM)
-/*  #define CONFIG_EXP_NAME CONFIG_BOARD_NAME */
-  #define CONFIG_EXP_REV "0.01"
+ #else
+  #define CONFIG_BOARD_NAME "PIA335__"
+  #define CONFIG_BOARD_REVISION "0.00"
  #endif
 #endif
-#ifndef CONFIG_PIA_REVISION
- #define CONFIG_PIA_REVISION "0.00"
-#endif
+
 
 #define CONFIG_BOARD_LATE_INIT
 /* disable some common configs */

@@ -135,7 +135,7 @@ static int init_eeprom(int expansion, int rewrite)
 		printf("(Re)Writing EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_PIA_REVISION, 4);
+		strncpy((char *)&config.version, CONFIG_BOARD_REVISION, 4);
 		/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
@@ -595,7 +595,7 @@ static int init_tps65910(void)
 		return -EIO;
 	}
 	udelay(10000);
-	if (board_is_ebtft(header) || board_is_mmi(header) ||
+	if (board_is_pm(header) || board_is_mmi(header) ||
 		board_is_em(header)) {
 		/* start clock, safe to set again */
 		regval = 0x01; /* 24 hour, direct reg access, rtc running */
@@ -683,7 +683,7 @@ void am33xx_spl_board_init(void)
 	i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_DEVCTRL2_REG, 1, buf, 1);
 
 	/* disable VDIG1, it's not used on PM module */
-	if (board_is_ebtft(header)) {
+	if (board_is_pm(header)) {
 #if 0
 	/* FIXME use gd->arch.omap_boot_params.omap_bootdevice */
 		/* use BCK1 register to store the boot device */
