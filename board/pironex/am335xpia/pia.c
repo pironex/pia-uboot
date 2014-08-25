@@ -266,19 +266,22 @@ static int read_eeprom(void)
 		puts("  PIA335MI found\n");
 	} else if (board_is_pm(header)) {
 		puts("  PIA335PM found\n");
-	} else  if (board_is_ebtft(header)) {
-		puts("  EB_TFT_Baseboard found\n");
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
 	} else if (board_is_sk(header)) {
-		puts("  SK found\n");
+		puts("  SK with undetectable PM found\n");
+	} else  if (board_is_ebtft(header)) {
+		puts("  EB_TFT wih undetectable PM found\n");
+	} else  if (board_is_apc(header)) {
+		puts("  APC wih undetectable PM found\n");
 	} else {
-		i--;
+		i = 0;
 	}
 
-	if (!i) {
-		printf("Board not specified or unknown! "
-			"Check ID EEPROM content:\n");
+	if (i == 0) {
+		puts("Board not specified or unknown! "
+			"Check ID EEPROM content!\n");
+		hang();
 	}
 
 	puts("  Options: ");
