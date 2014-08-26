@@ -488,7 +488,7 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* nc (MII RXERR) */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CMD */
 	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CLK */
-	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) }, /* BAT_PWR GPIO2_3 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT_PULLUP) }, /* BAT_PWR GPIO2_3 */
 	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* EMMC_RESET GPIO2_5 */
 	{ OFFSET(lcd_data8),        (M6 | PIN_OUTPUT) }, /* UART2_CTSN */
 	{ OFFSET(lcd_data9),        (M6 | PIN_INPUT_PULLUP) }, /* UART2.RTSN */
@@ -515,9 +515,9 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_OUTPUT) }, /* CAN1_TERM GPIO3_14 */
 	{ OFFSET(mcasp0_fsx),       (M7 | PIN_OUTPUT) }, /* CAN0_TERM GPIO3_15 */
 	{ OFFSET(mcasp0_axr0),      (M7 | PIN_OUTPUT) }, /* DE1_RS485 GPIO3_16 */
-	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_EI GPIO3_17 */
-	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) }, /* GSM_PWRKEY GPIO3_18 */
-	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) }, /* GSM_DTR GPIO3_19 */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_RI GPIO3_17 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_PWRKEY GPIO3_18 */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLUP) }, /* GSM_DTR GPIO3_19 */
 	{ OFFSET(mcasp0_axr1),      (M7 | PIN_OUTPUT) }, /* GSM_WAKEUP GPIO3_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0.DRVVBUS */
 	{ -1 },
@@ -990,7 +990,7 @@ static void init_apc_gpios(void)
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
 	gpio_direction_output(0*32 + 27, 0); /* WLAN_EN off */
 	gpio_direction_output(1*32 + 29, 0); /* BT_EN off */
-	gpio_direction_output(2*32 +  3, 0); /* Battery Power on */
+	gpio_direction_output(2*32 +  3, 1); /* Battery Power on */
 	gpio_direction_output(3*32 +  4, 1); /* LED */
 	gpio_direction_output(3*32 + 14, 1); /* CAN1 TERM off */
 	gpio_direction_output(3*32 + 15, 1); /* CAN0 TERM off */
