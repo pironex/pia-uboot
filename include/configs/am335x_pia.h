@@ -230,6 +230,8 @@
 
 /* set to negative value for no autoboot */
 #define CONFIG_BOOTDELAY		1
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR	"s"
 
 /* Clock Defines */
 #define V_OSCK				24000000  /* Clock output from T2 */
