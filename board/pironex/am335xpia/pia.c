@@ -478,6 +478,14 @@ int board_phy_config(struct phy_device *phydev)
 		}
 		mdelay(2);
 	}
+	if (board_is_apc(header)) {
+		u_int16_t reg;
+		puts("APC: enabling Ethernet switch Mirror Mode on second port\n");
+		reg = 0x5002; // mirror second port to, cpu port
+		phy_write(phydev, 0x14, 0x15, reg);
+		reg = 0xe002;
+		phy_write(phydev, 0x14, 0x14, reg);
+	}
 
 	return 0;
 }
