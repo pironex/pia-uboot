@@ -463,8 +463,10 @@ static inline int test_pia(void) {
 
 int board_phy_config(struct phy_device *phydev)
 {
+#if 0
+	int reg;
 	if (board_is_e2(header)) {
-		int reg, i, eth_cnt = 5;
+		int i, eth_cnt = 5;
 
 		puts("Initializing ethernet switch\n");
 		phy_write(phydev, 30, 0, 0x175c);
@@ -478,14 +480,7 @@ int board_phy_config(struct phy_device *phydev)
 		}
 		mdelay(2);
 	}
-	if (board_is_apc(header)) {
-		u_int16_t reg;
-		puts("APC: enabling Ethernet switch Mirror Mode on second port\n");
-		reg = 0x5002; // mirror second port to, cpu port
-		phy_write(phydev, 0x14, 0x15, reg);
-		reg = 0xe002;
-		phy_write(phydev, 0x14, 0x14, reg);
-	}
+#endif
 
 	return 0;
 }
@@ -579,7 +574,30 @@ int board_eth_init(bd_t *bis)
 	else
 		n += rv;
 #endif
+	if (board_is_apc(header)) {
+		int res;
+		unsigned short reg;
+		const char *devname;
+
+		devname = miiphy_get_current_dev();
+		puts("Initializing ethernet switch\n");
+		res = miiphy_write(devname, 20, 2, 0x175d);
+		//phy_write(phydev, 20, 2, 0x175d);
+		mdelay(5); /* min 2 ms */
+		printf("APC: enabling Ethernet switch Mirror Mode on second port %d\n", res);
+		miiphy_read(devname, 20, 21, &reg);
+		printf("PHY 20:21 - %04x\n", reg);
+		reg = 0x5002; // mirror second port to, cpu port
+		res = miiphy_write(devname, 20, 21, reg);
+		printf("res: %d\n", res);
+		miiphy_read(devname, 20, 20, &reg);
+		printf("PHY 20:20 - %04x\n", reg);
+		reg = 0xe002;
+		res = miiphy_write(devname, 20, 20, reg);
+		printf("res: %d\n", res);
+	}
 #endif
+
 	return n;
 }
 #endif
