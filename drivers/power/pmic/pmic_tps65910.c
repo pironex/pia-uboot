@@ -43,9 +43,9 @@ int tps65910_start_rtc(int ext_osc)
 		return ret;
 
 	if (ext_osc)
-		buf |= 0x20; /* CK32K_CTRL external 32k */
+		buf &= (~0x20); /* CK32K_CTRL external 32k */
 	else
-		buf &= (~0x20);
+		buf |= 0x20;
 	buf &= (~0x40); /* enable RTC */
 
 	return (i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_DEVCTRL_REG,
