@@ -501,9 +501,9 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(mii1_txd2),        (M3 | PIN_OUTPUT) }, /* UART4.TX */
 	{ OFFSET(mii1_txclk),       (M1 | PIN_INPUT_PULLUP) }, /* UART2.RX */
 	{ OFFSET(mii1_rxclk),       (M1 | PIN_OUTPUT) }, /* UART2.TX */
-	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT) }, /* UART3.RX */
-	{ OFFSET(mii1_rxd2),        (M7 | PIN_OUTPUT) }, /* UART3.TX */
-	{ OFFSET(rmii1_refclk),     (M7 | PIN_OUTPUT) }, /* UART5.TX */
+	{ OFFSET(mii1_rxd3),        (M1 | PIN_INPUT) }, /* UART3.RX */
+	{ OFFSET(mii1_rxd2),        (M1 | PIN_OUTPUT) }, /* UART3.TX */
+	{ OFFSET(rmii1_refclk),     (M3 | PIN_OUTPUT) }, /* UART5.TX */
 	{ OFFSET(spi0_cs1),         (M0 | PIN_INPUT_PULLUP) }, /* SPI0.CS1 */
 	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT_PULLDOWN) }, /* BT_EN GPIO 0_7 */
 	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) }, /* DCAN1.TX */
