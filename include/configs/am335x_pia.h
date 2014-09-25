@@ -44,7 +44,7 @@
   #define CONFIG_BOARD_REVISION "0.02"
   #if defined(CONFIG_PIA_EBTFT)
    #define CONFIG_EXP_NAME "P335BEBT"
-   #define CONFIG_EXP_REV "0.01"
+   #define CONFIG_EXP_REV "0.02"
   #elif defined(CONFIG_PIA_APC)
    #define CONFIG_EXP_NAME "P335BAPC"
    #define CONFIG_EXP_REV "0.01"
