@@ -54,7 +54,7 @@
   #endif
  #elif defined(CONFIG_PIA_EM)
   #define CONFIG_BOARD_NAME "PIA335EM"
-  #define CONFIG_BOARD_REVISION "0.01"
+  #define CONFIG_BOARD_REVISION "0.02"
  #elif defined(CONFIG_PIA_E2)
   #define CONFIG_BOARD_NAME "PIA335E2"
   #define CONFIG_BOARD_REVISION "0.03"
