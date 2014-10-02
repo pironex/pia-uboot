@@ -612,7 +612,7 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(spi0_sclk),        (M0 | PIN_INPUT_PULLUP) }, /* SPI0 CLK */
 	{ OFFSET(spi0_d0),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D0 */
 	{ OFFSET(spi0_d1),          (M0 | PIN_INPUT_PULLUP) }, /* SPI0 D1 */
-	{ OFFSET(spi0_cs0),         (M0 | PIN_INPUT) }, /* nc */
+	{ OFFSET(spi0_cs0),         (M7 | PIN_INPUT) }, /* GSM_STATUS */
 	{ OFFSET(spi0_cs1),         (M7 | PIN_INPUT_PULLUP) }, /* SPI0_CS1 */
 	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT) }, /* nc */
 	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) }, /* DCAN1_TX */
