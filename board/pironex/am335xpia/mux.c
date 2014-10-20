@@ -554,7 +554,7 @@ static struct module_pin_mux lokisa_em[] = {
 	{ OFFSET(gpmc_a10),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD1 */
 	{ OFFSET(gpmc_a11),         (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 RXD0 */
 	{ OFFSET(gpmc_wait0),       (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 CRS */
-	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* nc  */
+	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT_PULLDOWN) }, /* BT_UART_OE  */
 	{ OFFSET(gpmc_be1n),        (M1 | PIN_INPUT_PULLDOWN) }, /* MII2 COL */
 	{ OFFSET(gpmc_csn0),        (M7 | PIN_INPUT_PULLDOWN) }, /* GPIO 1_29 S0_I */
 	{ OFFSET(gpmc_csn1),        (M2 | PIN_INPUT_PULLUP) }, /* MMC1 CLK */
