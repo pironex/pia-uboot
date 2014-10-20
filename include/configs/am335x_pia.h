@@ -473,10 +473,8 @@
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
 
-#if 0
 /* Y-Modem. */
 #define CONFIG_SPL_YMODEM_SUPPORT
-#endif
 
 /* NAND */
 #if defined(CONFIG_PIA_NAND)
