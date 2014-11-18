@@ -69,6 +69,9 @@
  #endif
 #endif
 
+#if defined(CONFIG_PIA_NAND)
+#define CONFIG_NAND
+#endif
 
 #define CONFIG_BOARD_LATE_INIT
 /* disable some common configs */
@@ -541,8 +544,6 @@
 #undef CONFIG_USE_IRQ
 
 /*#undef CONFIG_EMMC_BOOT*/
-#if defined(CONFIG_PIA_NAND)
-#define CONFIG_NAND
 /* NAND support */
 #ifdef CONFIG_NAND
 #define CONFIG_CMD_NAND
@@ -558,7 +559,6 @@
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x260000 /* environment starts here */
-#endif
 #endif
 #elif 0 /*defined(CONFIG_EMMC_BOOT)*/
 #undef CONFIG_ENV_IS_NOWHERE
