@@ -847,6 +847,17 @@ void sdram_init(void)
 			   &ddr3_cmd_ctrl_data, &ddr3_emif_reg_data, 0);
 	}
 }
+
+#ifdef CONFIG_NAND
+#include <linux/mtd/nand.h>
+int board_nand_init(struct nand_chip *nand)
+{
+	if (board_is_e2(header))
+		gpmc_init();
+
+	return 0;
+}
+#endif
 #endif /* SPL_BUILD */
 
 int board_mmc_getcd(struct mmc* mmc)
