@@ -228,8 +228,17 @@
 	"run mmcboot;" \
 	NANDBOOT
 
-/* set to negative value for no autoboot */
-#define CONFIG_BOOTDELAY		1
+/* this is defined in a generic ti header, undef before setting our value */
+#ifdef CONFIG_BOOTDELAY
+#undef CONFIG_BOOTDELAY
+#endif
+
+/* don't wait for user input on release builds */
+#ifdef PIA_DEBUG
+#define CONFIG_BOOTDELAY		3
+#else
+#define CONFIG_BOOTDELAY		0
+#endif
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR	"s"
 
