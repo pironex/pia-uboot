@@ -100,6 +100,7 @@
 #define CONFIG_SYS_CACHELINE_SIZE       64
 
 #if defined(CONFIG_NAND)
+#define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
 /* no NAND on MMI but doesn't hurt to enable anyway */
 #ifdef NAND_4K_PAGES
 #define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:256k(SPL)," \
@@ -488,7 +489,7 @@
 #endif
 
 /* NAND */
-#if defined(CONFIG_PIA_NAND)
+#if defined(CONFIG_NAND)
 #define CONFIG_SPL_NAND_AM33XX_BCH
 #define CONFIG_SPL_NAND_SUPPORT
 #define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
@@ -552,16 +553,16 @@
 #undef CONFIG_USE_IRQ
 
 /*#undef CONFIG_EMMC_BOOT*/
-#if defined(CONFIG_PIA_NAND)
-#define CONFIG_NAND
+#if defined(CONFIG_NAND)
 /* NAND support */
-#ifdef CONFIG_NAND
 #define CONFIG_CMD_NAND
 #define CONFIG_NAND_OMAP_GPMC
 #define GPMC_NAND_ECC_LP_x16_LAYOUT	1
+#ifndef CONFIG_SYS_NAND_BASE
 #define CONFIG_SYS_NAND_BASE		(0x08000000)	/* physical address */
 							/* to access nand at */
 							/* CS0 */
+#endif
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND
 							   devices */
 
@@ -569,7 +570,6 @@
 #undef CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x260000 /* environment starts here */
-#endif
 #endif
 #elif 0 /*defined(CONFIG_EMMC_BOOT)*/
 #undef CONFIG_ENV_IS_NOWHERE
