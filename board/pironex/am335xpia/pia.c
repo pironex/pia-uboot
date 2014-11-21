@@ -775,13 +775,6 @@ void set_mux_conf_regs(void)
 	enable_board_pin_mux(header);
 }
 
-#define MT41K256M16HA125IT_RATIO		0x80
-#define MT41K256M16HA125IT_INVERT_CLKOUT	0x0
-#define MT41K256M16HA125IT_E2_RD_DQS		0x03A
-#define MT41K256M16HA125IT_E2_WR_DQS		0x03C
-#define MT41K256M16HA125IT_E2_PHY_FIFO_WE	0x09B
-#define MT41K256M16HA125IT_E2_PHY_WR_DATA	0x075
-
 const struct ctrl_ioregs ioregs_pia = {
 	.cm0ioctl		= MT41K256M16HA125IT_IOCTRL_VALUE,
 	.cm1ioctl		= MT41K256M16HA125IT_IOCTRL_VALUE,
@@ -789,13 +782,29 @@ const struct ctrl_ioregs ioregs_pia = {
 	.dt0ioctl		= MT41K256M16HA125IT_IOCTRL_VALUE,
 	.dt1ioctl		= MT41K256M16HA125IT_IOCTRL_VALUE,
 };
+/* default CMD CTRL with inverted clkout, DDR_CK traces longer than DQS */
+static const struct cmd_control ddr3_cmd_ctrl_data = {
+	.cmd0csratio = MT41J128MJT125_RATIO,
+	.cmd0iclkout = MT41J128MJT125_INVERT_CLKOUT,
+
+	.cmd1csratio = MT41J128MJT125_RATIO,
+	.cmd1iclkout = MT41J128MJT125_INVERT_CLKOUT,
+
+	.cmd2csratio = MT41J128MJT125_RATIO,
+	.cmd2iclkout = MT41J128MJT125_INVERT_CLKOUT,
+};
+
+/* PHY Leveling defaults */
 static const struct ddr_data ddr3_data = {
 	.datardsratio0 = MT41J128MJT125_RD_DQS,
 	.datawdsratio0 = MT41J128MJT125_WR_DQS,
 	.datafwsratio0 = MT41J128MJT125_PHY_FIFO_WE,
 	.datawrsratio0 = MT41J128MJT125_PHY_WR_DATA,
 };
-static const struct cmd_control ddr3_cmd_ctrl_data = {
+
+#define MT41K256M16HA125IT_RATIO		0x80
+#define MT41K256M16HA125IT_INVERT_CLKOUT	0x0
+static const struct cmd_control ddr3_pia_cmd_ctrl_data = {
 	.cmd0csratio = MT41K256M16HA125IT_RATIO,
 	.cmd0iclkout = MT41K256M16HA125IT_INVERT_CLKOUT,
 
@@ -805,6 +814,7 @@ static const struct cmd_control ddr3_cmd_ctrl_data = {
 	.cmd2csratio = MT41K256M16HA125IT_RATIO,
 	.cmd2iclkout = MT41K256M16HA125IT_INVERT_CLKOUT,
 };
+
 static struct emif_regs ddr3_emif_reg_data = {
 	.sdram_config = MT41J128MJT125_EMIF_SDCFG,
 	.ref_ctrl = MT41J128MJT125_EMIF_SDREF,
@@ -816,6 +826,33 @@ static struct emif_regs ddr3_emif_reg_data = {
 				PHY_EN_DYN_PWRDN,
 };
 
+/* PHY Leveling for KM MMI */
+#define MT41J128M16JT125_MMI_RD_DQS		0x39
+#define MT41J128M16JT125_MMI_WR_DQS		0x9d
+#define MT41J128M16JT125_MMI_PHY_FIFO_WE	0x3b
+#define MT41J128M16JT125_MMI_PHY_WR_DATA	0x74
+static const struct ddr_data ddr3_mmi_data = {
+	.datardsratio0 = MT41J128M16JT125_MMI_RD_DQS,
+	.datawdsratio0 = MT41J128M16JT125_MMI_WR_DQS,
+	.datafwsratio0 = MT41J128M16JT125_MMI_PHY_FIFO_WE,
+	.datawrsratio0 = MT41J128M16JT125_MMI_PHY_WR_DATA,
+};
+
+static struct emif_regs ddr3_128m16_emif_reg_data = {
+	.sdram_config = MT41J128MJT125_EMIF_SDCFG, // OK
+	.ref_ctrl = MT41J128MJT125_EMIF_SDREF, // OK
+	.sdram_tim1 = MT41J128MJT125_EMIF_TIM1,
+	.sdram_tim2 = MT41J128MJT125_EMIF_TIM2,
+	.sdram_tim3 = MT41J128MJT125_EMIF_TIM3,
+	.zq_config = MT41J128MJT125_ZQ_CFG, // OK
+	.emif_ddr_phy_ctlr_1 = MT41J128MJT125_EMIF_READ_LATENCY, // PWRDN included
+};
+
+/* PHY Leveling for KM E2 */
+#define MT41K256M16HA125IT_E2_RD_DQS		0x03A
+#define MT41K256M16HA125IT_E2_WR_DQS		0x03C
+#define MT41K256M16HA125IT_E2_PHY_FIFO_WE	0x09B
+#define MT41K256M16HA125IT_E2_PHY_WR_DATA	0x075
 static const struct ddr_data ddr3_e2_data = {
 	.datardsratio0 = MT41K256M16HA125IT_E2_RD_DQS,
 	.datawdsratio0 = MT41K256M16HA125IT_E2_WR_DQS,
@@ -840,7 +877,13 @@ void sdram_init(void)
 	if (board_is_e2(header)) {
 		puts("Setup DDR3 MT41K256M16HA-125:IT\n");
 		config_ddr(303, &ioregs_pia, &ddr3_e2_data,
-			&ddr3_cmd_ctrl_data, &ddr3_pia_256m16_emif_reg_data, 0);
+			   &ddr3_pia_cmd_ctrl_data,
+			   &ddr3_pia_256m16_emif_reg_data, 0);
+	} else if (board_is_mmi(header)) {
+		puts("Setup DDR3 default memory\n");
+		config_ddr(303, &ioregs_pia, &ddr3_mmi_data,
+			   &ddr3_pia_cmd_ctrl_data,
+			   &ddr3_128m16_emif_reg_data, 0);
 	} else {
 		puts("Setup DDR3 default memory\n");
 		config_ddr(303, &ioregs_pia, &ddr3_data,
