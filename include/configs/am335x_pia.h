@@ -69,9 +69,6 @@
  #endif
 #endif
 
-#if defined(CONFIG_PIA_NAND)
-#define CONFIG_NAND
-#endif
 
 #define CONFIG_BOARD_LATE_INIT
 /* disable some common configs */
@@ -103,6 +100,7 @@
 #define CONFIG_SYS_CACHELINE_SIZE       64
 
 #if defined(CONFIG_NAND)
+#define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
 /* no NAND on MMI but doesn't hurt to enable anyway */
 #ifdef NAND_4K_PAGES
 #define MTDPARTS_DEFAULT	"mtdparts=omap2-nand.0:256k(SPL)," \
@@ -231,8 +229,17 @@
 	"run mmcboot;" \
 	NANDBOOT
 
-/* set to negative value for no autoboot */
-#define CONFIG_BOOTDELAY		1
+/* this is defined in a generic ti header, undef before setting our value */
+#ifdef CONFIG_BOOTDELAY
+#undef CONFIG_BOOTDELAY
+#endif
+
+/* don't wait for user input on release builds */
+#ifdef PIA_DEBUG
+#define CONFIG_BOOTDELAY		3
+#else
+#define CONFIG_BOOTDELAY		0
+#endif
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR	"s"
 
@@ -480,7 +487,7 @@
 #define CONFIG_SPL_YMODEM_SUPPORT
 
 /* NAND */
-#if defined(CONFIG_PIA_NAND)
+#if defined(CONFIG_NAND)
 #define CONFIG_SPL_NAND_AM33XX_BCH
 #define CONFIG_SPL_NAND_SUPPORT
 #define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
@@ -544,14 +551,16 @@
 #undef CONFIG_USE_IRQ
 
 /*#undef CONFIG_EMMC_BOOT*/
+#if defined(CONFIG_NAND)
 /* NAND support */
-#ifdef CONFIG_NAND
 #define CONFIG_CMD_NAND
 #define CONFIG_NAND_OMAP_GPMC
 #define GPMC_NAND_ECC_LP_x16_LAYOUT	1
+#ifndef CONFIG_SYS_NAND_BASE
 #define CONFIG_SYS_NAND_BASE		(0x08000000)	/* physical address */
 							/* to access nand at */
 							/* CS0 */
+#endif
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND
 							   devices */
 
