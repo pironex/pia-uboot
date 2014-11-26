@@ -376,6 +376,11 @@
 #define CONFIG_ENV_IS_NOWHERE
 
 #ifdef CONFIG_NAND
+#define CONFIG_NAND_OMAP_GPMC
+#define CONFIG_NAND_OMAP_ELM
+#define CONFIG_NAND_OMAP_ECCSCHEME	OMAP_ECC_BCH8_CODE_HW
+#define CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x80000
 #ifndef NAND_4K_PAGES
 /* NAND Configuration.
  * Page  2K + 64 Bytes
@@ -400,7 +405,7 @@
 #define CONFIG_SYS_NAND_ECCSTEPS	4
 #define	CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * \
 						CONFIG_SYS_NAND_ECCSTEPS)
-#else
+#else /* 4k page size */
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT	(CONFIG_SYS_NAND_BLOCK_SIZE / \
 					 CONFIG_SYS_NAND_PAGE_SIZE)
@@ -486,14 +491,6 @@
 /* Y-Modem. */
 #define CONFIG_SPL_YMODEM_SUPPORT
 
-/* NAND */
-#if defined(CONFIG_NAND)
-#define CONFIG_SPL_NAND_AM33XX_BCH
-#define CONFIG_SPL_NAND_SUPPORT
-#define	CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
-
-#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x80000
-#endif
 /*
  * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
  * 64 bytes before this address should be set aside for u-boot.img's
@@ -554,7 +551,6 @@
 #if defined(CONFIG_NAND)
 /* NAND support */
 #define CONFIG_CMD_NAND
-#define CONFIG_NAND_OMAP_GPMC
 #define GPMC_NAND_ECC_LP_x16_LAYOUT	1
 #ifndef CONFIG_SYS_NAND_BASE
 #define CONFIG_SYS_NAND_BASE		(0x08000000)	/* physical address */
