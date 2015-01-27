@@ -426,7 +426,7 @@ void main_loop(void)
 #endif
 
 	bootstage_mark_name(BOOTSTAGE_ID_MAIN_LOOP, "main_loop");
-
+        do_gpio_user_in_get_wrapper(NULL, 0, 0, NULL);
 #ifdef CONFIG_MODEM_SUPPORT
 	debug("DEBUG: main_loop:   do_mdm_init=%d\n", do_mdm_init);
 	if (do_mdm_init) {

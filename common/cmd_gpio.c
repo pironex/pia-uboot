@@ -9,12 +9,15 @@
 #include <common.h>
 #include <command.h>
 #include <dm.h>
+#include <i2c.h>
 #include <asm/gpio.h>
 
 #ifndef name_to_gpio
 #define name_to_gpio(name) simple_strtoul(name, NULL, 10)
 #endif
 
+#define PCA9554_I2C_SLAVE_ADDR 0x27
+#define PCA9554_I2C_ENTER_GPIO_OFFSET 4
 enum gpio_cmd {
 	GPIO_INPUT,
 	GPIO_SET,
@@ -190,3 +193,36 @@ U_BOOT_CMD(gpio, 3, 0, do_gpio,
 	"<input|set|clear|toggle> <pin>\n"
 	"    - input/set/clear/toggle the specified pin\n"
 	"gpio status [<bank> | <pin>]");
+
+int do_gpio_user_in_get_wrapper(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+        unsigned char data = 0;
+        unsigned int val;
+        if (i2c_set_bus_num(1)) {
+                puts(" FAIL: Could not set bus 1\n");
+                return -1;
+        }
+
+        if (i2c_probe(PCA9554_I2C_SLAVE_ADDR)) {
+                puts(" FAIL: Could not probe pca9554 device\n");
+                return -1;
+        }
+        if (i2c_read(PCA9554_I2C_SLAVE_ADDR, 0, 1, &data, 1)) {
+                puts(" FAIL: Could not read pca9554 device\n");
+                return -1;
+        }
+        val = (data&(1u << PCA9554_I2C_ENTER_GPIO_OFFSET) ? 1:0);
+        printf("status of Enter GPIO Pin is %u\n", val);
+        if(!val)
+        {
+            setenv("gpio_enter", "yes");
+        }
+        return 0;
+}
+
+U_BOOT_CMD(
+        getusergpio, 1, 0, do_gpio_user_in_get_wrapper,
+        "Get the status of Enter GPIO pin.",
+        "getgpio"
+)
+

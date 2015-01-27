@@ -173,7 +173,9 @@
 		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
 		"ip=dhcp\0" \
 	"bootenv=uEnv.txt\0" \
+	"bootenvusr=uEnvrc.txt\0" \
 	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
+	"loadbootenvusr=fatload mmc ${mmcdev} ${loadaddr} ${bootenvusr}\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
 		"env import -t $loadaddr $filesize\0" \
 	"ramargs=setenv bootargs console=${console} " \
@@ -201,10 +203,17 @@
 	"mmcboot=mmc dev ${mmcdev}; " \
 		"if mmc rescan; then " \
 			"echo SD/MMC found on device ${mmcdev};" \
+                        "if test ${gpio_enter} = yes; then " \
+                            "if run loadbootenvusr; then " \
+                                "echo Loaded environment from ...${bootenvusr};" \
+                                "run importbootenv;" \
+                            "fi;" \
+                        "else " \
 			"if run loadbootenv; then " \
 				"echo Loaded environment from ${bootenv};" \
 				"run importbootenv;" \
 			"fi;" \
+                        "fi;" \
 			"if test -n $uenvcmd; then " \
 				"echo Running uenvcmd ...;" \
 				"run uenvcmd;" \

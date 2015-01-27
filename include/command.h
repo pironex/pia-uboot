@@ -180,5 +180,5 @@ int cmd_process(int flag, int argc, char * const argv[],
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
 void fixup_cmdtable(cmd_tbl_t *cmdtp, int size);
 #endif
-
+int do_gpio_user_in_get_wrapper(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 #endif	/* __COMMAND_H */
