@@ -198,6 +198,9 @@ int do_gpio_user_in_get_wrapper(cmd_tbl_t *cmdtp, int flag, int argc, char * con
 {
         unsigned char data = 0;
         unsigned int val;
+        char gpio_set[] = "yes";
+        char gpio_clr[] = "no";
+
         if (i2c_set_bus_num(1)) {
                 puts(" FAIL: Could not set bus 1\n");
                 return -1;
@@ -215,7 +218,11 @@ int do_gpio_user_in_get_wrapper(cmd_tbl_t *cmdtp, int flag, int argc, char * con
         printf("status of Enter GPIO Pin is %u\n", val);
         if(!val)
         {
-            setenv("gpio_enter", "yes");
+            setenv("gpio_enter", gpio_set);
+        }
+        else
+        {
+            setenv("gpio_enter", gpio_clr);
         }
         return 0;
 }
