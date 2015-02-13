@@ -50,7 +50,7 @@
    #define CONFIG_EXP_REV "0.01"
   #elif defined(CONFIG_PIA_SK)
    #define CONFIG_EXP_NAME "P335BSK"
-   #define CONFIG_EXP_REV "0.01"
+   #define CONFIG_EXP_REV "0.02"
   #endif
  #elif defined(CONFIG_PIA_EM)
   #define CONFIG_BOARD_NAME "PIA335EM"
