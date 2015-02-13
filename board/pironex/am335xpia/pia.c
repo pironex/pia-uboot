@@ -176,6 +176,8 @@ static int init_eeprom(int expansion, int rewrite)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
+	memcpy(header, &config, sizeof(struct am335x_baseboard_id));
+
 	return 0;
 }
 
