@@ -42,6 +42,9 @@
  #if defined(CONFIG_PIA_PM)
   #define CONFIG_BOARD_NAME     "PIA335PM"
   #define CONFIG_BOARD_REVISION "0.02"
+  #ifndef CONFIG_BOARD_MEMTYPE
+   #define CONFIG_BOARD_MEMTYPE 0
+  #endif
   #if defined(CONFIG_PIA_EBTFT)
    #define CONFIG_EXP_NAME "P335BEBT"
    #define CONFIG_EXP_REV "0.02"

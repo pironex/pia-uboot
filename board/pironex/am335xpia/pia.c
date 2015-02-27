@@ -98,6 +98,14 @@ static inline int init_rtc_rx8801(void) { return 0; }
 
 void enable_i2c1_pin_mux(void);
 
+
+
+#define EEPROM_POS_CONFIG_VARIANT	(0)
+#define EEPROM_POS_CONFIG_NAND		(1)
+#define EEPROM_POS_CONFIG_TOUCH		(2)
+#define EEPROM_POS_CONFIG_MEMORY	(3)
+#define EEPROM_POS_CONFIG_EMMC		(4)
+
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
 static int init_eeprom(int expansion, int rewrite)
@@ -146,6 +154,9 @@ static int init_eeprom(int expansion, int rewrite)
 #endif /* CONFIG_MMI_EXTENDED */
 #if (defined CONFIG_PIA_E2)
 		config.config[1] = 'N'; // NAND present
+#endif
+#if (defined CONFIG_PIA_PM)
+		config.config[EEPROM_POS_CONFIG_MEMORY] = CONFIG_BOARD_MEMTYPE;
 #endif
 #endif /* CONFIG_BOARD_NAME */
 	}
@@ -879,6 +890,18 @@ static const struct ddr_data ddr3_e2_data = {
 	.datawrsratio0 = MT41K256M16HA125IT_E2_PHY_WR_DATA,
 };
 
+#define KINGSTON256_PM_RD_DQS		0x038
+#define KINGSTON256_PM_WR_DQS		0x03a
+#define KINGSTON256_PM_PHY_FIFO_WE	0x09b
+#define KINGSTON256_PM_PHY_WR_DATA	0x073
+static const struct ddr_data ddr3_kingstron_data = {
+	.datardsratio0 = KINGSTON256_PM_RD_DQS,
+	.datawdsratio0 = KINGSTON256_PM_WR_DQS,
+	.datafwsratio0 = KINGSTON256_PM_PHY_FIFO_WE,
+	.datawrsratio0 = KINGSTON256_PM_PHY_WR_DATA,
+};
+
+/* for Micron MT41K256M16 and Kingston D2516EC4BXGGBI */
 static struct emif_regs ddr3_pia_256m16_emif_reg_data = {
 	.sdram_config	= MT41K256M16HA125IT_EMIF_SDCFG,
 	.ref_ctrl	= MT41K256M16HA125IT_EMIF_SDREF,
@@ -904,11 +927,18 @@ void sdram_init(void)
 			   &ddr3_pia_cmd_ctrl_data,
 			   &ddr3_128m16_emif_reg_data, 0);
 	} else if (board_is_pm(header)) {
-		// the same as MMI, slightly different leveling values
-		puts("Setup DDR3 MT41J128M16JT-125 memory\n");
-		config_ddr(303, &ioregs_pia, &ddr3_pm_data,
-			   &ddr3_pia_cmd_ctrl_data,
-			   &ddr3_128m16_emif_reg_data, 0);
+		if (header->config[EEPROM_POS_CONFIG_MEMORY] == 'K') {
+			puts("Setup PM DDR3 Kingston 256M16\n");
+			config_ddr(303, &ioregs_pia, &ddr3_kingstron_data,
+				&ddr3_pia_cmd_ctrl_data,
+				&ddr3_pia_256m16_emif_reg_data, 0);
+		} else {
+			// the same as MMI, slightly different leveling values
+			puts("Setup DDR3 MT41J128M16JT-125 memory\n");
+				config_ddr(303, &ioregs_pia, &ddr3_pm_data,
+				&ddr3_pia_cmd_ctrl_data,
+				&ddr3_128m16_emif_reg_data, 0);
+		}
 	} else {
 		puts("Setup DDR3 default memory\n");
 		config_ddr(303, &ioregs_pia, &ddr3_data,
