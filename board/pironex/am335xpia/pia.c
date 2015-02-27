@@ -250,6 +250,11 @@ static int read_eeprom(void)
 				"content!\n");
 			memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
 		}
+		// keep memory configuration byte, essential for DDR setup
+		if (board_is_pm(&oldheader)) {
+			header->config[EEPROM_POS_CONFIG_MEMORY]
+			               = oldheader.config[EEPROM_POS_CONFIG_MEMORY];
+		}
 	}
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
