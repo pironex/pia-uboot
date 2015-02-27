@@ -194,11 +194,11 @@ static int init_eeprom(int expansion, int rewrite)
 
 int am33xx_first_start(void)
 {
-	init_eeprom(0, 1);
 #ifdef CONFIG_EXP_NAME
 	enable_i2c1_pin_mux();
 	init_eeprom(1, 1);
 #endif
+	init_eeprom(0, 1);
 
 	if (board_is_e2(header))
 		init_rtc_rx8801();
