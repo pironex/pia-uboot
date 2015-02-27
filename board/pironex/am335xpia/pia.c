@@ -828,6 +828,18 @@ static struct emif_regs ddr3_emif_reg_data = {
 				PHY_EN_DYN_PWRDN,
 };
 
+/* PHY Leveling for piA-AM335x-PM */
+#define MT41J128M16JT125_PM_RD_DQS		0x38
+#define MT41J128M16JT125_PM_WR_DQS		0x3d
+#define MT41J128M16JT125_PM_PHY_FIFO_WE		0xa2
+#define MT41J128M16JT125_PM_PHY_WR_DATA		0x75
+static const struct ddr_data ddr3_pm_data = {
+	.datardsratio0 = MT41J128M16JT125_PM_RD_DQS,
+	.datawdsratio0 = MT41J128M16JT125_PM_WR_DQS,
+	.datafwsratio0 = MT41J128M16JT125_PM_PHY_FIFO_WE,
+	.datawrsratio0 = MT41J128M16JT125_PM_PHY_WR_DATA,
+};
+
 /* PHY Leveling for KM MMI */
 #define MT41J128M16JT125_MMI_RD_DQS		0x39
 #define MT41J128M16JT125_MMI_WR_DQS		0x9d
@@ -882,8 +894,14 @@ void sdram_init(void)
 			   &ddr3_pia_cmd_ctrl_data,
 			   &ddr3_pia_256m16_emif_reg_data, 0);
 	} else if (board_is_mmi(header)) {
-		puts("Setup DDR3 default memory\n");
+		puts("Setup DDR3 MT41J128M16JT-125 memory\n");
 		config_ddr(303, &ioregs_pia, &ddr3_mmi_data,
+			   &ddr3_pia_cmd_ctrl_data,
+			   &ddr3_128m16_emif_reg_data, 0);
+	} else if (board_is_pm(header)) {
+		// the same as MMI, slightly different leveling values
+		puts("Setup DDR3 MT41J128M16JT-125 memory\n");
+		config_ddr(303, &ioregs_pia, &ddr3_pm_data,
 			   &ddr3_pia_cmd_ctrl_data,
 			   &ddr3_128m16_emif_reg_data, 0);
 	} else {
