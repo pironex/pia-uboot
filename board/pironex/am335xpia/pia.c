@@ -658,7 +658,8 @@ static int init_tps65910(void)
 	}
 	/* only enable battery charger for devices utilizing the TPS VBACKUP */
 	if (board_is_mmi(header) || board_is_em(header) ||
-		board_is_ebtft(header) || board_is_sk(header)) {
+		board_is_ebtft(header) || board_is_sk(header) ||
+		board_is_apc(header)) {
 		puts("Initializing TPS Battery Charger... 3.15V\n");
 		// BBCHG 3.15V enable charge
 		regval = ((0x02 << 1) | 0x01);
