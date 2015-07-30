@@ -520,6 +520,15 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLUP) }, /* GSM_DTR GPIO3_19 */
 	{ OFFSET(mcasp0_axr1),      (M7 | PIN_OUTPUT) }, /* GSM_WAKEUP GPIO3_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0.DRVVBUS */
+	/* rev 00.02 */
+	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* charging_f GPIO0_31 */
+	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* charging GPIO0_28 */
+	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT) }, /* CHR_EN GPIO2_24 */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1.DRVVBUS */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_PWR_EN GPIO2_2 */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT) }, /* GSM_POWER_OK GPIO2_4 */
+	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_INPUT) }, /* GSM_reset GPIO2_25 */
+	{ OFFSET(lcd_data6),        (M7 | PIN_INPUT) }, /* Weg-Impuls GPIO2_12 */
 	{ -1 },
 };
 
@@ -996,7 +1005,12 @@ static void init_apc_gpios(void)
 	gpio_direction_output(3*32 + 15, 1); /* CAN0 TERM off */
 	gpio_direction_output(3*32 + 17, 0); /* GSM_PWRKEY off */
 	gpio_direction_output(3*32 + 19, 1); /* GSM_DTR idle */
+	gpio_direction_output(2*32 + 25, 1); /* disable GSM_RESET */
+	gpio_direction_output(2*32 +  2, 1); /* turn GSM Power on */
 	gpio_direction_output(3*32 + 20, 0); /* GPS Wakeup off */
+
+	gpio_direction_input( 0*32 + 28); // enable charging, on after POR
+
 }
 
 static void init_lokisa_em_gpios(void)
