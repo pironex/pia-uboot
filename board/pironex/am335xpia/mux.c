@@ -488,14 +488,14 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* nc (MII RXERR) */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CMD */
 	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CLK */
-	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT_PULLUP) }, /* BAT_PWR GPIO2_3 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT_PULLDOWN) }, /* BAT_PWR GPIO2_3 */
 	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* EMMC_RESET GPIO2_5 */
 	{ OFFSET(lcd_data8),        (M6 | PIN_OUTPUT) }, /* UART2_CTSN */
 	{ OFFSET(lcd_data9),        (M6 | PIN_INPUT_PULLUP) }, /* UART2.RTSN */
 	{ OFFSET(lcd_data10),       (M6 | PIN_OUTPUT) }, /* UART3_CTSN */
 	{ OFFSET(lcd_data11),       (M6 | PIN_INPUT_PULLUP) }, /* UART3.RTSN */
 	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) }, /* UART5.RX */
-	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_STATUS GPIO 3_3 */
+	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* GSM_STATUS GPIO 3_3 */
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_OUTPUT) }, /* LED2 GPIO 3_4 */
 	{ OFFSET(mii1_txd3),        (M3 | PIN_INPUT_PULLUP) }, /* UART4.RX */
 	{ OFFSET(mii1_txd2),        (M3 | PIN_OUTPUT) }, /* UART4.TX */
@@ -999,7 +999,7 @@ static void init_apc_gpios(void)
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
 	gpio_direction_output(0*32 + 27, 0); /* WLAN_EN off */
 	gpio_direction_output(1*32 + 29, 0); /* BT_EN off */
-	gpio_direction_output(2*32 +  3, 1); /* Battery Power on */
+	gpio_direction_output(2*32 +  3, 0); /* Battery Power off */
 	gpio_direction_output(3*32 +  4, 1); /* LED */
 	gpio_direction_output(3*32 + 14, 1); /* CAN1 TERM off */
 	gpio_direction_output(3*32 + 15, 1); /* CAN0 TERM off */
