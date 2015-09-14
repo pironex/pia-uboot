@@ -485,10 +485,9 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(gpmc_ad13),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2.D1 */
 	{ OFFSET(gpmc_ad14),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2.D2 */
 	{ OFFSET(gpmc_ad15),        (M3 | PIN_INPUT_PULLUP) }, /* MMC2.D3 */
-	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* nc (MII RXERR) */
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CMD */
 	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CLK */
-	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT_PULLDOWN) }, /* BAT_PWR GPIO2_3 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) }, /* BAT_PWR GPIO2_3 */
 	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* EMMC_RESET GPIO2_5 */
 	{ OFFSET(lcd_data8),        (M6 | PIN_OUTPUT) }, /* UART2_CTSN */
 	{ OFFSET(lcd_data9),        (M6 | PIN_INPUT_PULLUP) }, /* UART2.RTSN */
@@ -512,13 +511,13 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(uart1_rtsn),       (M2 | PIN_INPUT) }, /* DCAN0.RX */
 	{ OFFSET(uart1_rxd),        (M0 | PIN_INPUT_PULLUP) }, /* UART1.RX */
 	{ OFFSET(uart1_txd),        (M0 | PIN_OUTPUT) }, /* UART1.TX */
-	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_OUTPUT) }, /* CAN1_TERM GPIO3_14 */
-	{ OFFSET(mcasp0_fsx),       (M7 | PIN_OUTPUT) }, /* CAN0_TERM GPIO3_15 */
-	{ OFFSET(mcasp0_axr0),      (M7 | PIN_OUTPUT) }, /* DE1_RS485 GPIO3_16 */
+	{ OFFSET(mcasp0_aclkx),     (M7 | PIN_INPUT_PULLUP) }, /* CAN1_TERM GPIO3_14 */
+	{ OFFSET(mcasp0_fsx),       (M7 | PIN_INPUT_PULLUP) }, /* CAN0_TERM GPIO3_15 */
+	{ OFFSET(mcasp0_axr0),      (M7 | PIN_INPUT_PULLDOWN) }, /* DE1_RS485 GPIO3_16 */
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_RI GPIO3_17 */
 	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_PWRKEY GPIO3_18 */
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLUP) }, /* GSM_DTR GPIO3_19 */
-	{ OFFSET(mcasp0_axr1),      (M7 | PIN_OUTPUT) }, /* GSM_WAKEUP GPIO3_20 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLDOWN) }, /* GPS_WAKEUP (5360 Flightmode disable) GPIO3_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0.DRVVBUS */
 	/* rev 00.02 */
 	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* charging_f GPIO0_31 */
@@ -996,21 +995,21 @@ static void init_sk_gpios(void)
 
 static void init_apc_gpios(void)
 {
+	/* on PM */
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
+	/* Make sure we don't boot without 24V, battery is only for backup
+	   purposes and will be turned on in Linux. */
+	gpio_direction_output(2*32 +  3, 0); /* Battery Power off*/
 	gpio_direction_output(0*32 + 27, 0); /* WLAN_EN off */
 	gpio_direction_output(1*32 + 29, 0); /* BT_EN off */
-	gpio_direction_output(2*32 +  3, 0); /* Battery Power off */
-	gpio_direction_output(3*32 +  4, 1); /* LED */
-	gpio_direction_output(3*32 + 14, 1); /* CAN1 TERM off */
-	gpio_direction_output(3*32 + 15, 1); /* CAN0 TERM off */
-	gpio_direction_output(3*32 + 17, 0); /* GSM_PWRKEY off */
+	gpio_direction_output(3*32 +  4, 1); /* LED2 */
+	gpio_direction_output(3*32 + 17, 0); /* GSM_PWRKEY */
 	gpio_direction_output(3*32 + 19, 1); /* GSM_DTR idle */
-	gpio_direction_output(2*32 + 25, 1); /* disable GSM_RESET */
 	gpio_direction_output(2*32 +  2, 1); /* turn GSM Power on */
-	gpio_direction_output(3*32 + 20, 0); /* GPS Wakeup off */
+	gpio_direction_output(3*32 + 20, 0); /* turn flight mode on, turn off in Linux */
 
-	gpio_direction_input( 0*32 + 28); // enable charging, on after POR
-
+	gpio_direction_input(2*32 + 24); /* Charger Standby */
+	gpio_direction_input(2*32 + 25); /* don't handle GSM_RESET! */
 }
 
 static void init_lokisa_em_gpios(void)
