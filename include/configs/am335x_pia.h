@@ -147,10 +147,11 @@
 	"kloadaddr=0x80007fc0\0" \
 	"fdtaddr=0x80F80000\0" \
 	"rdaddr=0x81000000\0" \
-	"boot_fdt=no\0" \
+	"boot_fdt=yes\0" \
 	"bootpart=1\0" \
 	"bootdir=\0" \
 	"bootfile=zImage\0" \
+	"fdtfile=undefined\0" \
 	"console=ttyO0,115200n8\0" \
 	"optargs=\0" \
 	"mmcdev=0\0" \
@@ -186,8 +187,8 @@
 		"rootfstype=${ramrootfstype}\0" \
 	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
 	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
-	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
 	"loadimage=load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"loadfdt=load mmc ${mmcdev}:${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
 	"mmcloados=run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"if run loadfdt; then " \
@@ -225,6 +226,7 @@
 #endif /* !SPL_BUILD */
 
 #define CONFIG_BOOTCOMMAND \
+	"setenv fdtfile am335x-pia-sk.dtb;" \
 	"run mmcboot;" \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 2; " \
@@ -241,7 +243,7 @@
 #ifdef PIA_DEBUG
 #define CONFIG_BOOTDELAY		3
 #else
-#define CONFIG_BOOTDELAY		0
+#define CONFIG_BOOTDELAY		1
 #endif
 #define CONFIG_AUTOBOOT_KEYED
 #define CONFIG_AUTOBOOT_STOP_STR	"s"
