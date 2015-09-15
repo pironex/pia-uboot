@@ -13,29 +13,11 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <asm/hardware.h>
-
-#define CONFIG_SYS_TEXT_BASE		0x26f00000
-
-/* ARM asynchronous clock */
-#define CONFIG_SYS_AT91_SLOW_CLOCK      32768
-#define CONFIG_SYS_AT91_MAIN_CLOCK      12000000 /* from 12 MHz crystal */
-
-#define CONFIG_AT91FAMILY
-#define CONFIG_ARCH_CPU_INIT
-
-#ifndef CONFIG_SPL_BUILD
-#define CONFIG_SKIP_LOWLEVEL_INIT
-#endif
-
-#define CONFIG_BOARD_EARLY_INIT_F
-#define CONFIG_DISPLAY_CPUINFO
-
-#define CONFIG_CMD_BOOTZ
-#define CONFIG_OF_LIBFDT		/* Device Tree support */
-
-/* general purpose I/O */
-#define CONFIG_AT91_GPIO
+/*
+ * If has No NOR flash, please put the definition: CONFIG_SYS_NO_FLASH
+ * before the common header.
+ */
+#include "at91-sama5_common.h"
 
 /* serial console */
 #define CONFIG_ATMEL_USART
@@ -68,28 +50,15 @@
 /* board specific (not enough SRAM) */
 #define CONFIG_SAMA5D3_LCD_BASE		0x23E00000
 
-#define CONFIG_BOOTDELAY		3
-
-/*
- * BOOTP options
- */
-#define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
-
-/* No NOR flash */
-#define CONFIG_SYS_NO_FLASH
-
-/*
- * Command line configuration.
- */
-#include <config_cmd_default.h>
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_IMI
-#undef CONFIG_CMD_LOADS
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
+/* NOR flash */
+#ifndef CONFIG_SYS_NO_FLASH
+#define CONFIG_FLASH_CFI_DRIVER
+#define CONFIG_SYS_FLASH_CFI
+#define CONFIG_SYS_FLASH_PROTECTION
+#define CONFIG_SYS_FLASH_BASE		0x10000000
+#define CONFIG_SYS_MAX_FLASH_SECT	131
+#define CONFIG_SYS_MAX_FLASH_BANKS	1
+#endif
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -108,7 +77,6 @@
 
 #ifdef CONFIG_CMD_SF
 #define CONFIG_ATMEL_SPI
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_ATMEL
 #define CONFIG_SF_DEFAULT_SPEED		30000000
 #endif
@@ -179,6 +147,7 @@
 
 #if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
 #define CONFIG_CMD_FAT
+#define CONFIG_FAT_WRITE
 #endif
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
@@ -203,47 +172,19 @@
 				"bootm 0x22000000 - 0x21000000"
 #elif CONFIG_SYS_USE_MMC
 /* bootstrap + u-boot + env in sd card */
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_ENV_OFFSET	0x2000
-#define CONFIG_ENV_SIZE		0x1000
+#define CONFIG_ENV_IS_IN_FAT
+#define FAT_ENV_INTERFACE	"mmc"
+#define FAT_ENV_FILE		"uboot.env"
+#define FAT_ENV_DEVICE_AND_PART	"0"
+#define CONFIG_ENV_SIZE		0x4000
 #define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 dtb; " \
 				"fatload mmc 0:1 0x22000000 uImage; " \
 				"bootm 0x22000000 - 0x21000000"
-#define CONFIG_SYS_MMC_ENV_DEV	0
 #else
 #define CONFIG_ENV_IS_NOWHERE
 #endif
 
-#ifdef CONFIG_SYS_USE_MMC
-#define CONFIG_BOOTARGS							\
-	"console=ttyS0,115200 earlyprintk "				\
-	"root=/dev/mmcblk0p2 rw rootwait"
-#else
-#define CONFIG_BOOTARGS							\
-	"console=ttyS0,115200 earlyprintk "				\
-	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
-	"256K(env),256k(evn_redundent),256k(spare),"			\
-	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
-	"rootfstype=ubifs ubi.mtd=7 root=ubi0:rootfs"
-#endif
-
-#define CONFIG_BAUDRATE			115200
-
-#define CONFIG_SYS_PROMPT		"U-Boot> "
-#define CONFIG_SYS_CBSIZE		256
-#define CONFIG_SYS_MAXARGS		16
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-					sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_SYS_HUSH_PARSER
-
-/* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
-
 /* SPL */
-#define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x300000
 #define CONFIG_SPL_MAX_SIZE		0x10000
@@ -261,12 +202,12 @@
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)
 
 #ifdef CONFIG_SYS_USE_MMC
-#define CONFIG_SPL_LDSCRIPT		arch/arm/cpu/at91-common/u-boot-spl.lds
+#define CONFIG_SPL_LDSCRIPT		arch/arm/mach-at91/armv7/u-boot-spl.lds
 #define CONFIG_SPL_MMC_SUPPORT
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x400
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR 0x200
-#define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION	1
-#define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
+#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME	"u-boot.img"
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
 
@@ -281,13 +222,12 @@
 #define CONFIG_SYS_NAND_OOBSIZE		64
 #define CONFIG_SYS_NAND_BLOCK_SIZE	0x20000
 #define CONFIG_SYS_NAND_BAD_BLOCK_POS	0x0
+#define CONFIG_SPL_GENERATE_ATMEL_PMECC_HEADER
 
 #elif CONFIG_SYS_USE_SERIALFLASH
 #define CONFIG_SPL_SPI_SUPPORT
 #define CONFIG_SPL_SPI_FLASH_SUPPORT
 #define CONFIG_SPL_SPI_LOAD
-#define CONFIG_SPL_SPI_BUS		0
-#define CONFIG_SPL_SPI_CS		0
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x8400
 
 #endif

@@ -32,6 +32,10 @@ typedef struct bd_info {
 	unsigned long	bi_flashoffset; /* reserved area for startup monitor */
 	unsigned long	bi_sramstart;	/* start of SRAM memory */
 	unsigned long	bi_sramsize;	/* size	 of SRAM memory */
+#ifdef CONFIG_AVR32
+	unsigned char   bi_phy_id[4];   /* PHY address for ATAG_ETHERNET */
+	unsigned long   bi_board_number;/* ATAG_BOARDINFO */
+#endif
 #ifdef CONFIG_ARM
 	unsigned long	bi_arm_freq; /* arm frequency */
 	unsigned long	bi_dsp_freq; /* dsp core frequency */
@@ -41,7 +45,7 @@ typedef struct bd_info {
 	|| defined(CONFIG_E500) || defined(CONFIG_MPC86xx)
 	unsigned long	bi_immr_base;	/* base of IMMR register */
 #endif
-#if defined(CONFIG_MPC5xxx)
+#if defined(CONFIG_MPC5xxx) || defined(CONFIG_M68K)
 	unsigned long	bi_mbar_base;	/* base of internal registers */
 #endif
 #if defined(CONFIG_MPC83xx)
@@ -62,11 +66,15 @@ typedef struct bd_info {
 #if defined(CONFIG_MPC512X)
 	unsigned long	bi_ipsfreq;	/* IPS Bus Freq, in MHz */
 #endif /* CONFIG_MPC512X */
-#if defined(CONFIG_MPC5xxx)
+#if defined(CONFIG_MPC5xxx) || defined(CONFIG_M68K)
 	unsigned long	bi_ipbfreq;	/* IPB Bus Freq, in MHz */
 	unsigned long	bi_pcifreq;	/* PCI Bus Freq, in MHz */
 #endif
-	unsigned int	bi_baudrate;	/* Console Baudrate */
+#if defined(CONFIG_EXTRA_CLOCK)
+	unsigned long bi_inpfreq;	/* input Freq in MHz */
+	unsigned long bi_vcofreq;	/* vco Freq in MHz */
+	unsigned long bi_flbfreq;	/* Flexbus Freq in MHz */
+#endif
 #if defined(CONFIG_405)   || \
 		defined(CONFIG_405GP) || \
 		defined(CONFIG_405EP) || \
@@ -79,9 +87,6 @@ typedef struct bd_info {
 	unsigned int	bi_plb_busfreq;	/* PLB Bus speed, in Hz */
 	unsigned int	bi_pci_busfreq;	/* PCI Bus speed, in Hz */
 	unsigned char	bi_pci_enetaddr[6];	/* PCI Ethernet MAC address */
-#endif
-#if defined(CONFIG_HYMOD)
-	hymod_conf_t	bi_hymod_conf;	/* hymod configuration information */
 #endif
 
 #ifdef CONFIG_HAS_ETH1
@@ -107,9 +112,6 @@ typedef struct bd_info {
 		defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	unsigned int	bi_opbfreq;		/* OPB clock in Hz */
 	int		bi_iic_fast[2];		/* Use fast i2c mode */
-#endif
-#if defined(CONFIG_NX823)
-	unsigned char	bi_sernum[8];
 #endif
 #if defined(CONFIG_4xx)
 #if defined(CONFIG_440GX) || \

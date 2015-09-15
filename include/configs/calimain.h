@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 OMICRON electronics GmbH
+ * Copyright (C) 2011-2014 OMICRON electronics GmbH
  *
  * Based on da850evm.h. Original Copyrights follow:
  *
@@ -18,12 +18,12 @@
 #define CONFIG_DRIVER_TI_EMAC
 #define MACH_TYPE_CALIMAIN	3528
 #define CONFIG_MACH_TYPE	MACH_TYPE_CALIMAIN
+#define CONFIG_SYS_GENERIC_BOARD
 
 /*
  * SoC Configuration
  */
 #define CONFIG_MACH_DAVINCI_CALIMAIN
-#define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
 #define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
@@ -221,8 +221,6 @@
 #define CONFIG_BOOTDELAY          0
 #define CONFIG_ZERO_BOOTDELAY_CHECK   /* check for keypress on bootdelay==0 */
 #define CONFIG_BOOT_RETRY_TIME    60  /* continue boot after 60 s inactivity */
-#define CONFIG_AUTOBOOT_KEYED
-#define CONFIG_AUTOBOOT_DELAY_STR "\x0d" /* press ENTER to interrupt BOOT */
 #define CONFIG_RESET_TO_RETRY
 
 /*
@@ -313,7 +311,6 @@
 /*
  * U-Boot commands
  */
-#include <config_cmd_default.h>
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
@@ -321,11 +318,9 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
-#define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_GPIO
 
 #ifndef CONFIG_DRIVER_TI_EMAC
-#undef CONFIG_CMD_NET
 #undef CONFIG_CMD_DHCP
 #undef CONFIG_CMD_MII
 #undef CONFIG_CMD_PING

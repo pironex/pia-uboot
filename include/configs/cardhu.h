@@ -21,10 +21,8 @@
 
 #include "tegra30-common.h"
 
-/* Enable fdt support for Cardhu. Flash the image in u-boot-dtb.bin */
-#define CONFIG_DEFAULT_DEVICE_TREE	tegra30-cardhu
-#define CONFIG_OF_CONTROL
-#define CONFIG_OF_SEPARATE
+/* VDD core PMIC */
+#define CONFIG_TEGRA_VDD_CORE_TPS62361B_SET3
 
 /* High-level configuration options */
 #define V_PROMPT		"Tegra30 (Cardhu) # "
@@ -41,16 +39,9 @@
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_CARDHU
 
-#define CONFIG_BOARD_EARLY_INIT_F
-
 /* I2C */
 #define CONFIG_SYS_I2C_TEGRA
-#define CONFIG_SYS_I2C_INIT_BOARD
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_MAX_I2C_BUS		TEGRA_I2C_NUM_CONTROLLERS
-#define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_CMD_I2C
-#define CONFIG_SYS_I2C
 
 /* SD/MMC */
 #define CONFIG_MMC
@@ -67,7 +58,6 @@
 /* SPI */
 #define CONFIG_TEGRA20_SLINK
 #define CONFIG_TEGRA_SLINK_CTRLS       6
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_SF_DEFAULT_MODE         SPI_MODE_0
 #define CONFIG_SF_DEFAULT_SPEED        24000000
@@ -85,8 +75,17 @@
 #define CONFIG_USB_HOST_ETHER
 #define CONFIG_USB_ETHER_ASIX
 
+/* PCI host support */
+#define CONFIG_PCI
+#define CONFIG_PCI_TEGRA
+#define CONFIG_PCI_PNP
+#define CONFIG_CMD_PCI
+#define CONFIG_CMD_PCI_ENUM
+
+/* PCI networking support */
+#define CONFIG_RTL8169
+
 /* General networking support */
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
 
 #include "tegra-common-post.h"

@@ -255,7 +255,6 @@ void board_init_f(ulong bootflag)
 	addr_sp &= ~0x07;
 	debug("New Stack Pointer is: %08lx\n", addr_sp);
 
-	gd->bd->bi_baudrate = gd->baudrate;
 	/* Ram isn't board specific, so move it to board code ... */
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
@@ -384,7 +383,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_CMD_NET)
 	puts("Net:   ");
 
-	eth_initialize(gd->bd);
+	eth_initialize();
 #if defined(CONFIG_RESET_PHY_R)
 	debug("Reset Ethernet PHY\n");
 	reset_phy();

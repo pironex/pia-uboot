@@ -50,12 +50,7 @@
 /*
  * Bootloader Components Configuration
  */
-#include <config_cmd_default.h>
-
-#undef	CONFIG_CMD_NET
-#undef	CONFIG_CMD_NFS
 #define	CONFIG_CMD_ENV
-#undef	CONFIG_CMD_IMLS
 #define	CONFIG_CMD_MMC
 #define	CONFIG_CMD_IDE
 #define	CONFIG_LCD
@@ -114,7 +109,6 @@
 /*
  * Clock Configuration
  */
-#undef	CONFIG_SYS_CLKS_IN_HZ
 #define	CONFIG_SYS_CPUSPEED		0x210		/* 416MHz ; N=2,L=16 */
 
 /*

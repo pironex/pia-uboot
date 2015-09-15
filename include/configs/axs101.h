@@ -10,22 +10,7 @@
 /*
  *  CPU configuration
  */
-#define CONFIG_ARC700
-#define CONFIG_ARC_MMU_VER		3
-#define CONFIG_SYS_CACHELINE_SIZE	32
-#define CONFIG_SYS_CLK_FREQ		750000000
 #define CONFIG_SYS_TIMER_RATE		CONFIG_SYS_CLK_FREQ
-
-/* dwgmac doesn't work with D$ enabled now */
-#define CONFIG_SYS_DCACHE_OFF
-
-/*
- * Board configuration
- */
-#define CONFIG_SYS_GENERIC_BOARD
-#define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is in RAM already */
-
-#define CONFIG_ARCH_EARLY_INIT_R
 
 #define ARC_FPGA_PERIPHERAL_BASE	0xE0000000
 #define ARC_APB_PERIPHERAL_BASE		0xF0000000
@@ -35,12 +20,11 @@
 /*
  * Memory configuration
  */
-#define CONFIG_SYS_TEXT_BASE		0x81000000
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_DDR_SDRAM_BASE	0x80000000
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_SDRAM_BASE
-#define CONFIG_SYS_SDRAM_SIZE		0x10000000	/* 256 Mb */
+#define CONFIG_SYS_SDRAM_SIZE		0x20000000	/* 512 Mb */
 
 #define CONFIG_SYS_INIT_SP_ADDR		\
 	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
@@ -48,6 +32,12 @@
 #define CONFIG_SYS_MALLOC_LEN		0x200000	/* 2 MB */
 #define CONFIG_SYS_BOOTM_LEN		0x2000000	/* 32 MB */
 #define CONFIG_SYS_LOAD_ADDR		0x82000000
+
+/*
+ * This board might be of different versions so handle it
+ */
+#define CONFIG_BOARD_TYPES
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * NAND Flash configuration
@@ -83,12 +73,15 @@
 /*
  * I2C configuration
  */
-#define CONFIG_HARD_I2C
-#define CONFIG_DW_I2C
-#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_DW
 #define CONFIG_I2C_ENV_EEPROM_BUS	2
 #define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C_SPEED1		100000
+#define CONFIG_SYS_I2C_SPEED2		100000
 #define CONFIG_SYS_I2C_SLAVE		0
+#define CONFIG_SYS_I2C_SLAVE1		0
+#define CONFIG_SYS_I2C_SLAVE2		0
 #define CONFIG_SYS_I2C_BASE		0xE001D000
 #define CONFIG_SYS_I2C_BASE1		0xE001E000
 #define CONFIG_SYS_I2C_BASE2		0xE001F000
@@ -103,7 +96,7 @@
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN		1
 #define CONFIG_SYS_I2C_EEPROM_ADDR_OVERFLOW	1
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	3
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	32
+#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	64
 
 /*
  * SD/MMC configuration
@@ -123,16 +116,11 @@
 /*
  * Ethernet configuration
  */
-#define CONFIG_DESIGNWARE_ETH
 #define CONFIG_DW_AUTONEG
-#define CONFIG_DW_SEARCH_PHY
-#define CONFIG_NET_MULTI
 
 /*
  * Command line configuration
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_ELF

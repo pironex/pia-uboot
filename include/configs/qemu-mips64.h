@@ -13,6 +13,8 @@
 #define __CONFIG_H
 
 #define CONFIG_QEMU_MIPS
+
+#define CONFIG_DISPLAY_BOARDINFO
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_BOOTDELAY	10	/* autoboot after 10 seconds */
@@ -43,13 +45,9 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
-#undef CONFIG_CMD_LOADB
-#undef CONFIG_CMD_LOADS
 #define CONFIG_CMD_DHCP
 
 #define CONFIG_DRIVER_NE2000

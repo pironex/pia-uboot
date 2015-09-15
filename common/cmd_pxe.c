@@ -1,5 +1,6 @@
 /*
  * Copyright 2010-2011 Calxeda, Inc.
+ * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -7,13 +8,16 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
+#include <mapmem.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
 #include <errno.h>
 #include <linux/list.h>
 #include <fs.h>
+#include <asm/io.h>
 
 #include "menu.h"
+#include "cli.h"
 
 #define MAX_TFTP_PATH_LEN 127
 
@@ -186,11 +190,12 @@ static int do_get_any(cmd_tbl_t *cmdtp, const char *file_path, char *file_addr)
  *
  * Returns 1 for success, or < 0 on error.
  */
-static int get_relfile(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr)
+static int get_relfile(cmd_tbl_t *cmdtp, const char *file_path,
+	unsigned long file_addr)
 {
 	size_t path_len;
 	char relfile[MAX_TFTP_PATH_LEN+1];
-	char addr_buf[10];
+	char addr_buf[18];
 	int err;
 
 	err = get_bootfile_path(file_path, relfile, sizeof(relfile));
@@ -213,7 +218,7 @@ static int get_relfile(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr)
 
 	printf("Retrieving file: %s\n", relfile);
 
-	sprintf(addr_buf, "%p", file_addr);
+	sprintf(addr_buf, "%lx", file_addr);
 
 	return do_getfile(cmdtp, relfile, addr_buf);
 }
@@ -225,11 +230,13 @@ static int get_relfile(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr)
  *
  * Returns 1 on success, or < 0 for error.
  */
-static int get_pxe_file(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr)
+static int get_pxe_file(cmd_tbl_t *cmdtp, const char *file_path,
+	unsigned long file_addr)
 {
 	unsigned long config_file_size;
 	char *tftp_filesize;
 	int err;
+	char *buf;
 
 	err = get_relfile(cmdtp, file_path, file_addr);
 
@@ -248,7 +255,9 @@ static int get_pxe_file(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr
 	if (strict_strtoul(tftp_filesize, 16, &config_file_size) < 0)
 		return -EINVAL;
 
-	*(char *)(file_addr + config_file_size) = '\0';
+	buf = map_sysmem(file_addr + config_file_size, 1);
+	*buf = '\0';
+	unmap_sysmem(buf);
 
 	return 1;
 }
@@ -264,7 +273,8 @@ static int get_pxe_file(cmd_tbl_t *cmdtp, const char *file_path, void *file_addr
  *
  * Returns 1 on success or < 0 on error.
  */
-static int get_pxelinux_path(cmd_tbl_t *cmdtp, const char *file, void *pxefile_addr_r)
+static int get_pxelinux_path(cmd_tbl_t *cmdtp, const char *file,
+	unsigned long pxefile_addr_r)
 {
 	size_t base_len = strlen(PXELINUX_DIR);
 	char path[MAX_TFTP_PATH_LEN+1];
@@ -285,7 +295,7 @@ static int get_pxelinux_path(cmd_tbl_t *cmdtp, const char *file, void *pxefile_a
  *
  * Returns 1 on success or < 0 on error.
  */
-static int pxe_uuid_path(cmd_tbl_t *cmdtp, void *pxefile_addr_r)
+static int pxe_uuid_path(cmd_tbl_t *cmdtp, unsigned long pxefile_addr_r)
 {
 	char *uuid_str;
 
@@ -303,7 +313,7 @@ static int pxe_uuid_path(cmd_tbl_t *cmdtp, void *pxefile_addr_r)
  *
  * Returns 1 on success or < 0 on error.
  */
-static int pxe_mac_path(cmd_tbl_t *cmdtp, void *pxefile_addr_r)
+static int pxe_mac_path(cmd_tbl_t *cmdtp, unsigned long pxefile_addr_r)
 {
 	char mac_str[21];
 	int err;
@@ -323,12 +333,12 @@ static int pxe_mac_path(cmd_tbl_t *cmdtp, void *pxefile_addr_r)
  *
  * Returns 1 on success or < 0 on error.
  */
-static int pxe_ipaddr_paths(cmd_tbl_t *cmdtp, void *pxefile_addr_r)
+static int pxe_ipaddr_paths(cmd_tbl_t *cmdtp, unsigned long pxefile_addr_r)
 {
 	char ip_addr[9];
 	int mask_pos, err;
 
-	sprintf(ip_addr, "%08X", ntohl(NetOurIP));
+	sprintf(ip_addr, "%08X", ntohl(net_ip.s_addr));
 
 	for (mask_pos = 7; mask_pos >= 0;  mask_pos--) {
 		err = get_pxelinux_path(cmdtp, ip_addr, pxefile_addr_r);
@@ -382,9 +392,9 @@ do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 * Keep trying paths until we successfully get a file we're looking
 	 * for.
 	 */
-	if (pxe_uuid_path(cmdtp, (void *)pxefile_addr_r) > 0 ||
-	    pxe_mac_path(cmdtp, (void *)pxefile_addr_r) > 0 ||
-	    pxe_ipaddr_paths(cmdtp, (void *)pxefile_addr_r) > 0) {
+	if (pxe_uuid_path(cmdtp, pxefile_addr_r) > 0 ||
+	    pxe_mac_path(cmdtp, pxefile_addr_r) > 0 ||
+	    pxe_ipaddr_paths(cmdtp, pxefile_addr_r) > 0) {
 		printf("Config file found\n");
 
 		return 0;
@@ -392,7 +402,7 @@ do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	while (pxe_default_paths[i]) {
 		if (get_pxelinux_path(cmdtp, pxe_default_paths[i],
-				      (void *)pxefile_addr_r) > 0) {
+				      pxefile_addr_r) > 0) {
 			printf("Config file found\n");
 			return 0;
 		}
@@ -425,7 +435,7 @@ static int get_relfile_envaddr(cmd_tbl_t *cmdtp, const char *file_path, const ch
 	if (strict_strtoul(envaddr, 16, &file_addr) < 0)
 		return -EINVAL;
 
-	return get_relfile(cmdtp, file_path, (void *)file_addr);
+	return get_relfile(cmdtp, file_path, file_addr);
 }
 
 /*
@@ -577,8 +587,12 @@ static int label_localboot(struct pxe_label *label)
 	if (!localcmd)
 		return -ENOENT;
 
-	if (label->append)
-		setenv("bootargs", label->append);
+	if (label->append) {
+		char bootargs[CONFIG_SYS_CBSIZE];
+
+		cli_simple_process_macros(label->append, bootargs);
+		setenv("bootargs", bootargs);
+	}
 
 	debug("running: %s\n", localcmd);
 
@@ -606,9 +620,10 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 	char initrd_str[22];
 	char mac_str[29] = "";
 	char ip_str[68] = "";
-	char *bootargs;
 	int bootm_argc = 3;
 	int len = 0;
+	ulong kernel_addr;
+	void *buf;
 
 	label_print(label);
 
@@ -651,7 +666,6 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 		sprintf(ip_str, " ip=%s:%s:%s:%s",
 			getenv("ipaddr"), getenv("serverip"),
 			getenv("gatewayip"), getenv("netmask"));
-		len += strlen(ip_str);
 	}
 
 #ifdef CONFIG_CMD_NET
@@ -661,27 +675,30 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 		err = format_mac_pxe(mac_str + 8, sizeof(mac_str) - 8);
 		if (err < 0)
 			mac_str[0] = '\0';
-		len += strlen(mac_str);
 	}
 #endif
 
-	if (label->append)
-		len += strlen(label->append);
+	if ((label->ipappend & 0x3) || label->append) {
+		char bootargs[CONFIG_SYS_CBSIZE] = "";
+		char finalbootargs[CONFIG_SYS_CBSIZE];
 
-	if (len) {
-		bootargs = malloc(len + 1);
-		if (!bootargs)
+		if (strlen(label->append ?: "") +
+		    strlen(ip_str) + strlen(mac_str) + 1 > sizeof(bootargs)) {
+			printf("bootarg overflow %zd+%zd+%zd+1 > %zd\n",
+			       strlen(label->append ?: ""),
+			       strlen(ip_str), strlen(mac_str),
+			       sizeof(bootargs));
 			return 1;
-		bootargs[0] = '\0';
+		}
+
 		if (label->append)
 			strcpy(bootargs, label->append);
 		strcat(bootargs, ip_str);
 		strcat(bootargs, mac_str);
 
-		setenv("bootargs", bootargs);
-		printf("append: %s\n", bootargs);
-
-		free(bootargs);
+		cli_simple_process_macros(bootargs, finalbootargs);
+		setenv("bootargs", finalbootargs);
+		printf("append: %s\n", finalbootargs);
 	}
 
 	bootm_argv[1] = getenv("kernel_addr_r");
@@ -771,12 +788,17 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 	if (bootm_argv[3])
 		bootm_argc = 4;
 
-	do_bootm(cmdtp, 0, bootm_argc, bootm_argv);
-
+	kernel_addr = genimg_get_kernel_addr(bootm_argv[1]);
+	buf = map_sysmem(kernel_addr, 0);
+	/* Try bootm for legacy and FIT format image */
+	if (genimg_get_format(buf) != IMAGE_FORMAT_INVALID)
+		do_bootm(cmdtp, 0, bootm_argc, bootm_argv);
 #ifdef CONFIG_CMD_BOOTZ
-	/* Try booting a zImage if do_bootm returns */
-	do_bootz(cmdtp, 0, bootm_argc, bootm_argv);
+	/* Try booting a zImage */
+	else
+		do_bootz(cmdtp, 0, bootm_argc, bootm_argv);
 #endif
+	unmap_sysmem(buf);
 	return 1;
 }
 
@@ -1041,7 +1063,8 @@ static int parse_integer(char **c, int *dst)
 	return 1;
 }
 
-static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, struct pxe_menu *cfg, int nest_level);
+static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, unsigned long base,
+	struct pxe_menu *cfg, int nest_level);
 
 /*
  * Parse an include statement, and retrieve and parse the file it mentions.
@@ -1051,12 +1074,14 @@ static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, struct pxe_menu *cfg, in
  * include, nest_level has already been incremented and doesn't need to be
  * incremented here.
  */
-static int handle_include(cmd_tbl_t *cmdtp, char **c, char *base,
+static int handle_include(cmd_tbl_t *cmdtp, char **c, unsigned long base,
 				struct pxe_menu *cfg, int nest_level)
 {
 	char *include_path;
 	char *s = *c;
 	int err;
+	char *buf;
+	int ret;
 
 	err = parse_sliteral(c, &include_path);
 
@@ -1073,20 +1098,25 @@ static int handle_include(cmd_tbl_t *cmdtp, char **c, char *base,
 		return err;
 	}
 
-	return parse_pxefile_top(cmdtp, base, cfg, nest_level);
+	buf = map_sysmem(base, 0);
+	ret = parse_pxefile_top(cmdtp, buf, base, cfg, nest_level);
+	unmap_sysmem(buf);
+
+	return ret;
 }
 
 /*
  * Parse lines that begin with 'menu'.
  *
- * b and nest are provided to handle the 'menu include' case.
+ * base and nest are provided to handle the 'menu include' case.
  *
- * b should be the address where the file currently being parsed is stored.
+ * base should point to a location where it's safe to store the included file.
  *
  * nest_level should be 1 when parsing the top level pxe file, 2 when parsing
  * a file it includes, 3 when parsing a file included by that file, and so on.
  */
-static int parse_menu(cmd_tbl_t *cmdtp, char **c, struct pxe_menu *cfg, char *b, int nest_level)
+static int parse_menu(cmd_tbl_t *cmdtp, char **c, struct pxe_menu *cfg,
+				unsigned long base, int nest_level)
 {
 	struct token t;
 	char *s = *c;
@@ -1101,7 +1131,7 @@ static int parse_menu(cmd_tbl_t *cmdtp, char **c, struct pxe_menu *cfg, char *b,
 		break;
 
 	case T_INCLUDE:
-		err = handle_include(cmdtp, c, b + strlen(b) + 1, cfg,
+		err = handle_include(cmdtp, c, base, cfg,
 						nest_level + 1);
 		break;
 
@@ -1268,7 +1298,8 @@ static int parse_label(char **c, struct pxe_menu *cfg)
  *
  * Returns 1 on success, < 0 on error.
  */
-static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, struct pxe_menu *cfg, int nest_level)
+static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, unsigned long base,
+				struct pxe_menu *cfg, int nest_level)
 {
 	struct token t;
 	char *s, *b, *label_name;
@@ -1290,7 +1321,9 @@ static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, struct pxe_menu *cfg, in
 		switch (t.type) {
 		case T_MENU:
 			cfg->prompt = 1;
-			err = parse_menu(cmdtp, &p, cfg, b, nest_level);
+			err = parse_menu(cmdtp, &p, cfg,
+				base + ALIGN(strlen(b) + 1, 4),
+				nest_level);
 			break;
 
 		case T_TIMEOUT:
@@ -1315,8 +1348,9 @@ static int parse_pxefile_top(cmd_tbl_t *cmdtp, char *p, struct pxe_menu *cfg, in
 			break;
 
 		case T_INCLUDE:
-			err = handle_include(cmdtp, &p, b + ALIGN(strlen(b), 4), cfg,
-							nest_level + 1);
+			err = handle_include(cmdtp, &p,
+				base + ALIGN(strlen(b), 4), cfg,
+				nest_level + 1);
 			break;
 
 		case T_PROMPT:
@@ -1372,9 +1406,11 @@ static void destroy_pxe_menu(struct pxe_menu *cfg)
  * files it includes). The resulting pxe_menu struct can be free()'d by using
  * the destroy_pxe_menu() function.
  */
-static struct pxe_menu *parse_pxefile(cmd_tbl_t *cmdtp, char *menucfg)
+static struct pxe_menu *parse_pxefile(cmd_tbl_t *cmdtp, unsigned long menucfg)
 {
 	struct pxe_menu *cfg;
+	char *buf;
+	int r;
 
 	cfg = malloc(sizeof(struct pxe_menu));
 
@@ -1385,7 +1421,11 @@ static struct pxe_menu *parse_pxefile(cmd_tbl_t *cmdtp, char *menucfg)
 
 	INIT_LIST_HEAD(&cfg->labels);
 
-	if (parse_pxefile_top(cmdtp, menucfg, cfg, 1) < 0) {
+	buf = map_sysmem(menucfg, 0);
+	r = parse_pxefile_top(cmdtp, buf, menucfg, cfg, 1);
+	unmap_sysmem(buf);
+
+	if (r < 0) {
 		destroy_pxe_menu(cfg);
 		return NULL;
 	}
@@ -1543,7 +1583,7 @@ do_pxe_boot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 1;
 	}
 
-	cfg = parse_pxefile(cmdtp, (char *)(pxefile_addr_r));
+	cfg = parse_pxefile(cmdtp, pxefile_addr_r);
 
 	if (cfg == NULL) {
 		printf("Error parsing config file\n");
@@ -1554,6 +1594,8 @@ do_pxe_boot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	destroy_pxe_menu(cfg);
 
+	copy_filename(net_boot_file_name, "", sizeof(net_boot_file_name));
+
 	return 0;
 }
 
@@ -1562,7 +1604,7 @@ static cmd_tbl_t cmd_pxe_sub[] = {
 	U_BOOT_CMD_MKENT(boot, 2, 1, do_pxe_boot, "", "")
 };
 
-int do_pxe(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_pxe(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	cmd_tbl_t *cp;
 
@@ -1596,7 +1638,7 @@ U_BOOT_CMD(
  *
  * Returns 0 on success, 1 on error.
  */
-int do_sysboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_sysboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long pxefile_addr_r;
 	struct pxe_menu *cfg;
@@ -1606,7 +1648,7 @@ int do_sysboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	is_pxe = false;
 
-	if (strstr(argv[1], "-p")) {
+	if (argc > 1 && strstr(argv[1], "-p")) {
 		prompt = 1;
 		argc--;
 		argv++;
@@ -1648,12 +1690,12 @@ int do_sysboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 1;
 	}
 
-	if (get_pxe_file(cmdtp, filename, (void *)pxefile_addr_r) < 0) {
+	if (get_pxe_file(cmdtp, filename, pxefile_addr_r) < 0) {
 		printf("Error reading config file\n");
 		return 1;
 	}
 
-	cfg = parse_pxefile(cmdtp, (char *)(pxefile_addr_r));
+	cfg = parse_pxefile(cmdtp, pxefile_addr_r);
 
 	if (cfg == NULL) {
 		printf("Error parsing config file\n");

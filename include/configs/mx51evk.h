@@ -26,6 +26,7 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 #define CONFIG_REVISION_TAG
+#define CONFIG_SYS_GENERIC_BOARD
 
 #define CONFIG_OF_LIBFDT
 
@@ -69,7 +70,7 @@
  * MMC Configs
  * */
 #define CONFIG_FSL_ESDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_SYS_FSL_ESDHC_ADDR	MMC_SDHC1_BASE_ADDR
 #define CONFIG_SYS_FSL_ESDHC_NUM	2
 
 #define CONFIG_MMC
@@ -91,7 +92,6 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
 
 /* USB Configs */
 #define CONFIG_CMD_USB
@@ -128,10 +128,7 @@
 /***********************************************************
  * Command definition
  ***********************************************************/
-
-#include <config_cmd_default.h>
 #define CONFIG_CMD_BOOTZ
-#undef CONFIG_CMD_IMLS
 
 #define CONFIG_CMD_DATE
 
@@ -221,8 +218,6 @@
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
-/* Print Buffer Size */
-#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS	16	/* max number of command args */
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE /* Boot Argument Buffer Size */
 

@@ -14,7 +14,6 @@
  * High Level Configuration Options
  */
 #define CONFIG_ARMCORTEXA9		/* This is an ARM V7 CPU core */
-#define CONFIG_TEGRA			/* which is a Tegra generic machine */
 #define CONFIG_SYS_L2CACHE_OFF		/* No L2 cache */
 
 #include <asm/arch/tegra.h>		/* get chip and board defs */
@@ -37,15 +36,27 @@
 /*
  * Size of malloc() pool
  */
+#ifdef CONFIG_DFU_MMC
+#define CONFIG_SYS_MALLOC_LEN		((4 << 20) + \
+					CONFIG_SYS_DFU_DATA_BUF_SIZE)
+#else
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* 4MB  */
+#endif
+
+#define CONFIG_SYS_NONCACHED_MEMORY	(1 << 20)       /* 1 MiB */
 
 /*
  * NS16550 Configuration
  */
+#define CONFIG_TEGRA_SERIAL
 #define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	(-4)
-#define CONFIG_SYS_NS16550_CLK		V_NS16550_CLK
+
+/*
+ * Common HW configuration.
+ * If this varies between SoCs later, move to tegraNN-common.h
+ * Note: This is number of devices, not max device ID.
+ */
+#define CONFIG_SYS_MMC_MAX_DEVICE 4
 
 /*
  * select serial console configuration
@@ -55,17 +66,6 @@
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_BAUDRATE			115200
-
-/* include default commands */
-#include <config_cmd_default.h>
-
-/* remove unused commands */
-#undef CONFIG_CMD_FLASH		/* flinfo, erase, protect */
-#undef CONFIG_CMD_FPGA		/* FPGA configuration support */
-#undef CONFIG_CMD_IMI
-#undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_NFS		/* NFS support */
-#undef CONFIG_CMD_NET		/* network support */
 
 /* turn on command-line edit/hist/auto */
 #define CONFIG_COMMAND_HISTORY
@@ -78,6 +78,9 @@
 
 #define CONFIG_CONSOLE_MUX
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#ifndef CONFIG_SPL_BUILD
+#define CONFIG_SYS_STDIO_DEREGISTER
+#endif
 
 /*
  * Miscellaneous configurable options
@@ -91,12 +94,16 @@
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 					sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_MAXARGS		16	/* max number of command args */
+#define CONFIG_SYS_MAXARGS		32	/* max number of command args */
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		(CONFIG_SYS_CBSIZE)
 
 #define CONFIG_SYS_MEMTEST_START	(NV_PA_SDRC_CS0 + 0x600000)
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + 0x100000)
+
+#ifndef CONFIG_SPL_BUILD
+#define CONFIG_USE_ARCH_MEMCPY
+#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map
@@ -121,7 +128,6 @@
 #define CONFIG_CMD_ENTERRCM
 
 /* Defines for SPL */
-#define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_RAM_DEVICE
 #define CONFIG_SPL_BOARD_INIT
@@ -135,11 +141,9 @@
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_GPIO_SUPPORT
 
-#ifdef CONFIG_SPL_BUILD
-# define CONFIG_USE_PRIVATE_LIBGCC
-#endif
-
 #define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_LATE_INIT
 
 /* Misc utility code */
 #define CONFIG_BOUNCE_BUFFER

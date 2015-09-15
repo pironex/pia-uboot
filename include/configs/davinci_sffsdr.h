@@ -16,7 +16,6 @@
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_SYS_USE_DSPLINK		/* don't power up the DSP. */
 /* SoC Configuration */
-#define CONFIG_ARM926EJS			/* arm926ejs CPU core */
 #define CONFIG_SYS_TIMERBASE		0x01c21400	/* use timer 0 */
 #define CONFIG_SYS_HZ_CLOCK		27000000	/* Timer Input clock freq */
 #define CONFIG_SOC_DM644X
@@ -42,10 +41,10 @@
 #define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
 /* I2C Configuration */
-#define CONFIG_HARD_I2C
-#define CONFIG_DRIVER_DAVINCI_I2C
-#define CONFIG_SYS_I2C_SPEED		80000	/* 100Kbps won't work, silicon bug */
-#define CONFIG_SYS_I2C_SLAVE		10	/* Bogus, master-only in U-Boot */
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_DAVINCI
+#define CONFIG_SYS_DAVINCI_I2C_SPEED 80000 /* 100Kbps won't work, silicon bug */
+#define CONFIG_SYS_DAVINCI_I2C_SLAVE 10    /* Bogus, master-only in U-Boot */
 /* Network & Ethernet Configuration */
 #define CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
@@ -105,7 +104,6 @@
 	"nand read 87A00000 100000 300000;"	\
 	"bootelf 87A00000"
 /* U-Boot commands */
-#include <config_cmd_default.h>
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_DIAG
@@ -116,11 +114,6 @@
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_ELF	/* Needed to load Integrity kernel. */
-#undef CONFIG_CMD_BDI
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_SETGETDCR
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_IMLS
 
 #ifdef CONFIG_CMD_BDI
 #define CONFIG_CLOCKS

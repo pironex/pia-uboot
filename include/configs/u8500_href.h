@@ -62,20 +62,9 @@
 /*
  * Commands
  */
-#define CONFIG_CMD_MEMORY
-#define CONFIG_CMD_BOOTD
-#define CONFIG_CMD_BDI
-#define CONFIG_CMD_IMI
-#define CONFIG_CMD_MISC
-#define CONFIG_CMD_RUN
-#define CONFIG_CMD_ECHO
-#define CONFIG_CMD_CONSOLE
-#define CONFIG_CMD_LOADS
-#define CONFIG_CMD_LOADB
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
-#define CONFIG_CMD_SOURCE
 #define CONFIG_CMD_I2C
 
 #ifndef CONFIG_BOOTDELAY
@@ -131,7 +120,6 @@
 #define CONFIG_SYS_MAXARGS	32	/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Arg Buffer Size */
 
-#undef	CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 #define CONFIG_SYS_LOAD_ADDR		0x00100000 /* default load address */
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 
@@ -192,7 +180,6 @@
 #define CONFIG_MMC_DEV_NUM		1
 
 #define CONFIG_CMD_ENV
-#define CONFIG_CMD_SAVEENV	/* CMD_ENV is obsolete but used in env_emmc.c */
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_OFFSET		0x13F80000
 #define CONFIG_SYS_MMC_ENV_DEV          0               /* SLOT2: eMMC */

@@ -18,15 +18,14 @@
 /*
  * SoC configurations
  */
-#define CONFIG_ARM926EJS		/* this is an ARM926EJS CPU */
-#define CONFIG_MX27			/* in a Freescale i.MX27 Chip */
+#define CONFIG_MX27			/* This is a Freescale i.MX27 Chip */
 #define CONFIG_MACH_TYPE	1698	/* APF27 */
 #define CONFIG_SYS_GENERIC_BOARD
 
 /*
  * Enable the call to miscellaneous platform dependent initialization.
  */
-#define CONFIG_SYS_NO_FLASH	/* to be define before <config_cmd_default.h> */
+#define CONFIG_SYS_NO_FLASH
 
 /*
  * Board display option
@@ -37,7 +36,6 @@
 /*
  * SPL
  */
-#define CONFIG_SPL
 #define CONFIG_SPL_TARGET	"u-boot-with-spl.bin"
 #define CONFIG_SPL_LDSCRIPT	"arch/$(ARCH)/cpu/u-boot-spl.lds"
 #define CONFIG_SPL_MAX_SIZE	2048
@@ -67,8 +65,6 @@
 /*
  * U-Boot Commands
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_ASKENV	/* ask for env variable		*/
 #define CONFIG_CMD_BSP		/* Board Specific functions	*/
 #define CONFIG_CMD_CACHE	/* icache, dcache		*/
@@ -86,9 +82,7 @@
 #define CONFIG_CMD_NAND		/* NAND support			*/
 #define CONFIG_CMD_NAND_LOCK_UNLOCK
 #define CONFIG_CMD_NAND_TRIMFFS
-#define CONFIG_CMD_NFS		/* NFS support			*/
 #define CONFIG_CMD_PING		/* ping support			*/
-#define CONFIG_CMD_SETEXPR	/* setexpr support		*/
 #define CONFIG_CMD_UBI
 #define CONFIG_CMD_UBIFS
 

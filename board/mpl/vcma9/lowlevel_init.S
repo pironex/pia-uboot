@@ -13,8 +13,6 @@
 
 
 #include <config.h>
-#include <version.h>
-
 
 /* register definitions */
 
@@ -229,7 +227,7 @@ lowlevel_init:
 	bne     0b
 
 	/* PLD access is now possible */
-	/* r3 = SDRAMDATA
+	/* r3 = SDRAMDATA */
 	/* r13 = pointer to MEM controller regs */
 	ldr	r1, =PLD_BASE
 	mov	r4, #SDRAMENTRY_SIZE

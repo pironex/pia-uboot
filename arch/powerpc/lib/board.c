@@ -75,10 +75,6 @@
 extern int update_flash_size(int flash_size);
 #endif
 
-#if defined(CONFIG_SC3)
-extern void sc3_read_eeprom(void);
-#endif
-
 #if defined(CONFIG_CMD_DOC)
 void doc_init(void);
 #endif
@@ -226,6 +222,9 @@ static int init_func_spi(void)
 #if defined(CONFIG_WATCHDOG)
 int init_func_watchdog_init(void)
 {
+#if defined(CONFIG_MPC85xx)
+	init_85xx_watchdog();
+#endif
 	puts("       Watchdog enabled\n");
 	WATCHDOG_RESET();
 	return 0;
@@ -355,6 +354,8 @@ void board_init_f(ulong bootflag)
 	/* Clear initial global data */
 	memset((void *) gd, 0, sizeof(gd_t));
 #endif
+
+	gd->flags = bootflag;
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr)
 		if ((*init_fnc_ptr) () != 0)
@@ -531,7 +532,6 @@ void board_init_f(ulong bootflag)
 	bd->bi_ipbfreq = gd->arch.ipb_clk;
 	bd->bi_pcifreq = gd->pci_clk;
 #endif /* CONFIG_MPC5xxx */
-	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate     */
 
 #ifdef CONFIG_SYS_EXTBDINFO
 	strncpy((char *) bd->bi_s_version, "1.2", sizeof(bd->bi_s_version));
@@ -787,19 +787,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif /* CONFIG_405GP, CONFIG_405EP */
 #endif /* CONFIG_SYS_EXTBDINFO */
 
-#if defined(CONFIG_SC3)
-	sc3_read_eeprom();
-#endif
-
 #if defined(CONFIG_ID_EEPROM) || defined(CONFIG_SYS_I2C_MAC_OFFSET)
 	mac_read_from_eeprom();
-#endif
-
-#ifdef	CONFIG_HERMES
-	if ((gd->board_type >> 16) == 2)
-		bd->bi_ethspeed = gd->board_type & 0xFFFF;
-	else
-		bd->bi_ethspeed = 0xFFFF;
 #endif
 
 #ifdef CONFIG_CMD_NET
@@ -851,11 +840,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	misc_init_r();
 #endif
 
-#ifdef	CONFIG_HERMES
-	if (bd->bi_ethspeed != 0xFFFF)
-		hermes_start_lxt980((int) bd->bi_ethspeed);
-#endif
-
 #if defined(CONFIG_CMD_KGDB)
 	WATCHDOG_RESET();
 	puts("KGDB:  ");
@@ -898,7 +882,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_CMD_NET)
 	WATCHDOG_RESET();
 	puts("Net:   ");
-	eth_initialize(bd);
+	eth_initialize();
 #endif
 
 #if defined(CONFIG_CMD_NET) && defined(CONFIG_RESET_PHY_R)
@@ -974,14 +958,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef CONFIG_PS2KBD
 	puts("PS/2:  ");
 	kbd_init();
-#endif
-
-#ifdef CONFIG_MODEM_SUPPORT
-	{
-		extern int do_mdm_init;
-
-		do_mdm_init = gd->do_mdm_init;
-	}
 #endif
 
 	/* Initialization complete - start the monitor */

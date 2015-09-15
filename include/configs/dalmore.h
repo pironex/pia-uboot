@@ -21,11 +21,6 @@
 
 #include "tegra114-common.h"
 
-/* Enable fdt support for Dalmore. Flash the image in u-boot-dtb.bin */
-#define CONFIG_DEFAULT_DEVICE_TREE	tegra114-dalmore
-#define CONFIG_OF_CONTROL
-#define CONFIG_OF_SEPARATE
-
 /* High-level configuration options */
 #define V_PROMPT		"Tegra114 (Dalmore) # "
 #define CONFIG_TEGRA_BOARD_STRING	"NVIDIA Dalmore"
@@ -37,16 +32,9 @@
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_DALMORE
 
-#define CONFIG_BOARD_EARLY_INIT_F
-
 /* I2C */
 #define CONFIG_SYS_I2C_TEGRA
-#define CONFIG_SYS_I2C_INIT_BOARD
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_MAX_I2C_BUS		TEGRA_I2C_NUM_CONTROLLERS
-#define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_CMD_I2C
-#define CONFIG_SYS_I2C
 
 /* SD/MMC */
 #define CONFIG_MMC
@@ -65,7 +53,6 @@
 /* SPI */
 #define CONFIG_TEGRA114_SPI
 #define CONFIG_TEGRA114_SPI_CTRLS	6
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_SF_DEFAULT_MODE         SPI_MODE_0
 #define CONFIG_SF_DEFAULT_SPEED        24000000
@@ -84,7 +71,6 @@
 #define CONFIG_USB_ETHER_ASIX
 
 /* General networking support */
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
 
 #include "tegra-common-post.h"

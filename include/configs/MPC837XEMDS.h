@@ -8,6 +8,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_DISPLAY_BOARDINFO
+
 /*
  * High Level Configuration Options
  */
@@ -280,7 +283,6 @@
  * NAND Flash on the Local Bus
  */
 #define CONFIG_CMD_NAND		1
-#define CONFIG_MTD_NAND_VERIFY_WRITE	1
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_NAND_FSL_ELBC	1
 
@@ -387,6 +389,11 @@ extern int board_pci_host_broken(void);
 #define CONFIG_PQ_MDS_PIB	1 /* PQ MDS Platform IO Board */
 
 #define CONFIG_HAS_FSL_DR_USB	1 /* fixup device tree for the DR USB */
+#define CONFIG_CMD_USB
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_FSL
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
@@ -483,8 +490,6 @@ extern int board_pci_host_broken(void);
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_MII
@@ -492,11 +497,6 @@ extern int board_pci_host_broken(void);
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
-#endif
-
-#if defined(CONFIG_SYS_RAMBOOT)
-    #undef CONFIG_CMD_SAVEENV
-    #undef CONFIG_CMD_LOADS
 #endif
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history */

@@ -12,9 +12,10 @@
 
 #include <asm/arch/imx-regs.h>
 
-#define CONFIG_ARM926EJS			/* arm926ejs CPU core */
 #define CONFIG_MX25
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
+
+#define CONFIG_SYS_GENERIC_BOARD
 
 #define CONFIG_SYS_TIMER_RATE		32768
 #define CONFIG_SYS_TIMER_COUNTER	\
@@ -76,8 +77,6 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_CACHE
 
 /*
@@ -150,10 +149,6 @@
 #define CONFIG_PREBOOT  ""
 
 #define CONFIG_BOOTDELAY	5
-#define CONFIG_AUTOBOOT_KEYED
-#define CONFIG_AUTOBOOT_PROMPT "boot in %d s\n", bootdelay
-#define CONFIG_AUTOBOOT_DELAY_STR	"delaygs"
-#define CONFIG_AUTOBOOT_STOP_STR	"stopgs"
 
 /*
  * Size of malloc() pool

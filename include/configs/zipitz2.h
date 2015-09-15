@@ -62,12 +62,7 @@
 /*
  * Bootloader Components Configuration
  */
-#include <config_cmd_default.h>
-
-#undef	CONFIG_CMD_NET
-#undef	CONFIG_CMD_NFS
 #define	CONFIG_CMD_ENV
-#undef	CONFIG_CMD_IMLS
 #define	CONFIG_CMD_MMC
 #define	CONFIG_CMD_SPI
 
@@ -99,7 +94,6 @@
 #define	CONFIG_VIDEO_BMP_GZIP
 #define	CONFIG_VIDEO_BMP_RLE8
 #define	CONFIG_SYS_VIDEO_LOGO_MAX_SIZE	(2 << 20)
-#undef	SPI_INIT
 
 #define	SPI_DELAY	udelay(10)
 #define	SPI_SDA(val)	zipitz2_spi_sda(val)
@@ -137,7 +131,6 @@ unsigned char zipitz2_spi_read(void);
 /*
  * Clock Configuration
  */
-#undef	CONFIG_SYS_CLKS_IN_HZ
 #define CONFIG_SYS_CPUSPEED		0x190		/* standard setting for 312MHz; L=16, N=1.5, A=0, SDCLK!=SystemBus */
 
 /*

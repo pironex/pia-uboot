@@ -18,7 +18,6 @@
 #include "integrator-common.h"
 
 /* Integrator CP-specific configuration */
-#define CONFIG_ARCH_CINTEGRATOR
 #define CONFIG_SYS_HZ_CLOCK		1000000	/* Timer 1 is clocked at 1Mhz */
 
 /*
@@ -41,8 +40,6 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_BOOTDELAY	2
 #define CONFIG_BOOTARGS	"root=/dev/mtdblock0 console=ttyAMA0 console=tty ip=dhcp netdev=27,0,0xfc800000,0xfc800010,eth0 video=clcdfb:0"
 #define CONFIG_BOOTCOMMAND "tftpboot ; bootm"
@@ -55,28 +52,10 @@
  */
 #define CONFIG_SYS_PROMPT	"Integrator-CP # "	/* Monitor Command Prompt */
 
-/*
- * FLASH and environment organization
- * Top varies according to amount fitted
- * Reserve top 4 blocks of flash
- * - ARM Boot Monitor
- * - Unused
- * - SIB block
- * - U-Boot environment
- *
- * Base is always 0x24000000
- */
-#define CONFIG_SYS_FLASH_BASE		0x24000000
-#define CONFIG_SYS_FLASH_CFI		1
-#define CONFIG_FLASH_CFI_DRIVER		1
-#define CONFIG_SYS_MAX_FLASH_SECT	64
-#define CONFIG_SYS_MAX_FLASH_BANKS	1		/* max number of memory banks */
 #define PHYS_FLASH_SIZE			0x01000000	/* 16MB */
-#define CONFIG_SYS_FLASH_ERASE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Erase */
-#define CONFIG_SYS_FLASH_WRITE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Write */
-
-#define CONFIG_SYS_MONITOR_LEN		0x00100000
+#define CONFIG_SYS_MAX_FLASH_SECT	64
 #define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_SYS_MONITOR_LEN		0x00100000
 
 /*
  * Move up the U-Boot & monitor area if more flash is fitted.

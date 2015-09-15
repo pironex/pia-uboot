@@ -11,11 +11,13 @@
 #include <linux/compiler.h>
 #include <asm/spl.h>
 
+/* Value in r0 indicates we booted from U-Boot */
+#define UBOOT_NOT_LOADED_FROM_SPL	0x13578642
 
 /* Boot type */
 #define MMCSD_MODE_UNDEFINED	0
 #define MMCSD_MODE_RAW		1
-#define MMCSD_MODE_FAT		2
+#define MMCSD_MODE_FS		2
 #define MMCSD_MODE_EMMCBOOT	3
 
 struct spl_image_info {
@@ -35,6 +37,7 @@ extern struct spl_image_info spl_image;
 void preloader_console_init(void);
 u32 spl_boot_device(void);
 u32 spl_boot_mode(void);
+void spl_set_header_raw_uboot(void);
 void spl_parse_image_header(const struct image_header *header);
 void spl_board_prepare_for_linux(void);
 void __noreturn jump_to_image_linux(void *arg);
@@ -72,7 +75,24 @@ void spl_sata_load_image(void);
 int spl_load_image_fat(block_dev_desc_t *block_dev, int partition, const char *filename);
 int spl_load_image_fat_os(block_dev_desc_t *block_dev, int partition);
 
+void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image);
+
+/* SPL EXT image functions */
+int spl_load_image_ext(block_dev_desc_t *block_dev, int partition, const char *filename);
+int spl_load_image_ext_os(block_dev_desc_t *block_dev, int partition);
+
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);
 #endif
+
+/**
+ * spl_was_boot_source() - check if U-Boot booted from SPL
+ *
+ * This will normally be true, but if U-Boot jumps to second U-Boot, it will
+ * be false. This should be implemented by board-specific code.
+ *
+ * @return true if U-Boot booted from SPL, else false
+ */
+bool spl_was_boot_source(void);
+
 #endif

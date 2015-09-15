@@ -18,7 +18,6 @@
 #include "integrator-common.h"
 
 /* Integrator/AP-specific configuration */
-#define CONFIG_ARCH_INTEGRATOR
 #define CONFIG_SYS_HZ_CLOCK		24000000	/* Timer 1 is clocked at 24Mhz */
 
 /*
@@ -44,8 +43,6 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_BOOTDELAY	2
 #define CONFIG_BOOTARGS		"root=/dev/mtdblock0 console=ttyAM0 console=tty"
 #define CONFIG_BOOTCOMMAND	""
@@ -55,21 +52,11 @@
  */
 #define CONFIG_SYS_PROMPT	"Integrator-AP # "	/* Monitor Command Prompt   */
 
-#define CONFIG_SYS_FLASH_BASE	0x24000000
-
-/*-----------------------------------------------------------------------
- * FLASH and environment organization
- */
-#define CONFIG_SYS_FLASH_CFI		1
-#define CONFIG_FLASH_CFI_DRIVER		1
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_SYS_MAX_FLASH_BANKS	1		/* max number of memory banks */
-/* timeout values are in ticks */
-#define CONFIG_SYS_FLASH_ERASE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Erase */
-#define CONFIG_SYS_FLASH_WRITE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Write */
+/* Flash settings */
+#define CONFIG_SYS_FLASH_SIZE		0x02000000 /* 32 MiB */
 #define CONFIG_SYS_MAX_FLASH_SECT	128
+#define CONFIG_ENV_IS_NOWHERE		1
 #define CONFIG_ENV_SIZE			32768
-
 
 /*-----------------------------------------------------------------------
  * PCI definitions
@@ -79,7 +66,6 @@
 #define CONFIG_CMD_PCI
 #define CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI
 #define CONFIG_TULIP
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8	/* use 8 rx buffer on eepro100	*/

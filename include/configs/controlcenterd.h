@@ -45,6 +45,8 @@
 #define CONFIG_CONTROLCENTERD
 #define CONFIG_MP			/* support multiple processors */
 
+#define CONFIG_SYS_GENERIC_BOARD
+
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENABLE_36BIT_PHYS
 #define CONFIG_FSL_LAW			/* Use common FSL init code */
@@ -199,9 +201,10 @@
 #define CONFIG_SYS_FSL_I2C2_SPEED	400000
 #define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
 #define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
-/* Probing DP501 I2C-Bridge will hang */
-#define CONFIG_SYS_I2C_NOPROBES		{ {0, 0x30}, {0, 0x37}, {0, 0x3a}, \
-					  {0, 0x3b}, {0, 0x50} }
+
+#ifndef CONFIG_TRAILBLAZER
+#define CONFIG_CMD_I2C
+#endif
 
 #define CONFIG_PCA9698			/* NXP PCA9698 */
 
@@ -216,7 +219,6 @@
 #define CONFIG_HARD_SPI
 #define CONFIG_FSL_ESPI
 
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 
 #define CONFIG_CMD_SF
@@ -350,7 +352,6 @@
 #if defined(CONFIG_TRAILBLAZER)
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE		0x2000		/* 8KB */
-#undef CONFIG_CMD_SAVEENV
 #elif defined(CONFIG_RAMBOOT_SPIFLASH)
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SPI_BUS	0
@@ -392,8 +393,6 @@
 #define CONFIG_SYS_MAXARGS	16
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
 
-#include <config_cmd_default.h>
-
 #ifndef CONFIG_TRAILBLAZER
 
 #define CONFIG_CMD_ELF
@@ -402,9 +401,7 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
-#define CONFIG_CMD_SETEXPR
 #define CONFIG_CMD_REGINFO
 
 /*
@@ -431,7 +428,6 @@
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_BOARD_EARLY_INIT_R
 #define CONFIG_LAST_STAGE_INIT
-#undef CONFIG_CMD_BOOTM
 
 #endif /* CONFIG_TRAILBLAZER */
 

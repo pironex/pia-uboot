@@ -6,6 +6,10 @@
 	model = "NVIDIA Tegra20 Whistler evaluation board";
 	compatible = "nvidia,whistler", "nvidia,tegra20";
 
+	chosen {
+		stdout-path = &uarta;
+	};
+
 	aliases {
 		i2c0 = "/i2c@7000d000";
 		usb0 = "/usb@c5008000";
@@ -62,7 +66,7 @@
 
 	sdhci@c8000400 {
 		status = "okay";
-		wp-gpios = <&gpio 173 0>; /* gpio PV5 */
+		wp-gpios = <&gpio TEGRA_GPIO(V, 5) GPIO_ACTIVE_HIGH>;
 		bus-width = <8>;
 	};
 

@@ -10,7 +10,7 @@
 */
 
 /dts-v1/;
-/include/ "exynos5250.dtsi"
+#include "exynos5250.dtsi"
 
 / {
 	model = "SAMSUNG SMDK5250 board based on EXYNOS5250";
@@ -68,7 +68,7 @@
 	i2c@12c60000 {
 		pmic@9 {
 			reg = <0x9>;
-			compatible = "maxim,max77686_pmic";
+			compatible = "maxim,max77686";
 		};
 	};
 
@@ -146,6 +146,6 @@
 	};
 
 	ehci@12110000 {
-		samsung,vbus-gpio = <&gpio 0x316 0>; /* X26 */
+		samsung,vbus-gpio = <&gpx2 6 GPIO_ACTIVE_HIGH>;
 	};
 };

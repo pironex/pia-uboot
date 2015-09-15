@@ -21,7 +21,6 @@
  * High Level Configuration Options (easy to change)
  */
 #define CONFIG_FEROCEON_88FR131		/* CPU Core subversion */
-#define CONFIG_KIRKWOOD			/* SoC Family Name */
 /* SoC name */
 #define CONFIG_KW88F6281
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* disable board lowlevel_init */
@@ -30,7 +29,6 @@
  * Commands configuration
  */
 #define CONFIG_SYS_NO_FLASH		/* no NOR or SPI flash */
-#include <config_cmd_default.h>
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING

@@ -16,33 +16,27 @@
 
 #endif
 
+#define CONFIG_IO_TRACE
+#define CONFIG_CMD_IOTRACE
+
 #define CONFIG_SYS_TIMER_RATE		1000000
 
-#define CONFIG_BOOTSTAGE
-#define CONFIG_BOOTSTAGE_REPORT
-#define CONFIG_DM
-#define CONFIG_CMD_DEMO
-#define CONFIG_CMD_DM
-#define CONFIG_DM_DEMO
-#define CONFIG_DM_DEMO_SIMPLE
-#define CONFIG_DM_DEMO_SHAPE
-#define CONFIG_DM_GPIO
-#define CONFIG_DM_TEST
+#define CONFIG_SYS_STDIO_DEREGISTER
 
 /* Number of bits in a C 'long' on this architecture */
 #define CONFIG_SANDBOX_BITS_PER_LONG	64
 
-#define CONFIG_OF_CONTROL
-#define CONFIG_OF_HOSTFILE
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB
-#define CONFIG_FIT
-#define CONFIG_FIT_SIGNATURE
-#define CONFIG_RSA
 #define CONFIG_CMD_FDT
-#define CONFIG_DEFAULT_DEVICE_TREE	sandbox
+#define CONFIG_ANDROID_BOOT_IMAGE
+
+#define CONFIG_CMD_PCI
+#define CONFIG_PCI_PNP
+#define CONFIG_CMD_IO
 
 #define CONFIG_FS_FAT
+#define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
 #define CONFIG_EXT4_WRITE
 #define CONFIG_CMD_FAT
@@ -52,20 +46,19 @@
 #define CONFIG_DOS_PARTITION
 #define CONFIG_HOST_MAX_DEVICES 4
 #define CONFIG_CMD_FS_GENERIC
-
-#define CONFIG_SYS_VSNPRINTF
+#define CONFIG_CMD_MD5SUM
 
 #define CONFIG_CMD_GPIO
-#define CONFIG_SANDBOX_GPIO
-#define CONFIG_SANDBOX_GPIO_COUNT	128
 
 #define CONFIG_CMD_GPT
 #define CONFIG_PARTITION_UUIDS
 #define CONFIG_EFI_PARTITION
+#define CONFIG_DOS_PARTITION
 
 /*
- * Size of malloc() pool, although we don't actually use this yet.
+ * Size of malloc() pool, before and after relocation
  */
+#define CONFIG_MALLOC_F_ADDR		0x0010000
 #define CONFIG_SYS_MALLOC_LEN		(32 << 20)	/* 32MB  */
 
 #define CONFIG_SYS_HUSH_PARSER
@@ -80,22 +73,26 @@
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_COMMAND_HISTORY
 #define CONFIG_AUTO_COMPLETE
-#define CONFIG_BOOTDELAY	3
 
 #define CONFIG_ENV_SIZE		8192
 #define CONFIG_ENV_IS_NOWHERE
 
-/* SPI */
-#define CONFIG_SANDBOX_SPI
+/* SPI - enable all SPI flash types for testing purposes */
 #define CONFIG_CMD_SF
 #define CONFIG_CMD_SF_TEST
 #define CONFIG_CMD_SPI
-#define CONFIG_SPI_FLASH
-#define CONFIG_OF_SPI
-#define CONFIG_OF_SPI_FLASH
-#define CONFIG_SPI_FLASH_SANDBOX
+#define CONFIG_SPI_FLASH_ATMEL
+#define CONFIG_SPI_FLASH_EON
+#define CONFIG_SPI_FLASH_GIGADEVICE
+#define CONFIG_SPI_FLASH_MACRONIX
+#define CONFIG_SPI_FLASH_SPANSION
+#define CONFIG_SPI_FLASH_SST
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SPI_FLASH_WINBOND
+
+#define CONFIG_CMD_I2C
+#define CONFIG_I2C_EDID
+#define CONFIG_I2C_EEPROM
 
 /* Memory things - we don't really want a memory test */
 #define CONFIG_SYS_LOAD_ADDR		0x00000000
@@ -115,41 +112,59 @@
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
-#define CONFIG_SANDBOX_SERIAL
 
 #define CONFIG_SYS_NO_FLASH
 
 /* include default commands */
-#include <config_cmd_default.h>
+#include <config_distro_defaults.h>
 
-/* We don't have networking support yet */
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
+#define BOOT_TARGET_DEVICES(func) \
+	func(HOST, host, 1) \
+	func(HOST, host, 0)
+
+#define CONFIG_BOOTCOMMAND ""
+
+#include <config_distro_bootcmd.h>
+
+#define CONFIG_KEEP_SERVERADDR
+#define CONFIG_UDP_CHECKSUM
+#define CONFIG_CMD_LINK_LOCAL
+#define CONFIG_CMD_CDP
+#define CONFIG_CMD_DNS
+#define CONFIG_CMD_SNTP
+#define CONFIG_TIMESTAMP
+#define CONFIG_CMD_RARP
+#define CONFIG_BOOTP_DNS
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_BOOTP_SERVERIP
+#define CONFIG_IP_DEFRAG
+
+/* Can't boot elf images */
+#undef CONFIG_CMD_ELF
 
 #define CONFIG_CMD_HASH
 #define CONFIG_HASH_VERIFY
 #define CONFIG_SHA1
 #define CONFIG_SHA256
 
-#define CONFIG_TPM_TIS_SANDBOX
-
 #define CONFIG_CMD_SANDBOX
+
+#define CONFIG_CMD_ENV_FLAGS
+#define CONFIG_CMD_ENV_CALLBACK
+#define CONFIG_CMD_GREPENV
+#define CONFIG_CMD_ASKENV
 
 #define CONFIG_BOOTARGS ""
 
-#define CONFIG_CROS_EC
-#define CONFIG_CMD_CROS_EC
-#define CONFIG_CROS_EC_SANDBOX
-#define CONFIG_KEYBOARD
-#define CONFIG_CROS_EC_KEYB
-#define CONFIG_ARCH_EARLY_INIT_R
 #define CONFIG_BOARD_LATE_INIT
 
-#define CONFIG_SOUND
-#define CONFIG_SOUND_SANDBOX
-#define CONFIG_CMD_SOUND
-
+#ifndef SANDBOX_NO_SDL
 #define CONFIG_SANDBOX_SDL
+#endif
+
+/* LCD and keyboard require SDL support */
+#ifdef CONFIG_SANDBOX_SDL
 #define CONFIG_LCD
 #define CONFIG_VIDEO_SANDBOX_SDL
 #define CONFIG_CMD_BMP
@@ -157,18 +172,45 @@
 #define CONFIG_CONSOLE_MUX
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 #define LCD_BPP			LCD_COLOR16
+#define CONFIG_LCD_BMP_RLE8
 
-#define CONFIG_EXTRA_ENV_SETTINGS	"stdin=serial,cros-ec-keyb\0" \
+#define CONFIG_KEYBOARD
+
+#define SANDBOX_SERIAL_SETTINGS		"stdin=serial,cros-ec-keyb\0" \
 					"stdout=serial,lcd\0" \
 					"stderr=serial,lcd\0"
+#else
+#define SANDBOX_SERIAL_SETTINGS		"stdin=serial\0" \
+					"stdout=serial,lcd\0" \
+					"stderr=serial,lcd\0"
+#endif
+
+#define SANDBOX_ETH_SETTINGS		"ethaddr=00:00:11:22:33:44\0" \
+					"eth1addr=00:00:11:22:33:45\0" \
+					"eth5addr=00:00:11:22:33:46\0" \
+					"ipaddr=1.2.3.4\0"
+
+#define MEM_LAYOUT_ENV_SETTINGS \
+	"bootm_size=0x10000000\0" \
+	"kernel_addr_r=0x1000000\0" \
+	"fdt_addr_r=0xc00000\0" \
+	"ramdisk_addr_r=0x2000000\0" \
+	"scriptaddr=0x1000\0" \
+	"pxefile_addr_r=0x2000\0"
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	SANDBOX_SERIAL_SETTINGS \
+	SANDBOX_ETH_SETTINGS \
+	BOOTENV \
+	MEM_LAYOUT_ENV_SETTINGS
 
 #define CONFIG_GZIP_COMPRESSED
 #define CONFIG_BZIP2
 #define CONFIG_LZO
 #define CONFIG_LZMA
 
-#define CONFIG_TPM_TIS_SANDBOX
-
 #define CONFIG_CMD_LZMADEC
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_DATE
 
 #endif

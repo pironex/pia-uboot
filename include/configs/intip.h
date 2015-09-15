@@ -45,13 +45,12 @@
 #define CONFIG_BOARD_EARLY_INIT_F	1	/* Call board_early_init_f */
 #define CONFIG_BOARD_EARLY_INIT_R	1	/* Call board_early_init_r */
 #define CONFIG_MISC_INIT_R		1	/* Call misc_init_r */
+#define CONFIG_SYS_GENERIC_BOARD
 #define CONFIG_BOARD_TYPES		1	/* support board types */
 #define CONFIG_FIT
 #define CFG_ALT_MEMTEST
 
 #undef CONFIG_ZERO_BOOTDELAY_CHECK     /* ignore keypress on bootdelay==0 */
-#define CONFIG_AUTOBOOT_KEYED          /* use key strings to stop autoboot */
-#define CONFIG_AUTOBOOT_STOP_STR " "
 
 /*
  * Base addresses -- Note these are effective addresses where the

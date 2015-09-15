@@ -142,7 +142,8 @@ static long long int download_head(unsigned long long total,
 				   int *cnt)
 {
 	long long int rcv_cnt = 0, left_to_rcv, ret_rcv;
-	void *transfer_buffer = dfu_get_buf();
+	struct dfu_entity *dfu_entity = dfu_get_entity(alt_setting_num);
+	void *transfer_buffer = dfu_get_buf(dfu_entity);
 	void *buf = transfer_buffer;
 	int usb_pkt_cnt = 0, ret;
 
@@ -204,14 +205,26 @@ static long long int download_head(unsigned long long total,
 
 static int download_tail(long long int left, int cnt)
 {
-	void *transfer_buffer = dfu_get_buf();
+	struct dfu_entity *dfu_entity;
+	void *transfer_buffer;
 	int ret;
 
 	debug("%s: left: %llu cnt: %d\n", __func__, left, cnt);
 
+	dfu_entity = dfu_get_entity(alt_setting_num);
+	if (!dfu_entity) {
+		error("Alt setting: %d entity not found!\n", alt_setting_num);
+		return -ENOENT;
+	}
+
+	transfer_buffer = dfu_get_buf(dfu_entity);
+	if (!transfer_buffer) {
+		error("Transfer buffer not allocated!");
+		return -ENXIO;
+	}
+
 	if (left) {
-		ret = dfu_write(dfu_get_entity(alt_setting_num),
-				transfer_buffer, left, cnt++);
+		ret = dfu_write(dfu_entity, transfer_buffer, left, cnt++);
 		if (ret) {
 			error("DFU write failed [%d]: left: %llu", ret, left);
 			return ret;
@@ -219,16 +232,15 @@ static int download_tail(long long int left, int cnt)
 	}
 
 	/*
-	 * To store last "packet" DFU storage backend requires dfu_write with
-	 * size parameter equal to 0
+	 * To store last "packet" or write file from buffer to filesystem
+	 * DFU storage backend requires dfu_flush
 	 *
 	 * This also frees memory malloc'ed by dfu_get_buf(), so no explicit
 	 * need fo call dfu_free_buf() is needed.
 	 */
-	ret = dfu_write(dfu_get_entity(alt_setting_num),
-			transfer_buffer, 0, cnt);
+	ret = dfu_flush(dfu_entity, transfer_buffer, 0, cnt);
 	if (ret)
-		error("DFU write failed [%d] cnt: %d", ret, cnt);
+		error("DFU flush failed!");
 
 	return ret;
 }
@@ -307,7 +319,6 @@ static int process_data(void)
 	ALLOC_CACHE_ALIGN_BUFFER(struct rqt_box, rqt, sizeof(struct rqt_box));
 	int ret = -EINVAL;
 
-	memset(rqt, 0, sizeof(rqt));
 	memcpy(rqt, thor_rx_data_buf, sizeof(struct rqt_box));
 
 	debug("+RQT: %d, %d\n", rqt->rqt, rqt->rqt_data);
@@ -459,16 +470,6 @@ static struct usb_endpoint_descriptor hs_int_desc = {
 	.bInterval = 0x9,
 };
 
-static struct usb_qualifier_descriptor dev_qualifier = {
-	.bLength =		sizeof(dev_qualifier),
-	.bDescriptorType =	USB_DT_DEVICE_QUALIFIER,
-
-	.bcdUSB =		__constant_cpu_to_le16(0x0200),
-	.bDeviceClass =	USB_CLASS_VENDOR_SPEC,
-
-	.bNumConfigurations =	2,
-};
-
 /*
  * This attribute vendor descriptor is necessary for correct operation with
  * Windows version of THOR download program
@@ -542,7 +543,7 @@ static int thor_rx_data(void)
 		}
 
 		while (!dev->rxdata) {
-			usb_gadget_handle_interrupts();
+			usb_gadget_handle_interrupts(0);
 			if (ctrlc())
 				return -1;
 		}
@@ -576,7 +577,7 @@ static void thor_tx_data(unsigned char *data, int len)
 
 	/* Wait until tx interrupt received */
 	while (!dev->txdata)
-		usb_gadget_handle_interrupts();
+		usb_gadget_handle_interrupts(0);
 
 	dev->txdata = 0;
 }
@@ -693,7 +694,7 @@ int thor_init(void)
 	/* Wait for a device enumeration and configuration settings */
 	debug("THOR enumeration/configuration setting....\n");
 	while (!dev->configuration_done)
-		usb_gadget_handle_interrupts();
+		usb_gadget_handle_interrupts(0);
 
 	thor_set_dma(thor_rx_data_buf, strlen("THOR"));
 	/* detect the download request from Host PC */
@@ -805,6 +806,7 @@ static int thor_func_bind(struct usb_configuration *c, struct usb_function *f)
 	}
 
 	dev->in_ep = ep; /* Store IN EP for enabling @ setup */
+	ep->driver_data = dev;
 
 	ep = usb_ep_autoconfig(gadget, &fs_out_desc);
 	if (!ep) {
@@ -817,6 +819,7 @@ static int thor_func_bind(struct usb_configuration *c, struct usb_function *f)
 				fs_out_desc.bEndpointAddress;
 
 	dev->out_ep = ep; /* Store OUT EP for enabling @ setup */
+	ep->driver_data = dev;
 
 	ep = usb_ep_autoconfig(gadget, &fs_int_desc);
 	if (!ep) {
@@ -825,6 +828,7 @@ static int thor_func_bind(struct usb_configuration *c, struct usb_function *f)
 	}
 
 	dev->int_ep = ep;
+	ep->driver_data = dev;
 
 	if (gadget_is_dualspeed(gadget)) {
 		hs_int_desc.bEndpointAddress =
@@ -999,3 +1003,5 @@ int thor_add(struct usb_configuration *c)
 	debug("%s:\n", __func__);
 	return thor_func_init(c);
 }
+
+DECLARE_GADGET_BIND_CALLBACK(usb_dnl_thor, thor_add);

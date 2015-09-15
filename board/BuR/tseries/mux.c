@@ -3,7 +3,7 @@
  *
  * Pinmux Setting for B&R LEIT Board(s)
  *
- * Copyright (C) 2013 Hannes Petermaier <oe5hpm@oevsv.at>
+ * Copyright (C) 2013 Hannes Schmelzer <oe5hpm@oevsv.at>
  * Bernecker & Rainer Industrieelektronik GmbH - http://www.br-automation.com
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -17,16 +17,34 @@
 #include <i2c.h>
 
 static struct module_pin_mux uart0_pin_mux[] = {
+	/* UART0_RTS */
+	{OFFSET(uart0_rtsn), (MODE(0) | PULLUDEN)},
 	/* UART0_CTS */
-	{OFFSET(uart0_ctsn), (MODE(7) | PULLUDEN | PULLUP_EN | RXACTIVE)},
+	{OFFSET(uart0_ctsn), (MODE(0) | PULLUDEN | PULLUP_EN | RXACTIVE)},
 	/* UART0_RXD */
 	{OFFSET(uart0_rxd), (MODE(0) | PULLUDEN | PULLUP_EN | RXACTIVE)},
 	/* UART0_TXD */
 	{OFFSET(uart0_txd), (MODE(0) | PULLUDEN)},
 	{-1},
 };
+static struct module_pin_mux uart1_pin_mux[] = {
+	/* UART1_RTS as I2C2-SCL */
+	{OFFSET(uart1_rtsn), (MODE(3) | PULLUDEN | PULLUP_EN | RXACTIVE)},
+	/* UART1_CTS as I2C2-SDA */
+	{OFFSET(uart1_ctsn), (MODE(3) | PULLUDEN | PULLUP_EN | RXACTIVE)},
+	/* UART1_RXD */
+	{OFFSET(uart1_rxd), (MODE(0) | PULLUDEN | PULLUP_EN | RXACTIVE)},
+	/* UART1_TXD */
+	{OFFSET(uart1_txd), (MODE(0) | PULLUDEN)},
+	{-1},
+};
 #ifdef CONFIG_MMC
 static struct module_pin_mux mmc1_pin_mux[] = {
+	{OFFSET(gpmc_ad7), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT7 */
+	{OFFSET(gpmc_ad6), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT6 */
+	{OFFSET(gpmc_ad5), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT5 */
+	{OFFSET(gpmc_ad4), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT4 */
+
 	{OFFSET(gpmc_ad3), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT3 */
 	{OFFSET(gpmc_ad2), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT2 */
 	{OFFSET(gpmc_ad1), (MODE(1) | RXACTIVE | PULLUP_EN)},	/* MMC1_DAT1 */
@@ -59,6 +77,8 @@ static struct module_pin_mux spi0_pin_mux[] = {
 };
 
 static struct module_pin_mux mii1_pin_mux[] = {
+	{OFFSET(mii1_crs), MODE(0) | RXACTIVE},		/* MII1_CRS */
+	{OFFSET(mii1_col), MODE(0) | RXACTIVE},		/* MII1_COL */
 	{OFFSET(mii1_rxerr), MODE(0) | RXACTIVE},	/* MII1_RXERR */
 	{OFFSET(mii1_txen), MODE(0)},			/* MII1_TXEN */
 	{OFFSET(mii1_rxdv), MODE(0) | RXACTIVE},	/* MII1_RXDV */
@@ -91,6 +111,7 @@ static struct module_pin_mux mii2_pin_mux[] = {
 	{OFFSET(gpmc_a10), MODE(1) | RXACTIVE},	/* MII2_RXD1 */
 	{OFFSET(gpmc_a11), MODE(1) | RXACTIVE},	/* MII2_RXD0 */
 	{OFFSET(gpmc_wpn), (MODE(1) | RXACTIVE)},/* MII2_RXERR */
+	{OFFSET(gpmc_wait0), (MODE(1) | RXACTIVE | PULLUP_EN)},
 						/*
 						 * MII2_CRS is shared with
 						 * NAND_WAIT0
@@ -108,7 +129,7 @@ static struct module_pin_mux nand_pin_mux[] = {
 	{OFFSET(gpmc_ad5), (MODE(0) | PULLUP_EN | RXACTIVE)},	/* NAND AD5 */
 	{OFFSET(gpmc_ad6), (MODE(0) | PULLUP_EN | RXACTIVE)},	/* NAND AD6 */
 	{OFFSET(gpmc_ad7), (MODE(0) | PULLUP_EN | RXACTIVE)},	/* NAND AD7 */
-	{OFFSET(gpmc_wait0), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* NAND WAIT */
+	{OFFSET(gpmc_clk), (MODE(2) | RXACTIVE | PULLUP_EN)},	/* NAND WAIT */
 	{OFFSET(gpmc_wpn), (MODE(7) | PULLUP_EN | RXACTIVE)},	/* NAND_WPN */
 	{OFFSET(gpmc_csn0), (MODE(0) | PULLUDEN)},	/* NAND_CS0 */
 	{OFFSET(gpmc_advn_ale), (MODE(0) | PULLUDEN)},	/* NAND_ADV_ALE */
@@ -123,8 +144,8 @@ static struct module_pin_mux gpIOs[] = {
 	{OFFSET(spi0_cs1),  (MODE(7) | PULLUDEN | PULLUP_EN | RXACTIVE)},
 	/* TIMER5   (MMC0_DAT3) - TIMER5 (Buzzer) */
 	{OFFSET(mmc0_dat3), (MODE(3) | PULLUDEN | RXACTIVE)},
-	/* TIMER6   (MMC0_DAT2) - PWM_BACK_3V3, later used as MODE3 for PWM */
-	{OFFSET(mmc0_dat2), (MODE(7) | PULLUDEN | RXACTIVE)},
+	/* TIMER6   (MMC0_DAT2) - PWM_BACK_3V3 */
+	{OFFSET(mmc0_dat2), (MODE(3) | PULLUDEN | RXACTIVE)},
 	/* GPIO2_28 (MMC0_DAT1)	 - MII_nNAND */
 	{OFFSET(mmc0_dat1), (MODE(7) | PULLUDEN | RXACTIVE)},
 	/* GPIO2_29 (MMC0_DAT0)	 - NAND_1n0 */
@@ -148,7 +169,7 @@ static struct module_pin_mux gpIOs[] = {
 	 * DISPLAY_ONOFF (Backlight Enable at LVDS Versions)
 	 */
 	{OFFSET(ecap0_in_pwm0_out), (MODE(7) | PULLUDEN | RXACTIVE)},
-	/* GPIO0_19 (DMA_INTR0) - ISPLAY_MODE (CPLD) */
+	/* GPIO0_19 (DMA_INTR0) - DISPLAY_MODE (CPLD) */
 	{OFFSET(xdma_event_intr0), (MODE(7) | PULLUDEN | PULLUP_EN | RXACTIVE)},
 	/* GPIO0_20 (DMA_INTR1) - REP-Switch */
 	{OFFSET(xdma_event_intr1), (MODE(7) | PULLUP_EN | RXACTIVE)},
@@ -160,7 +181,14 @@ static struct module_pin_mux gpIOs[] = {
 	{OFFSET(mcasp0_axr0),  (MODE(7) | PULLUDDIS) },
 	/* GPIO3_17 (MCASP0_AHCLKR) - ETH2_LEDY */
 	{OFFSET(mcasp0_ahclkr), (MODE(7) | PULLUDDIS) },
-
+#ifndef CONFIG_NAND
+	/* GPIO2_3 - NAND_OE */
+	{OFFSET(gpmc_oen_ren), (MODE(7) | PULLDOWN_EN | RXACTIVE)},
+	/* GPIO2_4 - NAND_WEN */
+	{OFFSET(gpmc_wen), (MODE(7) | PULLDOWN_EN | RXACTIVE)},
+	/* GPIO2_5 - NAND_BE_CLE */
+	{OFFSET(gpmc_be0n_cle), (MODE(7) | PULLDOWN_EN | RXACTIVE)},
+#endif
 	{-1},
 };
 
@@ -204,7 +232,7 @@ void enable_uart0_pin_mux(void)
 	configure_module_pin_mux(uart0_pin_mux);
 }
 
-void enable_i2c0_pin_mux(void)
+void enable_i2c_pin_mux(void)
 {
 	configure_module_pin_mux(i2c0_pin_mux);
 }
@@ -221,5 +249,6 @@ void enable_board_pin_mux(void)
 #endif
 	configure_module_pin_mux(spi0_pin_mux);
 	configure_module_pin_mux(lcd_pin_mux);
+	configure_module_pin_mux(uart1_pin_mux);
 	configure_module_pin_mux(gpIOs);
 }

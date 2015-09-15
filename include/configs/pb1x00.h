@@ -15,6 +15,8 @@
 #define CONFIG_PB1X00		1
 #define CONFIG_SOC_AU1X00	1  /* alchemy series cpu */
 
+#define CONFIG_DISPLAY_BOARDINFO
+
 #ifdef CONFIG_PB1000
 #define CONFIG_SOC_AU1000	1
 #else
@@ -28,10 +30,6 @@
 #endif
 #endif
 #endif
-
-#define CONFIG_SYS_LITTLE_ENDIAN
-
-#define CONFIG_ETHADDR		DE:AD:BE:EF:01:01    /* Ethernet address */
 
 #define CONFIG_BOOTDELAY	2	/* autoboot after 2 seconds	*/
 
@@ -170,23 +168,14 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 
-#undef CONFIG_CMD_SAVEENV
 #undef CONFIG_CMD_FAT
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_IDE
-#undef CONFIG_CMD_LOADS
-#undef CONFIG_CMD_RUN
-#undef CONFIG_CMD_LOADB
 #undef CONFIG_CMD_ELF
-#undef CONFIG_CMD_BDI
 #undef CONFIG_CMD_BEDBUG
 
 #endif	/* __CONFIG_H */

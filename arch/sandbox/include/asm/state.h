@@ -10,13 +10,6 @@
 #include <stdbool.h>
 #include <linux/stringify.h>
 
-/* How we exited U-Boot */
-enum exit_type_id {
-	STATE_EXIT_NORMAL,
-	STATE_EXIT_COLD_REBOOT,
-	STATE_EXIT_POWER_OFF,
-};
-
 /**
  * Selects the behavior of the serial terminal.
  *
@@ -42,15 +35,15 @@ enum state_terminal_raw {
 
 struct sandbox_spi_info {
 	const char *spec;
-	const struct sandbox_spi_emu_ops *ops;
+	struct udevice *emul;
 };
 
 /* The complete state of the test system */
 struct sandbox_state {
 	const char *cmd;		/* Command to execute */
 	bool interactive;		/* Enable cmdline after execute */
+	bool run_distro_boot;		/* Automatically run distro bootcommands */
 	const char *fdt_fname;		/* Filename of FDT binary */
-	enum exit_type_id exit_type;	/* How we exited U-Boot */
 	const char *parse_err;		/* Error to report from parsing */
 	int argc;			/* Program arguments */
 	char **argv;			/* Command line arguments */
@@ -137,13 +130,6 @@ struct sandbox_state_io {
 		.write = _write, \
 		.compat = _compat, \
 	}
-
-/**
- * Record the exit type to be reported by the test program.
- *
- * @param exit_type	Exit type to record
- */
-void state_record_exit(enum exit_type_id exit_type);
 
 /**
  * Gets a pointer to the current state.

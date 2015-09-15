@@ -32,13 +32,13 @@ int arch_cpu_init(void)
 	periph_clk_cfg |= CONFIG_SPEAR_UART48M;
 	writel(periph_clk_cfg, &misc_p->periph_clk_cfg);
 #endif
-#if defined(CONFIG_DESIGNWARE_ETH)
+#if defined(CONFIG_ETH_DESIGNWARE)
 	periph1_clken |= MISC_ETHENB;
 #endif
 #if defined(CONFIG_DW_UDC)
 	periph1_clken |= MISC_USBDENB;
 #endif
-#if defined(CONFIG_DW_I2C)
+#if defined(CONFIG_SYS_I2C_DW)
 	periph1_clken |= MISC_I2CENB;
 #endif
 #if defined(CONFIG_ST_SMI)

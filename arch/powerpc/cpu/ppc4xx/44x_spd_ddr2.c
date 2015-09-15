@@ -424,6 +424,14 @@ phys_size_t initdram(int board_type)
 	int write_recovery;
 	phys_size_t dram_size = 0;
 
+	if (IS_ENABLED(CONFIG_SYS_RAMBOOT)) {
+		/*
+		 * Reduce RAM size to avoid overwriting memory used by
+		 * current stack? Not sure what is happening.
+		 */
+		return sdram_memsize() / 2;
+	}
+
 	num_dimm_banks = sizeof(iic0_dimm_addr);
 
 	/*------------------------------------------------------------------
@@ -1661,7 +1669,7 @@ static void program_mode(unsigned long *dimm_populated,
 		for (dimm_num = 0; dimm_num < num_dimm_banks; dimm_num++) {
 			/* If a dimm is installed in a particular slot ... */
 			if (dimm_populated[dimm_num] != SDRAM_NONE)
-				t_wr_ns = max(t_wr_ns,
+				t_wr_ns = max(t_wr_ns, (unsigned long)
 					      spd_read(iic0_dimm_addr[dimm_num], 36) >> 2);
 		}
 
@@ -1838,12 +1846,18 @@ static void program_tr(unsigned long *dimm_populated,
 			else
 				sdram_ddr1 = false;
 
-			t_rcd_ns = max(t_rcd_ns, spd_read(iic0_dimm_addr[dimm_num], 29) >> 2);
-			t_rrd_ns = max(t_rrd_ns, spd_read(iic0_dimm_addr[dimm_num], 28) >> 2);
-			t_rp_ns  = max(t_rp_ns,  spd_read(iic0_dimm_addr[dimm_num], 27) >> 2);
-			t_ras_ns = max(t_ras_ns, spd_read(iic0_dimm_addr[dimm_num], 30));
-			t_rc_ns  = max(t_rc_ns,  spd_read(iic0_dimm_addr[dimm_num], 41));
-			t_rfc_ns = max(t_rfc_ns, spd_read(iic0_dimm_addr[dimm_num], 42));
+			t_rcd_ns = max(t_rcd_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 29) >> 2);
+			t_rrd_ns = max(t_rrd_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 28) >> 2);
+			t_rp_ns  = max(t_rp_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 27) >> 2);
+			t_ras_ns = max(t_ras_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 30));
+			t_rc_ns  = max(t_rc_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 41));
+			t_rfc_ns = max(t_rfc_ns,
+				       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 42));
 		}
 	}
 
@@ -1916,9 +1930,12 @@ static void program_tr(unsigned long *dimm_populated,
 		for (dimm_num = 0; dimm_num < num_dimm_banks; dimm_num++) {
 			/* If a dimm is installed in a particular slot ... */
 			if (dimm_populated[dimm_num] != SDRAM_NONE) {
-				t_wpc_ns = max(t_wtr_ns, spd_read(iic0_dimm_addr[dimm_num], 36) >> 2);
-				t_wtr_ns = max(t_wtr_ns, spd_read(iic0_dimm_addr[dimm_num], 37) >> 2);
-				t_rpc_ns = max(t_rpc_ns, spd_read(iic0_dimm_addr[dimm_num], 38) >> 2);
+				t_wpc_ns = max(t_wtr_ns,
+					       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 36) >> 2);
+				t_wtr_ns = max(t_wtr_ns,
+					       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 37) >> 2);
+				t_rpc_ns = max(t_rpc_ns,
+					       (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 38) >> 2);
 			}
 		}
 
@@ -2314,7 +2331,8 @@ static void program_ecc(unsigned long *dimm_populated,
 	for (dimm_num = 0; dimm_num < MAXDIMMS; dimm_num++) {
 		/* If a dimm is installed in a particular slot ... */
 		if (dimm_populated[dimm_num] != SDRAM_NONE)
-			ecc = max(ecc, spd_read(iic0_dimm_addr[dimm_num], 11));
+			ecc = max(ecc,
+				  (unsigned long)spd_read(iic0_dimm_addr[dimm_num], 11));
 	}
 	if (ecc == 0)
 		return;

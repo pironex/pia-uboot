@@ -17,7 +17,6 @@
 #define	CONFIG_SYS_TEXT_BASE	0xa0000000
 
 #ifdef	CONFIG_ONENAND
-#define	CONFIG_SPL
 #define	CONFIG_SPL_ONENAND_SUPPORT
 #define	CONFIG_SPL_ONENAND_LOAD_ADDR	0x2000
 #define	CONFIG_SPL_ONENAND_LOAD_SIZE	\
@@ -68,21 +67,15 @@
 /*
  * Bootloader Components Configuration
  */
-#include <config_cmd_default.h>
-
-#define	CONFIG_CMD_NET
 #define	CONFIG_CMD_ENV
-#undef	CONFIG_CMD_IMLS
 #define	CONFIG_CMD_MMC
 #define	CONFIG_CMD_USB
 #undef	CONFIG_LCD
 #define	CONFIG_CMD_IDE
 
 #ifdef	CONFIG_ONENAND
-#undef	CONFIG_CMD_FLASH
 #define	CONFIG_CMD_ONENAND
 #else
-#define	CONFIG_CMD_FLASH
 #undef	CONFIG_CMD_ONENAND
 #endif
 
@@ -222,7 +215,7 @@
 
 #else	/* No flash */
 #define	CONFIG_SYS_NO_FLASH
-#define	CONFIG_SYS_ENV_IS_NOWHERE
+#define	CONFIG_ENV_IS_NOWHERE
 #endif
 
 /*
@@ -298,7 +291,6 @@
 #define	CONFIG_SYS_MDMRS_VAL	0x00000000
 #define	CONFIG_SYS_FLYCNFG_VAL	0x00000000
 #define	CONFIG_SYS_SXCNFG_VAL	0x40044004
-#define	CONFIG_SYS_MEM_BUF_IMP	0x0f
 
 /*
  * PCMCIA and CF Interfaces

@@ -31,6 +31,7 @@ int altera_tse_initialize(u8 dev_num, int mac_base,
 int at91emac_register(bd_t *bis, unsigned long iobase);
 int au1x00_enet_initialize(bd_t*);
 int ax88180_initialize(bd_t *bis);
+int bcm_sf2_eth_register(bd_t *bis, u8 dev_num);
 int bfin_EMAC_initialize(bd_t *bis);
 int calxedaxgmac_initialize(u32 id, ulong base_addr);
 int cs8900_initialize(u8 dev_num, int base_addr);
@@ -54,10 +55,9 @@ int ftmac100_initialize(bd_t *bits);
 int ftmac110_initialize(bd_t *bits);
 int greth_initialize(bd_t *bis);
 void gt6426x_eth_initialize(bd_t *bis);
-int inca_switch_initialize(bd_t *bis);
-int ks8695_eth_initialize(void);
 int ks8851_mll_initialize(u8 dev_num, int base_addr);
 int lan91c96_initialize(u8 dev_num, int base_addr);
+int lpc32xx_eth_initialize(bd_t *bis);
 int macb_eth_initialize(int id, void *regs, unsigned int phy_addr);
 int mcdmafec_initialize(bd_t *bis);
 int mcffec_initialize(bd_t *bis);
@@ -65,12 +65,13 @@ int mpc512x_fec_initialize(bd_t *bis);
 int mpc5xxx_fec_initialize(bd_t *bis);
 int mpc82xx_scc_enet_initialize(bd_t *bis);
 int mvgbe_initialize(bd_t *bis);
+int mvneta_initialize(bd_t *bis, int base_addr, int devnum, int phy_addr);
 int natsemi_initialize(bd_t *bis);
 int ne2k_register(void);
 int npe_initialize(bd_t *bis);
 int ns8382x_initialize(bd_t *bis);
+int pch_gbe_register(bd_t *bis);
 int pcnet_initialize(bd_t *bis);
-int plb2800_eth_initialize(bd_t *bis);
 int ppc_4xx_eth_initialize (bd_t *bis);
 int rtl8139_initialize(bd_t *bis);
 int rtl8169_initialize(bd_t *bis);
@@ -79,7 +80,6 @@ int sh_eth_initialize(bd_t *bis);
 int skge_initialize(bd_t *bis);
 int smc91111_initialize(u8 dev_num, int base_addr);
 int smc911x_initialize(u8 dev_num, int base_addr);
-int sunxi_wemac_initialize(bd_t *bis);
 int tsi108_eth_initialize(bd_t *bis);
 int uec_standard_init(bd_t *bis);
 int uli526x_initialize(bd_t *bis);
@@ -92,7 +92,8 @@ int xilinx_emaclite_initialize(bd_t *bis, unsigned long base_addr,
 int xilinx_ll_temac_eth_init(bd_t *bis, unsigned long base_addr, int flags,
 						unsigned long ctrl_addr);
 int zynq_gem_of_init(const void *blob);
-int zynq_gem_initialize(bd_t *bis, int base_addr, int phy_addr, u32 emio);
+int zynq_gem_initialize(bd_t *bis, phys_addr_t base_addr,
+			int phy_addr, u32 emio);
 /*
  * As long as the Xilinx xps_ll_temac ethernet driver has not its own interface
  * exported by a public hader file, we need a global definition at this point.
@@ -121,6 +122,9 @@ static inline int pci_eth_init(bd_t *bis)
 #endif
 #ifdef CONFIG_E1000
 	num += e1000_initialize(bis);
+#endif
+#ifdef CONFIG_PCH_GBE
+	num += pch_gbe_register(bis);
 #endif
 #ifdef CONFIG_PCNET
 	num += pcnet_initialize(bis);

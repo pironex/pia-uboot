@@ -29,6 +29,9 @@
 #define CONFIG_SYS_TEXT_BASE	0xFFF90000
 #endif
 
+#define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_DISPLAY_BOARDINFO
+
 #define CONFIG_SYS_CLK_FREQ	33333400
 
 #if 0 /* temporary disabled because OS/9 does not like dcache on startup */
@@ -133,6 +136,7 @@
 #endif
 
 #ifdef CONFIG_ENV_IS_IN_EEPROM
+#define CONFIG_I2C_ENV_EEPROM_BUS	0
 #define CONFIG_ENV_OFFSET		0	/* environment starts at the beginning of the EEPROM */
 #define CONFIG_ENV_SIZE		0x1000	/* 4096 bytes may be used for env vars */
 #endif
@@ -267,8 +271,6 @@
 #define CONFIG_DOS_PARTITION
 #define CONFIG_ISO_PARTITION
 
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_BSP
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP
@@ -279,8 +281,6 @@
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NAND
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_NFS
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_USB
@@ -327,12 +327,6 @@
 #define CONFIG_MX_CYCLIC	1	/* enable mdc/mwc commands      */
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
 #define CONFIG_VERSION_VARIABLE 1	/* include version env variable */
-
-#define CONFIG_AUTOBOOT_KEYED	1
-#define CONFIG_AUTOBOOT_PROMPT	\
-	"Press SPACE to abort autoboot in %d seconds\n", bootdelay
-#undef CONFIG_AUTOBOOT_DELAY_STR
-#define CONFIG_AUTOBOOT_STOP_STR " "
 
 /*-----------------------------------------------------------------------
  * PCI stuff

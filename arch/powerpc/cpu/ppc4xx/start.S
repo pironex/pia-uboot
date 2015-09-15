@@ -664,8 +664,7 @@ _start:
     defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
     defined(CONFIG_460SX)
 	mtdcr	L2_CACHE_CFG,r0		/* Ensure L2 Cache is off */
-#elif defined(CONFIG_460EX) || defined(CONFIG_460GT) || \
-      defined(CONFIG_APM821XX)
+#elif defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	lis	r1, 0x0000
 	ori	r1,r1,0x0008		/* Set L2_CACHE_CFG[RDBW]=1 */
 	mtdcr	L2_CACHE_CFG,r1
@@ -694,7 +693,7 @@ _start:
 	ori	r1,r1, 0x0980		/* fourth 64k */
 	mtdcr	ISRAM0_SB3CR,r1
 #elif defined(CONFIG_440SPE) || defined(CONFIG_460EX) || \
-      defined(CONFIG_460GT) || defined(CONFIG_APM821XX)
+      defined(CONFIG_460GT)
 	lis	r1,0x0000		/* BAS = X_0000_0000 */
 	ori	r1,r1,0x0984		/* first 64k */
 	mtdcr	ISRAM0_SB0CR,r1
@@ -707,8 +706,7 @@ _start:
 	lis	r1, 0x0003
 	ori	r1,r1, 0x0984		/* fourth 64k */
 	mtdcr	ISRAM0_SB3CR,r1
-#if defined(CONFIG_460EX) || defined(CONFIG_460GT) || \
-    defined(CONFIG_APM821XX)
+#if defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	lis	r2,0x7fff
 	ori	r2,r2,0xffff
 	mfdcr	r1,ISRAM1_DPC
@@ -762,6 +760,15 @@ _start:
 #endif
 
 	bl	cpu_init_f	/* run low-level CPU init code	   (from Flash) */
+#ifdef CONFIG_SYS_GENERIC_BOARD
+	mr	r3, r1
+	bl	board_init_f_mem
+	mr	r1, r3
+	li	r0,0
+	stwu	r0, -4(r1)
+	stwu	r0, -4(r1)
+#endif
+	li	r3, 0
 	bl	board_init_f
 	/* NOTREACHED - board_init_f() does not return */
 
@@ -1029,7 +1036,14 @@ _start:
 	GET_GOT			/* initialize GOT access			*/
 
 	bl	cpu_init_f	/* run low-level CPU init code	   (from Flash) */
-
+#ifdef CONFIG_SYS_GENERIC_BOARD
+	mr	r3, r1
+	bl	board_init_f_mem
+	mr	r1, r3
+	stwu	r0, -4(r1)
+	stwu	r0, -4(r1)
+#endif
+	li	r3, 0
 	bl	board_init_f	/* run first part of init code (from Flash)	*/
 	/* NOTREACHED - board_init_f() does not return */
 

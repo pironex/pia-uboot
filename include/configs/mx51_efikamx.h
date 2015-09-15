@@ -11,8 +11,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <config_cmd_default.h>
-
 /*
  * High Level Board Configuration Options
  */
@@ -41,9 +39,7 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_IDE
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_DATE
-#undef CONFIG_CMD_IMLS
 
 /*
  * Environmental settings
@@ -94,13 +90,12 @@
 /* SPI FLASH */
 #ifdef CONFIG_CMD_SF
 
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_SST
-#define CONFIG_SF_DEFAULT_CS		(1 | 121 << 8)
+#define CONFIG_SF_DEFAULT_CS		1
 #define CONFIG_SF_DEFAULT_MODE		(SPI_MODE_0)
 #define CONFIG_SF_DEFAULT_SPEED		25000000
 
-#define CONFIG_ENV_SPI_CS		(1 | 121 << 8)
+#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
 #define CONFIG_ENV_SPI_BUS		0
 #define CONFIG_ENV_SPI_MAX_HZ		25000000
 #define CONFIG_ENV_SPI_MODE		(SPI_MODE_0)
@@ -199,9 +194,6 @@
  */
 #ifdef CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
-#ifdef	CONFIG_CMD_NET
-#define	CONFIG_CMD_NFS
-#endif
 #endif
 
 /*
