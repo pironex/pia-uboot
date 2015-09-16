@@ -87,7 +87,6 @@
 #define CONFIG_PARTITION_UUIDS
 #define CONFIG_CMD_PART
 
-#define CONFIG_SYS_MALLOC_LEN		(1024 << 10)
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT		"U-Boot# "
@@ -252,8 +251,6 @@
 #define V_OSCK				24000000  /* Clock output from T2 */
 #define V_SCLK				(V_OSCK)
 
-#define CONFIG_CMD_ECHO
-
 /* Bootcount using the RTC block */
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_AM33XX
@@ -350,9 +347,6 @@
 #define CONFIG_SYS_HZ			1000
 
 /* NS16550 Configuration */
-#define CONFIG_SYS_NS16550
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	(-4)
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */
 
 /* I2C Configuration */
@@ -443,7 +437,6 @@
 #endif /* NAND */
 
 /* Defines for SPL */
-#define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x402F0400
 #define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR

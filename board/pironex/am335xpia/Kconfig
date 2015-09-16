@@ -1,0 +1,30 @@
+if TARGET_AM335X_PIA
+
+config SYS_BOARD
+	default "am335xpia"
+
+config SYS_VENDOR
+	default "pironex"
+
+config SYS_SOC
+	default "am33xx"
+
+config SYS_CONFIG_NAME
+	default "am335x_pia"
+
+config NAND
+	bool "Support for NAND flash"
+	help
+	  Some piA boards contain a NAND flash connected to GPMC.
+	  This option adds u-boot support to access the NAND.
+
+config NAND_BOOT
+	bool "Support for booting from NAND flash"
+	depends on NAND
+	help
+	  Enabling this will make a U-Boot binary that is capable of being
+	  booted via NAND.  In this case we will enable certain pinmux early
+	  as the ROM only partially sets up pinmux.  We also default to using
+	  NAND for environment.
+
+endif
