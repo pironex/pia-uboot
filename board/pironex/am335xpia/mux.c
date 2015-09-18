@@ -918,6 +918,14 @@ void enable_i2c1_pin_mux(void)
 
 static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 {
+#define CONFIG_E2_24V_FAIL_GPIO ((2 * 32) + 25)
+#define CONFIG_E2_WD_RESET_GPIO ((1 * 32) + 14)
+#define CONFIG_E2_PB_RESET_GPIO ((3 * 32) + 0)
+#define CONFIG_E2_WD_SET1_GPIO  ((2 * 32) + 22)
+#define CONFIG_E2_WD_SET2_GPIO  ((2 * 32) + 23)
+#define CONFIG_E2_POE_POE_PS_SD_GPIO ((3 * 32) + 9)
+#define CONFIG_E2_POE_PSE_SD_GPIO ((3 * 32) + 20)
+
 	unsigned int gpio_ffclock = 0;
 
 	debug(">>pia:init_pia_e2_gpios()\n");
@@ -961,6 +969,15 @@ static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
 
 static void init_pia_mmi_gpios(void)
 {
+#define CONFIG_MMI_3_3V_FAIL_GPIO	((3 * 32) + 20)	//gpio3_20
+#define CONFIG_MMI_WDI_GPIO  	 	((1 * 32) + 0)	//gpio1_0
+#define CONFIG_MMI_WD_SET1_GPIO  	((1 * 32) + 1)	//gpio1_1
+#define CONFIG_MMI_WD_SET2_GPIO  	((1 * 32) + 2)  //gpio1_2
+#define CONFIG_MMI_LED1_GPIO  	 	((0 * 32) + 30) //gpio0_30
+#define CONFIG_MMI_LED2_GPIO  	 	((0 * 32) + 31) //gpio0_31
+#define CONFIG_MMI_ACC_INT1_GPIO  	((3 * 32) + 19) //gpio3_19
+#define CONFIG_MMI_ACC_INT2_GPIO  	((0 * 32) + 7)	//gpio0_7
+#define CONFIG_MMI_XDMA_EVENT_INTR0_GPIO  	((0 * 32) + 19)	//gpio0_19
 	debug(">>pia:init_pia_mmi_gpios()\n");
 
 	/* Watchdog config, SET0=SET1=high and SET2=low == WD disabled */
@@ -983,6 +1000,7 @@ static void init_pia_mmi_gpios(void)
 	gpio_direction_input(CONFIG_MMI_XDMA_EVENT_INTR0_GPIO);
 }
 
+#define CONFIG_PM_EMMC_RESET_GPIO	((2 * 32) + 5)
 static void init_pia_ebtft_gpios(void)
 {
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);

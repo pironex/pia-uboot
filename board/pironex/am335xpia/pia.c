@@ -98,8 +98,6 @@ static inline int init_rtc_rx8801(void) { return 0; }
 
 void enable_i2c1_pin_mux(void);
 
-
-
 #define EEPROM_POS_CONFIG_VARIANT	(0)
 #define EEPROM_POS_CONFIG_NAND		(1)
 #define EEPROM_POS_CONFIG_TOUCH		(2)
@@ -681,6 +679,18 @@ int board_late_init()
 	if (board_is_e2(header))
 		init_rtc_rx8801();
 
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	char safe_string[HDR_NAME_LEN + 1];
+	/* Now set variables based on the header. */
+	strncpy(safe_string, (char *)header->name, sizeof(header->name));
+	safe_string[sizeof(header->name)] = 0;
+	setenv("board_name", safe_string);
+
+	strncpy(safe_string, (char *)header->version, sizeof(header->version));
+	safe_string[sizeof(header->version)] = 0;
+	setenv("board_rev", safe_string);
+#endif
+
 #ifdef PIA_TESTING
 	test_pia();
 #endif
@@ -961,16 +971,18 @@ int board_init(void)
 	debug(">>pia:board_init()\n");
 
 #if defined(CONFIG_HW_WATCHDOG)
+	// TODO OMAP watchdog support is currently disabled
 	hw_watchdog_init();
 #endif
 
 	if (read_eeprom() < 0)
 		puts("Could not get board ID\n");
 
-	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-	if (board_is_e2(header))
-		gpmc_init();
+#if defined(CONFIG_NAND)
+	gpmc_init();
+#endif
 
 	return 0;
 }
