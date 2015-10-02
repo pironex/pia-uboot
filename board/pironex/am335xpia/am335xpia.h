@@ -38,13 +38,13 @@ struct am335x_baseboard_id {
 /* .bss is defined in SDRAM, so we don't have a global area to store
  * the EEPROM header data in SPL. Use Scratch space in SRAM instead.
  */
-#ifdef CONFIG_SPL_BUILD
-static struct am335x_baseboard_id *const header =
-	(struct am335x_baseboard_id *)(SRAM_SCRATCH_SPACE_ADDR + sizeof(struct omap_boot_parameters));
-#else
-static struct am335x_baseboard_id header_;
-static struct am335x_baseboard_id *header = &header_;
-#endif
+//#ifdef CONFIG_SPL_BUILD
+//static struct am335x_baseboard_id *const header =
+//	(struct am335x_baseboard_id *)(SRAM_SCRATCH_SPACE_ADDR + sizeof(struct omap_boot_parameters));
+//#else
+//static struct am335x_baseboard_id header_;
+//static struct am335x_baseboard_id *header = &header_;
+//#endif
 
 static inline int board_is_apc(struct am335x_baseboard_id *header)
 {
