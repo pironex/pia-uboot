@@ -60,12 +60,12 @@ static inline int board_is_mmi(struct am335x_baseboard_id *header)
 	return (strncmp(header->name, "PIA335MI", 8) == 0);
 }
 
-static inline int board_is_pia(struct am335x_baseboard_id *header)
+static inline int board_is_sk(struct am335x_baseboard_id *header)
 {
 	return (strncmp(header->name, "P335BSK", 7) == 0);
 }
 
-static inline int board_is_sk(struct am335x_baseboard_id *header)
+static inline int board_is_pia(struct am335x_baseboard_id *header)
 {
 	return (strncmp(header->name, "P335BPIA", 8) == 0);
 }

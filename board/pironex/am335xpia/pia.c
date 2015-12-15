@@ -561,7 +561,9 @@ int board_eth_init(bd_t *bis)
 static void print_board_info(struct am335x_baseboard_id *header)
 {
 	int i = 1;
-	puts("Detecting board... ");
+	puts("Detecting board... \n");
+	printf("EEPROM: 0x%08x - Name:%.8s, - Rev: %.4s\n",
+		header->magic, header->name, header->version);
 	if (board_is_e2(header)) {
 		puts("  PIA335E2 found\n");
 	} else if (board_is_mmi(header)) {
@@ -574,6 +576,8 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  EB_TFT found\n");
 	} else  if (board_is_apc(header)) {
 		puts("  APC found\n");
+	} else if (board_is_pia(header)) {
+		puts("  piA-AM3352 found\n");
 	} else if (board_is_pm(header)) {
 		puts("  PIA335PM found - unable to detect Baseboard!\n");
 	} else {
@@ -964,9 +968,8 @@ int board_late_init()
 
 	if (read_eeprom(&header) < 0)
 		puts("Could not get board ID.\n");
-	else
-		printf("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
-			header.magic, header.name, header.version, header.serial);
+
+	print_board_info(&header);
 
 	/* use this as testing function, ETH is not initialized here */
 	debug("+pia:board_late_init()\n");
