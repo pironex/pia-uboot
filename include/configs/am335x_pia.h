@@ -32,44 +32,9 @@
 #define CONFIG_ENV_IS_NOWHERE
 
 #if defined(CONFIG_PIA_APC) || defined(CONFIG_PIA_EBTFT) || defined(CONFIG_PIA_SK)
-#define CONFIG_PIA_PM 2 /* number is current PM revision */
+/*#define CONFIG_PIA_PM 2*/ /* number is current PM revision */
 #define CONFIG_EMMC_BOOT
 #endif
-
-#ifdef CONFIG_PIA_FIRSTSTART
- #if defined(CONFIG_PIA_PM)
-  #define CONFIG_BOARD_NAME     "PIA335PM"
-  #define CONFIG_BOARD_REVISION "0.02"
-  #ifndef CONFIG_BOARD_MEMTYPE
-   #define CONFIG_BOARD_MEMTYPE 0
-  #endif
-  #if defined(CONFIG_PIA_EBTFT)
-   #define CONFIG_EXP_NAME "P335BEBT"
-   #define CONFIG_EXP_REV "0.02"
-  #elif defined(CONFIG_PIA_APC)
-   #define CONFIG_EXP_NAME "P335BAPC"
-   #define CONFIG_EXP_REV "0.02"
-  #elif defined(CONFIG_PIA_SK)
-   #define CONFIG_EXP_NAME "P335BSK"
-   #define CONFIG_EXP_REV "0.02"
-  #endif
- #elif defined(CONFIG_PIA_EM)
-  #define CONFIG_BOARD_NAME "PIA335EM"
-  #define CONFIG_BOARD_REVISION "0.02"
- #elif defined(CONFIG_PIA_E2)
-  #define CONFIG_BOARD_NAME "PIA335E2"
-  #define CONFIG_BOARD_REVISION "0.03"
- #elif defined(CONFIG_PIA_MMI)
-  #define CONFIG_BOARD_NAME "PIA335MI"
-  #define CONFIG_BOARD_REVISION "0.02"
-  #define CONFIG_EXP_NAME "LCDKMMMI"
-  #define CONFIG_EXP_REV "0.01"
- #else
-  #define CONFIG_BOARD_NAME "PIA335__"
-  #define CONFIG_BOARD_REVISION "0.00"
- #endif
-#endif
-
 
 #define MACH_TYPE_PIA_AM335X		4706	/* sync with kernel! */
 #define CONFIG_MACH_TYPE		MACH_TYPE_PIA_AM335X

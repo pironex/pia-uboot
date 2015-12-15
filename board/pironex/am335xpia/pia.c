@@ -18,10 +18,14 @@
 #include <spl.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/omap.h>
 #include <asm/arch/ddr_defs.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/mmc_host_def.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/io.h>
+#include <asm/emif.h>
 #include <asm/gpio.h>
 #include <i2c.h>
 #include <miiphy.h>
@@ -83,7 +87,7 @@ static int init_eeprom(int expansion, int rewrite)
 	struct am335x_baseboard_id config;
 
 	if (!rewrite && config.magic == 0xEE3355AA) {
-		printf("EEPROM already initialized\n");
+		puts("EEPROM already initialized!\n");
 		return 0;
 	}
 
@@ -93,10 +97,10 @@ static int init_eeprom(int expansion, int rewrite)
 	memset(&config.config, 0, 32);
 	if (expansion) {
 #if defined (CONFIG_EXP_NAME)
-		printf("(Re)Writing Expansion EEPROM content\n");
+		puts("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config.name, CONFIG_EXP_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_EXP_REV, 4);
+		strncpy((char *)&config.version, CONFIG_EXP_REVISION, 4);
 		bus = 1;
 #ifdef CONFIG_PIA_MMI
 		addr = 0x51; /* LCD-EEPROM on 0x51 */
@@ -105,24 +109,24 @@ static int init_eeprom(int expansion, int rewrite)
 #endif /* CONFIG_EXP_NAME */
 	} else {
 #if defined (CONFIG_BOARD_NAME)
-		printf("(Re)Writing EEPROM content\n");
+		puts("(Re)Writing main EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
 		strncpy((char *)&config.version, CONFIG_BOARD_REVISION, 4);
 		/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
-		config.config[0] = 'B';
+		config.config[EEPROM_POS_CONFIG_VARIANT] = 'B';
 #else
-		config.config[0] = 'X';
+		config.config[EEPROM_POS_CONFIG_VARIANT] = 'X';
 #endif
 #endif /* CONFIG_MMI_EXTENDED */
 #if (defined CONFIG_PIA_E2)
-		config.config[1] = 'N'; // NAND present
+		config.config[EEPROM_POS_CONFIG_NAND] = 'N'; // NAND present
 #endif
-#if (defined CONFIG_PIA_PM)
-		config.config[EEPROM_POS_CONFIG_MEMORY] = CONFIG_BOARD_MEMTYPE;
-#endif
+#ifdef CONFIG_PIA_MEM_512
+		config.config[EEPROM_POS_CONFIG_MEMORY] = 'K';
+#endif /* CONFIG_PIA_MEM_512 */
 #endif /* CONFIG_BOARD_NAME */
 	}
 
@@ -152,25 +156,27 @@ static int init_eeprom(int expansion, int rewrite)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
-	memcpy(header, &config, sizeof(struct am335x_baseboard_id));
-
 	return 0;
 }
 
-int am33xx_first_start(void)
+static void am33xx_first_start(void)
 {
 #ifdef CONFIG_EXP_NAME
 	enable_i2c1_pin_mux();
 	init_eeprom(1, 1);
 #endif
+#ifdef CONFIG_BOARD_NAME
 	init_eeprom(0, 1);
+#endif
 
-	if (board_is_e2(header))
-		init_rtc_rx8801();
+#ifdef CONFIG_PIA_E2
+	init_rtc_rx8801();
+#endif
 
 	puts("Board initialized, turn off the device and reboot "
 		"with a real system.\n");
-	return 0;
+	for (;;)
+		; // endless loop
 }
 #endif
 
@@ -207,7 +213,7 @@ static int read_eeprom_on_bus(int i2cbus, struct am335x_baseboard_id *header)
 }
 static int read_eeprom(struct am335x_baseboard_id *header)
 {
-	int i, err0 = 0, err1 = 0;
+	int err0 = 0, err1 = 0;
 	int bus = 0;
 
 	debug(">>pia:read_eeprom()\n");
@@ -228,58 +234,15 @@ static int read_eeprom(struct am335x_baseboard_id *header)
 		if (board_is_pm(&oldheader)) {
 			header->config[EEPROM_POS_CONFIG_MEMORY]
 			               = oldheader.config[EEPROM_POS_CONFIG_MEMORY];
-			if (err1 < 0) {
-				puts("Could not read baseboard EEPROM; only PM module"
-				"will be configured! Check baseboards EEPROM"
-				"content!\n");
-			}
-
 		}
 	}
 
-#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
-	puts("Special FIRSTSTART version\n");
-	/* force reinitialization, normally the ID EEPROM is written here */
-	am33xx_first_start();
-#endif
-
+	if (err1 < 0) {
+		puts("ERROR: Could not read baseboard EEPROM!\n");
+	}
 	if (err0 < 0 && err1 < 0) {
 		return err0;
 	}
-
-	puts("Detecting board... ");
-	i = 1;
-	if (board_is_e2(header)) {
-		puts("  PIA335E2 found\n");
-	} else if (board_is_mmi(header)) {
-		puts("  PIA335MI found\n");
-	} else if (board_is_em(header)) {
-		puts("  Lokisa EM found\n");
-	} else if (board_is_sk(header)) {
-		puts("  SK found\n");
-	} else  if (board_is_ebtft(header)) {
-		puts("  EB_TFT found\n");
-	} else  if (board_is_apc(header)) {
-		puts("  APC found\n");
-	} else if (board_is_pm(header)) {
-		puts("  PIA335PM found - unable to detect Baseboard!\n");
-	} else {
-		i = 0;
-	}
-
-	if (i == 0) {
-		puts("Board not specified or unknown! "
-			"Check ID EEPROM content!\n");
-		hang();
-	}
-
-	puts("  Options: ");
-	for (i = 0; i < 32; ++i) {
-		if (header->config[i]) {
-			putc(header->config[i]);
-		}
-	}
-	putc('\n');
 
 	return 0;
 }
@@ -594,6 +557,42 @@ int board_eth_init(bd_t *bis)
 #endif /* SPL_ETH || TI_CPSW */
 #endif /* !SPL_BUILD */
 
+
+static void print_board_info(struct am335x_baseboard_id *header)
+{
+	int i = 1;
+	puts("Detecting board... ");
+	if (board_is_e2(header)) {
+		puts("  PIA335E2 found\n");
+	} else if (board_is_mmi(header)) {
+		puts("  PIA335MI found\n");
+	} else if (board_is_em(header)) {
+		puts("  Lokisa EM found\n");
+	} else if (board_is_sk(header)) {
+		puts("  SK found\n");
+	} else  if (board_is_ebtft(header)) {
+		puts("  EB_TFT found\n");
+	} else  if (board_is_apc(header)) {
+		puts("  APC found\n");
+	} else if (board_is_pm(header)) {
+		puts("  PIA335PM found - unable to detect Baseboard!\n");
+	} else {
+		puts("Board not specified or unknown! "
+			"Check ID EEPROM content!\n");
+		i = 0;
+	}
+
+	if (i != 0) {
+		puts("  Options: ");
+		for (i = 0; i < 32; ++i) {
+			if (header->config[i]) {
+				putc(header->config[i]);
+			}
+		}
+	}
+	putc('\n');
+}
+
 #if !defined(CONFIG_SKIP_LOWLEVEL_INIT)
 /* override from cpu/armv7/am33xx/board.c */
 #define OSC	(V_OSCK/1000000)
@@ -607,10 +606,18 @@ void am33xx_spl_board_init(void)
 	uchar buf[4];
 	int mpu_vdd, sil_rev;
 	struct am335x_baseboard_id header;
-	debug(">>pia:am33xx_spl_board_init()\n");
+
+
+#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
+	puts("Special FIRSTSTART version\n");
+	/* force reinitialization, normally the ID EEPROM is written here */
+	am33xx_first_start();
+#endif
 
 	if (read_eeprom(&header) < 0)
 		puts("Could not get board ID.\n");
+
+	print_board_info(&header);
 
 	/* MPU voltage 1.2625V, CORE voltage 1.1375V.
 	 * Correct for 720 and 800 MHz variants
@@ -639,15 +646,6 @@ void am33xx_spl_board_init(void)
 
 	/* disable VDIG1, it's not used on PM module */
 	if (board_is_pm(&header)) {
-#if 0
-	/* FIXME use gd->arch.omap_boot_params.omap_bootdevice */
-		/* use BCK1 register to store the boot device */
-		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
-		if (buf[0] != boot_params.omap_bootdevice) {
-			buf[0] = boot_params.omap_bootdevice;
-			i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
-		}
-#endif
 		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1);
 		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
 		buf[0] = 0;
