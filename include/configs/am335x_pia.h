@@ -19,7 +19,7 @@
 #include <configs/ti_am335x_common.h>
 
 /*#define PIA_ON_BONE*/
-#define PIA_DEBUG
+/*#define PIA_DEBUG*/
 /*#define PIA_TESTINGn*/
 
 #ifdef PIA_DEBUG
@@ -181,14 +181,12 @@
 		"run ramargs; " \
 		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"findfdt="\
-		"if test $board_name = A335BONE; then " \
-			"setenv fdtfile am335x-bone.dtb; fi; " \
-		"if test $board_name = A335BNLT; then " \
-			"setenv fdtfile am335x-boneblack.dtb; fi; " \
-		"if test $board_name = A33515BB; then " \
-			"setenv fdtfile am335x-evm.dtb; fi; " \
-		"if test $board_name = A335X_SK; then " \
-			"setenv fdtfile am335x-evmsk.dtb; fi; " \
+		"if test $board_name = P335BAPC; then " \
+			"setenv fdtfile am335x-pia-apc.dtb; fi; " \
+		"if test $board_name = P335BSK; then " \
+			"setenv fdtfile am335x-pia-sk.dtb; fi; " \
+		"if test $board_name = P335BPIA; then " \
+			"setenv fdtfile am335x-pia-base.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi; \0" \
 	NANDARGS \
@@ -196,11 +194,13 @@
 #endif /* !SPL_BUILD */
 
 #define CONFIG_BOOTCOMMAND \
-	"setenv fdtfile am335x-pia-sk.dtb;" \
+	"run findfdt;" \
+	"run mmcboot;" \
+	"setenv bootpart 2;" \
+	"setenv bootdir /boot;" \
 	"run mmcboot;" \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 2; " \
-	"setenv bootdir /boot;" \
 	"run mmcboot;" \
 	NANDBOOT
 
