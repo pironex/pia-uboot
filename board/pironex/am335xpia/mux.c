@@ -458,40 +458,37 @@ static struct module_pin_mux pia335x_eb_tft[] = {
 #define GPIO_PIA_LED2		((2 * 32) + 3)
 #define GPIO_PIA_RS485_DE	((2 * 32) + 17)
 #define GPIO_PIA_CAN1_RES	((2 * 32) + 24)
-#define GPIO_PIA_GSM_RESET	((2 * 32) + 25)
 #define GPIO_PIA_FLIGHTMODE	((0 * 32) + 28)
 #define GPIO_PIA_WD_SET2	((0 * 32) + 13)
 #define GPIO_PIA_GSM_PWRKEY	((3 * 32) + 18)
 static void init_pia_gpios(void)
 {
-	gpio_direction_output(GPIO_PIA_CAN0_STB, 1);
+	gpio_direction_output(GPIO_PIA_GSM_PWRKEY, 1);
+	gpio_direction_output(GPIO_PIA_CAN0_STB, 0);
 	gpio_direction_output(GPIO_PIA_PM_OUTPUT, 0);
-	gpio_direction_output(GPIO_PIA_RS485_RES, 1);
-	gpio_direction_output(GPIO_PIA_GSM_PWR_EN, 0);
+	gpio_direction_output(GPIO_PIA_RS485_RES, 0);
+	gpio_direction_output(GPIO_PIA_GSM_PWR_EN, 1);
 	gpio_direction_output(GPIO_PIA_LED2, 1);
 	gpio_direction_output(GPIO_PIA_RS485_DE, 0);
 	gpio_direction_output(GPIO_PIA_CAN1_RES, 0);
-	gpio_direction_output(GPIO_PIA_GSM_RESET, 0);
 	gpio_direction_output(GPIO_PIA_FLIGHTMODE, 0);
 	gpio_direction_output(GPIO_PIA_WD_SET2, 0);
-	gpio_direction_output(GPIO_PIA_GSM_PWRKEY, 0);
 }
 
 /* piA-AM3352 baseboard */
 static struct module_pin_mux pia3352_pin_mux[] = {
 	{ OFFSET(gpmc_ad8),         (M7 | PIN_INPUT_PULLDOWN) },/* CAN0_STB GPIO 0_22 */
-	{ OFFSET(gpmc_ad10),        (M7 | PIN_OUTPUT) },        /* PM-OUTPUT GPIO 0_26 */
+	{ OFFSET(gpmc_ad10),        (M7 | PIN_INPUT) },         /* PM-OUTPUT GPIO 0_26 */
 	{ OFFSET(gpmc_ad11),        (M7 | PIN_OUTPUT) },        /* RS485_RES GPIO 0_27 */
-	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT_PULLDOWN) },/* GSM_PWR_EN GPIO 2_2 */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWR_EN GPIO 2_2 */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) },        /* LED2 GPIO 2_3 */
-	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLDOWN) },/* GSM_PWR_OK GPIO 2_4 */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWR_OK GPIO 2_4 */
 	{ OFFSET(lcd_data8),        (M6 | PIN_INPUT_PULLUP) },  /* UART2.CTSn */
 	{ OFFSET(lcd_data9),        (M6 | PIN_OUTPUT) },        /* UART2.RTSn */
 	{ OFFSET(lcd_data11),       (M7 | PIN_OUTPUT) },        /* UART3.RTSn / DE GPIO 2_17 */
 	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT_PULLUP) },  /* nINVALID GPIO 2_22 */
-	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT_PULLUP) },  /* LDO_EN GPIO 2_24 */
+	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT_PULLUP) },  /* LDO_EN GPIO 2_23 */
 	{ OFFSET(lcd_pclk),         (M7 | PIN_OUTPUT) },        /* CAN1_RES GPIO 2_24 */
-	{ OFFSET(lcd_ac_bias_en),   (M7 | PIN_INPUT_PULLUP) },  /* GSM_RESET GPIO 2_25 */
 	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) },  /* UART5.RX GPIO 3_0 */
 	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) },         /* GSM_STATUS GPIO 3_3 */
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) },  /* MMC0.CD GPIO 3_4 */
@@ -507,11 +504,11 @@ static struct module_pin_mux pia3352_pin_mux[] = {
 	{ OFFSET(uart0_ctsn),       (M1 | PIN_INPUT_PULLUP) },  /* UART4.RX */
 	{ OFFSET(uart0_rtsn),       (M1 | PIN_OUTPUT) },        /* UART4.TX */
 	{ OFFSET(uart1_ctsn),       (M7 | PIN_OUTPUT) },        /* WDI GPIO 0_12 */
-	{ OFFSET(uart1_rtsn),       (M7 | PIN_INPUT_PULLDOWN) },/* WD_SET2 GPIO 0_13 */
+	{ OFFSET(uart1_rtsn),       (M7 | PIN_OUTPUT) },        /* WD_SET2 GPIO 0_13 */
 	{ OFFSET(uart1_rxd),        (M2 | PIN_OUTPUT) },        /* DCAN1.TX */
 	{ OFFSET(uart1_txd),        (M2 | PIN_INPUT) },         /* DCAN1.RX */
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) },  /* UART2.RI GPIO 3_17 */
-	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) },        /* GSM_PWRKEY GPIO 3_18 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWRKEY GPIO 3_18 */
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) },        /* UART2.DTR GPIO 3_19 */
 	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT) },         /* OC1 GPIO 3_21 */
 	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT_PULLUP) },  /* 3G_INT GPIO 0_20 */
