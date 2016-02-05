@@ -911,7 +911,11 @@ static int init_tps65910(struct am335x_baseboard_id *header)
 	}
 	udelay(10000);
 	if (board_is_pm(header) || board_is_mmi(header) ||
-		board_is_em(header)) {
+			board_is_em(header)) {
+		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
+				((regval & 0x02) == 0)) {
+			puts(" INFO: RTC not running, turning on...");
+		}
 		/* start clock, safe to set again */
 		regval = 0x01; /* 24 hour, direct reg access, rtc running */
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
@@ -921,13 +925,10 @@ static int init_tps65910(struct am335x_baseboard_id *header)
 		udelay(10000);
 		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
 				((regval & 0x02) == 0)) {
-			puts(" WARN: RTC not running!");
+			puts(" WARN: RTC still not running!");
 		}
-	}
-	/* only enable battery charger for devices utilizing the TPS VBACKUP */
-	if (board_is_mmi(header) || board_is_em(header) ||
-		board_is_ebtft(header) || board_is_sk(header) ||
-		board_is_apc(header)) {
+
+		/* only enable battery charger for devices utilizing the TPS VBACKUP */
 		puts("Initializing TPS Battery Charger... 3.15V\n");
 		// BBCHG 3.15V enable charge
 		regval = ((0x02 << 1) | 0x01);
