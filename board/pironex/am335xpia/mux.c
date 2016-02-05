@@ -483,8 +483,8 @@ static struct module_pin_mux pia3352_pin_mux[] = {
 	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWR_EN GPIO 2_2 */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) },        /* LED2 GPIO 2_3 */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWR_OK GPIO 2_4 */
-	{ OFFSET(lcd_data8),        (M6 | PIN_INPUT_PULLUP) },  /* UART2.CTSn */
-	{ OFFSET(lcd_data9),        (M6 | PIN_OUTPUT) },        /* UART2.RTSn */
+	//{ OFFSET(lcd_data8),        (M6 | PIN_INPUT_PULLUP) },  /* UART2.CTSn */
+	//{ OFFSET(lcd_data9),        (M6 | PIN_OUTPUT) },        /* UART2.RTSn */
 	{ OFFSET(lcd_data11),       (M7 | PIN_OUTPUT) },        /* UART3.RTSn / DE GPIO 2_17 */
 	{ OFFSET(lcd_vsync),        (M7 | PIN_INPUT_PULLUP) },  /* nINVALID GPIO 2_22 */
 	{ OFFSET(lcd_hsync),        (M7 | PIN_INPUT_PULLUP) },  /* LDO_EN GPIO 2_23 */
@@ -555,8 +555,8 @@ static struct module_pin_mux pia335x_apc[] = {
 	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* MMC2.CLK */
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) }, /* BAT_PWR GPIO2_3 */
 	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* EMMC_RESET GPIO2_5 */
-	{ OFFSET(lcd_data8),        (M6 | PIN_OUTPUT) }, /* UART2_CTSN */
-	{ OFFSET(lcd_data9),        (M6 | PIN_INPUT_PULLUP) }, /* UART2.RTSN */
+	//{ OFFSET(lcd_data8),        (M6 | PIN_OUTPUT) }, /* UART2_CTSN */
+	//{ OFFSET(lcd_data9),        (M6 | PIN_INPUT_PULLUP) }, /* UART2.RTSN */
 	{ OFFSET(lcd_data10),       (M6 | PIN_OUTPUT) }, /* UART3_CTSN */
 	{ OFFSET(lcd_data11),       (M6 | PIN_INPUT_PULLUP) }, /* UART3.RTSN */
 	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) }, /* UART5.RX */
