@@ -23,8 +23,8 @@ choice
 config PIA_BASE
 	bool "piA-AM3352 board with PM module"
 
-config PIA_APC
-	bool "piA-AM335x-APC board with PM module"
+config PIA_DR
+	bool "piA-AM335x-DR (APC) board with PM module"
 
 config PIA_SK
 	bool "piA-AM335x-SK board with PM module"
@@ -39,7 +39,7 @@ if PIA_FIRSTSTART
 config PIA_PM
 	bool
 	depends on PIA_FIRSTSTART
-	default y if (PIA_SK || PIA_BASE || PIA_APC || PIA_EBTFT)
+	default y if (PIA_SK || PIA_BASE || PIA_DR || PIA_EBTFT)
 
 
 config BOARD_MEMTYPE
@@ -61,7 +61,7 @@ config BOARD_REVISION
 config EXP_NAME
 	string
 	default "P335BSK" if PIA_SK
-	default "P335BAPC" if PIA_APC
+	default "P335BDR" if PIA_DR
 	default "P335BPIA" if PIA_BASE
 	prompt "Board name for I2C1 EEPROM (baseboard). Max 8 chars" if PIA_UNKNOWN
 choice
@@ -79,7 +79,7 @@ endchoice
 config EXP_REVISION
 	string
 	default "0.02" if PIA_SK
-	default "0.02" if PIA_APC
+	default "0.02" if PIA_DR
 	default "0.01" if PIA_BASE
 	prompt "Board rev. for I2C1 EEPROM (baseboard). Format: x.yz" if PIA_UNKNOWN
 

@@ -35,9 +35,10 @@ struct am335x_baseboard_id {
 	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];
 };
 
-static inline int board_is_apc(struct am335x_baseboard_id *header)
+static inline int board_is_dr(struct am335x_baseboard_id *header)
 {
-	return (strncmp(header->name, "P335BAPC", 8) == 0);
+	return ((strncmp(header->name, "P335BAPC", 8) == 0) ||
+		(strncmp(header->name, "P335BDR", 7) == 0));
 }
 
 static inline int board_is_e2(struct am335x_baseboard_id *header)
@@ -73,7 +74,7 @@ static inline int board_is_pia(struct am335x_baseboard_id *header)
 static inline int board_is_pm(struct am335x_baseboard_id *header)
 {
 	return ((strncmp(header->name, "PIA335PM", 8) == 0) ||
-		board_is_sk(header) || board_is_apc(header) ||
+		board_is_sk(header) || board_is_dr(header) ||
 		board_is_ebtft(header) || board_is_pia(header));
 }
 

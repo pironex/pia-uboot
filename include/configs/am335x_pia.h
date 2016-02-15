@@ -31,7 +31,7 @@
 #undef CONFIG_SPL_OS_BOOT
 #define CONFIG_ENV_IS_NOWHERE
 
-#if defined(CONFIG_PIA_APC) || defined(CONFIG_PIA_EBTFT) || defined(CONFIG_PIA_SK)
+#if defined(CONFIG_PIA_DR) || defined(CONFIG_PIA_EBTFT) || defined(CONFIG_PIA_SK)
 /*#define CONFIG_PIA_PM 2*/ /* number is current PM revision */
 #define CONFIG_EMMC_BOOT
 #endif
@@ -182,7 +182,9 @@
 		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"findfdt="\
 		"if test $board_name = P335BAPC; then " \
-			"setenv fdtfile am335x-pia-apc.dtb; fi; " \
+			"setenv fdtfile am335x-pia-dr.dtb; fi; " \
+		"if test $board_name = P335BDR; then " \
+			"setenv fdtfile am335x-pia-dr.dtb; fi; " \
 		"if test $board_name = P335BSK; then " \
 			"setenv fdtfile am335x-pia-sk.dtb; fi; " \
 		"if test $board_name = P335BPIA; then " \

@@ -529,7 +529,7 @@ int board_eth_init(bd_t *bis)
 	else
 		n += rv;
 #endif /* CONFIG_DRIVER_TI_CPSW */
-	if (board_is_apc(&header)) {
+	if (board_is_dr(&header)) {
 		int res;
 		unsigned short reg;
 		const char *devname;
@@ -539,7 +539,7 @@ int board_eth_init(bd_t *bis)
 		res = miiphy_write(devname, 20, 2, 0x175d);
 		//phy_write(phydev, 20, 2, 0x175d);
 		mdelay(5); /* min 2 ms */
-		printf("APC: enabling Ethernet switch Mirror Mode on second port %d\n", res);
+		printf("DR: enabling Ethernet switch Mirror Mode on second port %d\n", res);
 		miiphy_read(devname, 20, 21, &reg);
 		printf("PHY 20:21 - %04x\n", reg);
 		reg = 0x5002; // mirror second port to, cpu port
@@ -574,8 +574,8 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  SK found\n");
 	} else  if (board_is_ebtft(header)) {
 		puts("  EB_TFT found\n");
-	} else  if (board_is_apc(header)) {
-		puts("  APC found\n");
+	} else  if (board_is_dr(header)) {
+		puts("  DataRecorder/APC found\n");
 	} else if (board_is_pia(header)) {
 		puts("  piA-AM3352 found\n");
 	} else if (board_is_pm(header)) {

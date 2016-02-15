@@ -542,8 +542,8 @@ static struct module_pin_mux pia335x_sk[] = {
 	{ -1 },
 };
 
-/* piA-AM335x-APC */
-static struct module_pin_mux pia335x_apc[] = {
+/* piA-AM335x-DR (APC) */
+static struct module_pin_mux pia335x_dr[] = {
 	{ OFFSET(gpmc_ad8),         (M7 | PIN_INPUT_PULLUP) }, /* WLAN_IRQ GPIO0_22 */
 	{ OFFSET(gpmc_ad9),         (M7 | PIN_INPUT_PULLUP) }, /* IN-FAULTn GPIO0_23 */
 	{ OFFSET(gpmc_ad11),        (M7 | PIN_INPUT_PULLDOWN) }, /* WLAN_EN GPIO0_27 */
@@ -1077,7 +1077,7 @@ static void init_sk_gpios(void)
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
 }
 
-static void init_apc_gpios(void)
+static void init_dr_gpios(void)
 {
 	/* on PM */
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
@@ -1145,11 +1145,11 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(mmc0_pin_mux);
 		configure_module_pin_mux(pia335x_sk);
 		init_sk_gpios();
-	} else if (board_is_apc(header)) {
+	} else if (board_is_dr(header)) {
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
-		configure_module_pin_mux(pia335x_apc);
-		init_apc_gpios();
+		configure_module_pin_mux(pia335x_dr);
+		init_dr_gpios();
 	} else if (board_is_pia(header)) {
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
