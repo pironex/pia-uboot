@@ -85,6 +85,8 @@ static int init_eeprom(int expansion, int rewrite)
 	int addr = CONFIG_SYS_I2C_EEPROM_ADDR;
 
 	struct am335x_baseboard_id config;
+	size = sizeof(struct am335x_baseboard_id);
+	memset(&config, 0, size);
 
 	if (!rewrite && config.magic == 0xEE3355AA) {
 		puts("EEPROM already initialized!\n");
@@ -94,13 +96,14 @@ static int init_eeprom(int expansion, int rewrite)
 
 	config.magic = 0xEE3355AA;
 	strncpy((char *)&config.serial, "000000000000", 12);
-	memset(&config.config, 0, 32);
 	if (expansion) {
 #if defined (CONFIG_EXP_NAME)
 		puts("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config.name, CONFIG_EXP_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_EXP_REVISION, 4);
+		strncpy((char *)&config.name, CONFIG_EXP_NAME,
+			strnlen(CONFIG_EXP_NAME, 8));
+		strncpy((char *)&config.version, CONFIG_EXP_REVISION,
+			strnlen(CONFIG_EXP_REVISION, 4));
 		bus = 1;
 #ifdef CONFIG_PIA_MMI
 		addr = 0x51; /* LCD-EEPROM on 0x51 */
@@ -111,8 +114,10 @@ static int init_eeprom(int expansion, int rewrite)
 #if defined (CONFIG_BOARD_NAME)
 		puts("(Re)Writing main EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_BOARD_REVISION, 4);
+		strncpy((char *)&config.name, CONFIG_BOARD_NAME,
+			strnlen(CONFIG_BOARD_NAME, 8));
+		strncpy((char *)&config.version, CONFIG_BOARD_REVISION,
+			strnlen(CONFIG_BOARD_REVISION, 4));
 		/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
@@ -130,7 +135,6 @@ static int init_eeprom(int expansion, int rewrite)
 #endif /* CONFIG_BOARD_NAME */
 	}
 
-	size = sizeof(struct am335x_baseboard_id);
 	pos = 0;
 
 	i2c_set_bus_num(bus);
