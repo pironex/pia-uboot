@@ -9,3 +9,5 @@ CONFIG_SYS_EXTRA_OPTIONS=""
 # CONFIG_CMD_SETEXPR is not set
 # this should be moved to a PM specific defconfig
 CONFIG_SPI_FLASH=y
+CONFIG_AUTOBOOT_KEYED=y
+CONFIG_AUTOBOOT_STOP_STR="s"

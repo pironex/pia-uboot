@@ -215,12 +215,6 @@
 /*select serial console configuration */
 #define CONFIG_CONS_INDEX		1
 
-
-/* Don't use normal abort on any-key pressed, but only 's' key
- * bootdelay is defined in generic header (1s) */
-#define CONFIG_AUTOBOOT_KEYED
-#define CONFIG_AUTOBOOT_STOP_STR	"s"
-
 /* Bootcount using the RTC block */
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_AM33XX
