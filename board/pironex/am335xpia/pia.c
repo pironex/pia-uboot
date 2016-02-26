@@ -74,6 +74,7 @@ void enable_i2c1_pin_mux(void);
 #define EEPROM_POS_CONFIG_TOUCH		(2)
 #define EEPROM_POS_CONFIG_MEMORY	(3)
 #define EEPROM_POS_CONFIG_EMMC		(4)
+#define EEPROM_POS_CONFIG_ETHMIRROR	(5)
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
@@ -418,11 +419,19 @@ static inline int test_pia(void) {
 
 int board_phy_config(struct phy_device *phydev)
 {
-#if 0
-	int reg;
-	if (board_is_e2(header)) {
+	__maybe_unused struct am335x_baseboard_id header;
+
+#ifdef CONFIG_DRIVER_TI_CPSW
+	unsigned short reg;
+	int res = 0;
+
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
+	if (board_is_e2(&header)) {
 		int i, eth_cnt = 5;
 
+		/* initialize IP175L device */
 		puts("Initializing ethernet switch\n");
 		phy_write(phydev, 30, 0, 0x175c);
 		mdelay(5); /* min 2 ms */
@@ -434,6 +443,30 @@ int board_phy_config(struct phy_device *phydev)
 			debug(" P%d status: 0x%04x\n", i, reg);
 		}
 		mdelay(2);
+	}
+
+	if (board_is_dr(&header)) {
+		const char *devname;
+
+		/* initialize IP175L device */
+		devname = miiphy_get_current_dev();
+		puts("Initializing ethernet switch\n");
+		res = miiphy_write(devname, 20, 2, 0x175d);
+		mdelay(5); /* min 2 ms */
+
+		if (header.config[EEPROM_POS_CONFIG_ETHMIRROR] == 1) {
+			printf("DR: enabling Ethernet switch Mirror Mode on second port %d\n", res);
+			miiphy_read(devname, 20, 21, &reg);
+			printf("PHY 20:21 - %04x\n", reg);
+			reg = 0x5002; // mirror second port to, cpu port
+			res = miiphy_write(devname, 20, 21, reg);
+			printf("res: %d\n", res);
+			miiphy_read(devname, 20, 20, &reg);
+			printf("PHY 20:20 - %04x\n", reg);
+			reg = 0xe002;
+			res = miiphy_write(devname, 20, 20, reg);
+			printf("res: %d\n", res);
+		}
 	}
 #endif
 
@@ -453,12 +486,12 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x208,
 		.sliver_reg_ofs	= 0xd80,
-		.phy_addr	= 0,
+		.phy_addr	= 15,
 	},
 	{
 		.slave_reg_ofs	= 0x308,
 		.sliver_reg_ofs	= 0xdc0,
-		.phy_addr	= 1,
+		.phy_addr	= 5,
 	},
 };
 
@@ -468,7 +501,7 @@ static struct cpsw_platform_data cpsw_data = {
 	.mdio_div		= 0xff,
 	.channels		= 8,
 	.cpdma_reg_ofs		= 0x800,
-	.slaves			= 1,
+	.slaves			= 2,
 	.slave_data		= cpsw_slaves,
 	.ale_reg_ofs		= 0xd00,
 	.ale_entries		= 1024,
@@ -488,9 +521,13 @@ int board_eth_init(bd_t *bis)
 	uint32_t mac_hi, mac_lo;
 	__maybe_unused struct am335x_baseboard_id header;
 
-	/* try reading mac address from efuse */
-	mac_lo = readl(&cdev->macid0l);
-	mac_hi = readl(&cdev->macid0h);
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
+#ifdef CONFIG_DRIVER_TI_CPSW
+
+	mac_lo = readl(&cdev->macid1l);
+	mac_hi = readl(&cdev->macid1h);
 	mac_addr[0] = mac_hi & 0xFF;
 	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
 	mac_addr[2] = (mac_hi & 0xFF0000) >> 16;
@@ -507,21 +544,7 @@ int board_eth_init(bd_t *bis)
 			eth_setenv_enetaddr("ethaddr", mac_addr);
 	}
 
-	if (read_eeprom(&header) < 0)
-		puts("Could not get board ID.\n");
-
-#ifdef CONFIG_DRIVER_TI_CPSW
-
-	mac_lo = readl(&cdev->macid1l);
-	mac_hi = readl(&cdev->macid1h);
-	mac_addr[0] = mac_hi & 0xFF;
-	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
-	mac_addr[2] = (mac_hi & 0xFF0000) >> 16;
-	mac_addr[3] = (mac_hi & 0xFF000000) >> 24;
-	mac_addr[4] = mac_lo & 0xFF;
-	mac_addr[5] = (mac_lo & 0xFF00) >> 8;
-
-	if (board_is_em(&header)) {
+	if (board_is_em(&header) || board_is_pm(&header)) {
 		writel(MII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_MII;
@@ -533,28 +556,6 @@ int board_eth_init(bd_t *bis)
 	else
 		n += rv;
 #endif /* CONFIG_DRIVER_TI_CPSW */
-	if (board_is_dr(&header)) {
-		int res;
-		unsigned short reg;
-		const char *devname;
-
-		devname = miiphy_get_current_dev();
-		puts("Initializing ethernet switch\n");
-		res = miiphy_write(devname, 20, 2, 0x175d);
-		//phy_write(phydev, 20, 2, 0x175d);
-		mdelay(5); /* min 2 ms */
-		printf("DR: enabling Ethernet switch Mirror Mode on second port %d\n", res);
-		miiphy_read(devname, 20, 21, &reg);
-		printf("PHY 20:21 - %04x\n", reg);
-		reg = 0x5002; // mirror second port to, cpu port
-		res = miiphy_write(devname, 20, 21, reg);
-		printf("res: %d\n", res);
-		miiphy_read(devname, 20, 20, &reg);
-		printf("PHY 20:20 - %04x\n", reg);
-		reg = 0xe002;
-		res = miiphy_write(devname, 20, 20, reg);
-		printf("res: %d\n", res);
-	}
 
 	return n;
 }
