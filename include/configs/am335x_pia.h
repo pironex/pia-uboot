@@ -222,7 +222,9 @@
 
 /* Ethernet PHY */
 /* allow detection of GigabitEthernet */
+#if 0
 #define CONFIG_PHY_GIGE
+#endif
 #define CONFIG_PHYLIB
 /* enable driver for SMSC PHYs used as single port PHY on piA
  * other boards contain IP173 switch ICs witch work without special init */
