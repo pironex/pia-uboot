@@ -19,8 +19,7 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_ARM926EJS	1	/* This is an arm926ejs CPU core */
-#define CONFIG_VERSATILE	1	/* in Versatile Platform Board	*/
+#define CONFIG_VERSATILE	1	/* This is Versatile Platform Board	*/
 #define CONFIG_ARCH_VERSATILE	1	/* Specifically, a Versatile	*/
 
 #define CONFIG_SYS_MEMTEST_START	0x100000
@@ -82,14 +81,8 @@
 /*
  * Command line configuration.
  */
-#define CONFIG_CMD_BDI
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_FLASH
-#define CONFIG_CMD_IMI
-#define CONFIG_CMD_MEMORY
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
-#define CONFIG_CMD_SAVEENV
 
 /*
  * BOOTP options

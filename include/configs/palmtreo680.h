@@ -40,17 +40,6 @@
 /*
  * Bootloader Components Configuration
  */
-#include <config_cmd_default.h>
-#undef  CONFIG_CMD_FPGA
-#undef  CONFIG_CMD_LOADS
-#undef  CONFIG_CMD_NET
-#undef  CONFIG_CMD_NFS
-#undef  CONFIG_CMD_IMLS
-#undef  CONFIG_CMD_FLASH
-#undef  CONFIG_CMD_SETGETDCR
-#undef  CONFIG_CMD_SOURCE
-#undef  CONFIG_CMD_XIMG
-
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_NAND
@@ -117,7 +106,6 @@
 /*
  * Clock Configuration
  */
-#undef  CONFIG_SYS_CLKS_IN_HZ
 #define CONFIG_SYS_CPUSPEED             0x210           /* 416MHz ; N=2,L=16 */
 
 /*
@@ -205,7 +193,6 @@
 /*
  * SPL
  */
-#define CONFIG_SPL
 #define CONFIG_SPL_TEXT_BASE    0xa1700000 /* IPL loads SPL here */
 #define CONFIG_SPL_STACK        0x5c040000 /* end of internal SRAM */
 #define CONFIG_SPL_NAND_SUPPORT /* build libnand for spl */

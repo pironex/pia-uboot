@@ -21,6 +21,8 @@
 
 #define	CONFIG_SYS_TEXT_BASE	0xFFF80000
 
+#define CONFIG_SYS_GENERIC_BOARD
+
 /***********************************************************
  * Note that it may also be a MIP405T board which is a subset of the
  * MIP405
@@ -49,8 +51,6 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP

@@ -7,6 +7,8 @@
 
 #include <config.h>
 #include <common.h>
+#include <div64.h>
+#include <inttypes.h>
 #include <version.h>
 #include <linux/ctype.h>
 #include <asm/io.h>
@@ -21,15 +23,51 @@ int display_options (void)
 	return 0;
 }
 
-/*
- * print sizes as "xxx KiB", "xxx.y KiB", "xxx MiB", "xxx.y MiB",
- * xxx GiB, xxx.y GiB, etc as needed; allow for optional trailing string
- * (like "\n")
- */
-void print_size(unsigned long long size, const char *s)
+void print_freq(uint64_t freq, const char *s)
 {
 	unsigned long m = 0, n;
-	unsigned long long f;
+	uint32_t f;
+	static const char names[] = {'G', 'M', 'K'};
+	unsigned long d = 1e9;
+	char c = 0;
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(names); i++, d /= 1000) {
+		if (freq >= d) {
+			c = names[i];
+			break;
+		}
+	}
+
+	if (!c) {
+		printf("%" PRIu64 " Hz%s", freq, s);
+		return;
+	}
+
+	f = do_div(freq, d);
+	n = freq;
+
+	/* If there's a remainder, show the first few digits */
+	if (f) {
+		m = f;
+		while (m > 1000)
+			m /= 10;
+		while (m && !(m % 10))
+			m /= 10;
+		if (m >= 100)
+			m = (m / 10) + (m % 100 >= 50);
+	}
+
+	printf("%lu", n);
+	if (m)
+		printf(".%ld", m);
+	printf(" %cHz%s", c, s);
+}
+
+void print_size(uint64_t size, const char *s)
+{
+	unsigned long m = 0, n;
+	uint64_t f;
 	static const char names[] = {'E', 'P', 'T', 'G', 'M', 'K'};
 	unsigned long d = 10 * ARRAY_SIZE(names);
 	char c = 0;
@@ -43,7 +81,7 @@ void print_size(unsigned long long size, const char *s)
 	}
 
 	if (!c) {
-		printf("%llu Bytes%s", size, s);
+		printf("%" PRIu64 " Bytes%s", size, s);
 		return;
 	}
 
@@ -67,19 +105,6 @@ void print_size(unsigned long long size, const char *s)
 	printf (" %ciB%s", c, s);
 }
 
-/*
- * Print data buffer in hex and ascii form to the terminal.
- *
- * data reads are buffered so that each memory address is only read once.
- * Useful when displaying the contents of volatile registers.
- *
- * parameters:
- *    addr: Starting address to display at start of line
- *    data: pointer to data buffer
- *    width: data value width.  May be 1, 2, or 4.
- *    count: number of values to display
- *    linelen: Number of values to print per line; specify 0 for default length
- */
 #define MAX_LINE_LENGTH_BYTES (64)
 #define DEFAULT_LINE_LENGTH_BYTES (16)
 int print_buffer(ulong addr, const void *data, uint width, uint count,
@@ -127,7 +152,7 @@ int print_buffer(ulong addr, const void *data, uint width, uint count,
 			else
 				x = lb.uc[i] = *(volatile uint8_t *)data;
 #ifdef CONFIG_SYS_SUPPORT_64BIT_DATA
-			printf(" %0*llx", width * 2, x);
+			printf(" %0*llx", width * 2, (long long)x);
 #else
 			printf(" %0*x", width * 2, x);
 #endif

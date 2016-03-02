@@ -12,23 +12,13 @@
 
 #include <nomadik.h>
 
-#define CONFIG_ARM926EJS
-#define CONFIG_NOMADIK
 #define CONFIG_NOMADIK_8815	/* cpu variant */
-#define CONFIG_NOMADIK_NHK8815	/* board variant */
 
 #define CONFIG_SKIP_LOWLEVEL_INIT /* we have already been loaded to RAM */
 
 /* commands */
-#include <config_cmd_default.h>
-
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_NFS
-/* There is no NOR flash, so undefine these commands */
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_IMLS
 #define CONFIG_SYS_NO_FLASH
 /* There is NAND storage */
 #define CONFIG_NAND_NOMADIK

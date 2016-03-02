@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  * Copyright (C) 2009 NVIDIA, Corporation
+ * Copyright (C) 2007-2008 SMSC (Steve Glendinning)
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -354,7 +355,7 @@ static int smsc95xx_init_mac_address(struct eth_device *eth,
 	/* try reading mac address from EEPROM */
 	if (smsc95xx_read_eeprom(dev, EEPROM_MAC_OFFSET, ETH_ALEN,
 			eth->enetaddr) == 0) {
-		if (is_valid_ether_addr(eth->enetaddr)) {
+		if (is_valid_ethaddr(eth->enetaddr)) {
 			/* eeprom values are valid so use them */
 			debug("MAC address read from EEPROM\n");
 			return 0;
@@ -759,7 +760,8 @@ static int smsc95xx_recv(struct eth_device *eth)
 		}
 
 		/* Notify net stack */
-		NetReceive(buf_ptr + sizeof(packet_len), packet_len - 4);
+		net_process_received_packet(buf_ptr + sizeof(packet_len),
+					    packet_len - 4);
 
 		/* Adjust for next iteration */
 		actual_len -= sizeof(packet_len) + packet_len;
@@ -799,6 +801,7 @@ static const struct smsc95xx_dongle smsc95xx_dongles[] = {
 	{ 0x0424, 0x9500 },	/* LAN9500 Ethernet */
 	{ 0x0424, 0x9730 },	/* LAN9730 Ethernet (HSIC) */
 	{ 0x0424, 0x9900 },	/* SMSC9500 USB Ethernet Device (SAL10) */
+	{ 0x0424, 0x9e00 },	/* LAN9500A Ethernet */
 	{ 0x0000, 0x0000 }	/* END - Do not remove */
 };
 

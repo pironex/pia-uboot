@@ -28,7 +28,6 @@
  * SoC Configuration
  */
 #define CONFIG_MACH_DAVINCI_DA850_EVM
-#define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
 #define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
@@ -67,7 +66,6 @@
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
 
 #define CONFIG_SPI
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_DAVINCI_SPI
 #define CONFIG_SYS_SPI_BASE		DAVINCI_SPI1_BASE
@@ -78,9 +76,10 @@
 /*
  * I2C Configuration
  */
-#define CONFIG_HARD_I2C
-#define CONFIG_DRIVER_DAVINCI_I2C
-#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_DAVINCI
+#define CONFIG_SYS_DAVINCI_I2C_SPEED		100000
+#define CONFIG_SYS_DAVINCI_I2C_SLAVE   10 /* Bogus, master-only in U-Boot */
 
 /*
  * Network & Ethernet Configuration
@@ -148,7 +147,6 @@
 /*
  * U-Boot commands
  */
-#include <config_cmd_default.h>
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
@@ -156,7 +154,6 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
-#define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_GPIO
 
@@ -165,7 +162,6 @@
 #endif
 
 #ifndef CONFIG_DRIVER_TI_EMAC
-#undef CONFIG_CMD_NET
 #undef CONFIG_CMD_DHCP
 #undef CONFIG_CMD_MII
 #undef CONFIG_CMD_PING
@@ -173,8 +169,6 @@
 
 /* NAND Setup */
 #ifdef CONFIG_SYS_USE_NAND
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_IMLS
 #define CONFIG_CMD_NAND
 
 #define CONFIG_CMD_MTDPARTS
@@ -198,11 +192,8 @@
 
 /* SPI Flash */
 #ifdef CONFIG_USE_SPIFLASH
-#undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_FLASH
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_SF
-#define CONFIG_CMD_SAVEENV
 #endif
 
 #if !defined(CONFIG_SYS_USE_NAND) && \
@@ -211,7 +202,6 @@
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENV_SIZE		(16 << 10)
-#undef CONFIG_CMD_IMLS
 #undef CONFIG_CMD_ENV
 #endif
 
@@ -242,7 +232,6 @@
 	"rootpath=/opt/eldk/arm\0"					\
 	"splashpos=230,180\0"						\
 	"testrfspath=/opt/eldk/test_arm\0"				\
-	"tempmac=setenv ethaddr 02:ea:20:ff:ff:ff\0"			\
 	"nandargs=setenv bootargs rootfstype=ubifs ro chk_data_crc "	\
 	"ubi.mtd=${as} root=ubi0:rootfs\0"				\
 	"nandrwargs=setenv bootargs rootfstype=ubifs rw chk_data_crc "	\
@@ -315,6 +304,6 @@
 		"fi;"							\
 		"else echo U-Boot not downloaded..exiting;fi\0"	\
 	"ubootupd_nand=echo run load_magic,run load_nand,run upd;\0"	\
-	"bootcmd=run tempmac;run net_testrfs\0"
+	"bootcmd=run net_testrfs\0"
 
 #endif /* __CONFIG_H */

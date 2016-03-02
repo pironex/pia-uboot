@@ -13,7 +13,6 @@
 #include <asm/arch/imx-regs.h>
 
 /* High Level Configuration Options */
-#define CONFIG_ARM1136
 #define CONFIG_MX31
 
 #define CONFIG_DISPLAY_CPUINFO
@@ -188,13 +187,9 @@
 /*
  * Command definition
  */
-
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_NAND
 /*
  * #define CONFIG_CMD_NAND_LOCK_UNLOCK the NAND01... chip does not support

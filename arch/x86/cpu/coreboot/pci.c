@@ -10,40 +10,38 @@
  */
 
 #include <common.h>
+#include <dm.h>
+#include <errno.h>
 #include <pci.h>
+#include <asm/io.h>
 #include <asm/pci.h>
 
-static struct pci_controller coreboot_hose;
+DECLARE_GLOBAL_DATA_PTR;
 
-static void config_pci_bridge(struct pci_controller *hose, pci_dev_t dev,
-			      struct pci_config_table *table)
-{
-	u8 secondary;
-	hose->read_byte(hose, dev, PCI_SECONDARY_BUS, &secondary);
-	hose->last_busno = max(hose->last_busno, secondary);
-	pci_hose_scan_bus(hose, secondary);
-}
-
-static struct pci_config_table pci_coreboot_config_table[] = {
-	/* vendor, device, class, bus, dev, func */
-	{ PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_BRIDGE_PCI,
-		PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, &config_pci_bridge },
-	{}
+static const struct dm_pci_ops pci_x86_ops = {
+	.read_config	= pci_x86_read_config,
+	.write_config	= pci_x86_write_config,
 };
 
-void pci_init_board(void)
-{
-	coreboot_hose.config_table = pci_coreboot_config_table;
-	coreboot_hose.first_busno = 0;
-	coreboot_hose.last_busno = 0;
+static const struct udevice_id pci_x86_ids[] = {
+	{ .compatible = "pci-x86" },
+	{ }
+};
 
-	pci_set_region(coreboot_hose.regions + 0, 0x0, 0x0, 0xffffffff,
-		PCI_REGION_MEM);
-	coreboot_hose.region_count = 1;
+U_BOOT_DRIVER(pci_x86_drv) = {
+	.name		= "pci_x86",
+	.id		= UCLASS_PCI,
+	.of_match	= pci_x86_ids,
+	.ops		= &pci_x86_ops,
+};
 
-	pci_setup_type1(&coreboot_hose);
+static const struct udevice_id generic_pch_ids[] = {
+	{ .compatible = "intel,pch" },
+	{ }
+};
 
-	pci_register_hose(&coreboot_hose);
-
-	pci_hose_scan(&coreboot_hose);
-}
+U_BOOT_DRIVER(generic_pch_drv) = {
+	.name		= "pch",
+	.id		= UCLASS_PCH,
+	.of_match	= generic_pch_ids,
+};

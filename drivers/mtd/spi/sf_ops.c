@@ -154,21 +154,17 @@ static void spi_flash_dual_flash(struct spi_flash *flash, u32 *addr)
 }
 #endif
 
-int spi_flash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout)
+static int spi_flash_poll_status(struct spi_slave *spi, unsigned long timeout,
+				 u8 cmd, u8 poll_bit)
 {
-	struct spi_slave *spi = flash->spi;
 	unsigned long timebase;
 	unsigned long flags = SPI_XFER_BEGIN;
 	int ret;
 	u8 status;
 	u8 check_status = 0x0;
-	u8 poll_bit = STATUS_WIP;
-	u8 cmd = flash->poll_cmd;
 
-	if (cmd == CMD_FLAG_STATUS) {
-		poll_bit = STATUS_PEC;
+	if (cmd == CMD_FLAG_STATUS)
 		check_status = poll_bit;
-	}
 
 #ifdef CONFIG_SF_DUAL_FLASH
 	if (spi->flags & SPI_XFER_U_PAGE)
@@ -202,6 +198,28 @@ int spi_flash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout)
 	/* Timed out */
 	debug("SF: time out!\n");
 	return -1;
+}
+
+int spi_flash_cmd_wait_ready(struct spi_flash *flash, unsigned long timeout)
+{
+	struct spi_slave *spi = flash->spi;
+	int ret;
+	u8 poll_bit = STATUS_WIP;
+	u8 cmd = CMD_READ_STATUS;
+
+	ret = spi_flash_poll_status(spi, timeout, cmd, poll_bit);
+	if (ret < 0)
+		return ret;
+
+	if (flash->poll_cmd == CMD_FLAG_STATUS) {
+		poll_bit = STATUS_PEC;
+		cmd = CMD_FLAG_STATUS;
+		ret = spi_flash_poll_status(spi, timeout, cmd, poll_bit);
+		if (ret < 0)
+			return ret;
+	}
+
+	return 0;
 }
 
 int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
@@ -313,10 +331,11 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 			return ret;
 #endif
 		byte_addr = offset % page_size;
-		chunk_len = min(len - actual, page_size - byte_addr);
+		chunk_len = min(len - actual, (size_t)(page_size - byte_addr));
 
 		if (flash->spi->max_write_size)
-			chunk_len = min(chunk_len, flash->spi->max_write_size);
+			chunk_len = min(chunk_len,
+					(size_t)flash->spi->max_write_size);
 
 		spi_flash_addr(write_addr, cmd);
 
@@ -421,6 +440,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		data += read_len;
 	}
 
+	free(cmd);
 	return ret;
 }
 
@@ -509,6 +529,37 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 		ret = sst_byte_write(flash, offset, buf + actual);
 
  done:
+	debug("SF: sst: program %s %zu bytes @ 0x%zx\n",
+	      ret ? "failure" : "success", len, offset - actual);
+
+	spi_release_bus(flash->spi);
+	return ret;
+}
+
+int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
+		const void *buf)
+{
+	size_t actual;
+	int ret;
+
+	ret = spi_claim_bus(flash->spi);
+	if (ret) {
+		debug("SF: Unable to claim SPI bus\n");
+		return ret;
+	}
+
+	for (actual = 0; actual < len; actual++) {
+		ret = sst_byte_write(flash, offset, buf + actual);
+		if (ret) {
+			debug("SF: sst byte program failed\n");
+			break;
+		}
+		offset++;
+	}
+
+	if (!ret)
+		ret = spi_flash_cmd_write_disable(flash);
+
 	debug("SF: sst: program %s %zu bytes @ 0x%zx\n",
 	      ret ? "failure" : "success", len, offset - actual);
 

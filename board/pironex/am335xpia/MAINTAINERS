@@ -1,0 +1,6 @@
+AM335X_PIA BOARD
+M:	Bjoern Krombholz <b.krombholz@pironex.de>
+S:	Maintained
+F:	board/pironex/am335xpia/
+F:	include/configs/am335x_pia.h
+F:	configs/am335x_pia_defconfig

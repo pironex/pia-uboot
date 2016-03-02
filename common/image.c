@@ -27,6 +27,7 @@
 
 #include <environment.h>
 #include <image.h>
+#include <mapmem.h>
 
 #if defined(CONFIG_FIT) || defined(CONFIG_OF_LIBFDT)
 #include <libfdt.h>
@@ -34,7 +35,7 @@
 #endif
 
 #include <u-boot/md5.h>
-#include <sha1.h>
+#include <u-boot/sha1.h>
 #include <asm/errno.h>
 #include <asm/io.h>
 
@@ -44,8 +45,10 @@ extern int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 static const image_header_t *image_get_ramdisk(ulong rd_addr, uint8_t arch,
 						int verify);
+#endif
 #else
 #include "mkimage.h"
 #include <u-boot/md5.h>
@@ -83,6 +86,7 @@ static const table_entry_t uimage_arch[] = {
 	{	IH_ARCH_SANDBOX,	"sandbox",	"Sandbox",	},
 	{	IH_ARCH_ARM64,		"arm64",	"AArch64",	},
 	{	IH_ARCH_ARC,		"arc",		"ARC",		},
+	{	IH_ARCH_X86_64,		"x86_64",	"AMD x86_64",	},
 	{	-1,			"",		"",		},
 };
 
@@ -117,6 +121,10 @@ static const table_entry_t uimage_os[] = {
 	{	IH_OS_SOLARIS,	"solaris",	"Solaris",		},
 	{	IH_OS_SVR4,	"svr4",		"SVR4",			},
 #endif
+#if defined(CONFIG_BOOTM_OPENRTOS) || defined(USE_HOSTCC)
+	{	IH_OS_OPENRTOS,	"openrtos",	"OpenRTOS",		},
+#endif
+
 	{	-1,		"",		"",			},
 };
 
@@ -125,6 +133,7 @@ static const table_entry_t uimage_type[] = {
 	{	IH_TYPE_FILESYSTEM, "filesystem", "Filesystem Image",	},
 	{	IH_TYPE_FIRMWARE,   "firmware",	  "Firmware",		},
 	{	IH_TYPE_FLATDT,     "flat_dt",    "Flat Device Tree",	},
+	{	IH_TYPE_GPIMAGE,    "gpimage",    "TI Keystone SPL Image",},
 	{	IH_TYPE_KERNEL,	    "kernel",	  "Kernel Image",	},
 	{	IH_TYPE_KERNEL_NOLOAD, "kernel_noload",  "Kernel Image (no loading done)", },
 	{	IH_TYPE_KWBIMAGE,   "kwbimage",   "Kirkwood Boot Image",},
@@ -135,9 +144,13 @@ static const table_entry_t uimage_type[] = {
 	{	IH_TYPE_PBLIMAGE,   "pblimage",   "Freescale PBL Boot Image",},
 	{	IH_TYPE_RAMDISK,    "ramdisk",	  "RAMDisk Image",	},
 	{	IH_TYPE_SCRIPT,     "script",	  "Script",		},
+	{	IH_TYPE_SOCFPGAIMAGE, "socfpgaimage", "Altera SOCFPGA preloader",},
 	{	IH_TYPE_STANDALONE, "standalone", "Standalone Program", },
 	{	IH_TYPE_UBLIMAGE,   "ublimage",   "Davinci UBL image",},
 	{	IH_TYPE_MXSIMAGE,   "mxsimage",   "Freescale MXS Boot Image",},
+	{	IH_TYPE_ATMELIMAGE, "atmelimage", "ATMEL ROM-Boot Image",},
+	{	IH_TYPE_X86_SETUP,  "x86_setup",  "x86 setup.bin",    },
+	{	IH_TYPE_LPC32XXIMAGE, "lpc32xximage",  "LPC32XX Boot Image", },
 	{	-1,		    "",		  "",			},
 };
 
@@ -328,6 +341,7 @@ void image_print_contents(const void *ptr)
 
 
 #ifndef USE_HOSTCC
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 /**
  * image_get_ramdisk - get and verify ramdisk image
  * @rd_addr: ramdisk image start address
@@ -389,6 +403,7 @@ static const image_header_t *image_get_ramdisk(ulong rd_addr, uint8_t arch,
 
 	return rd_hdr;
 }
+#endif
 #endif /* !USE_HOSTCC */
 
 /*****************************************************************************/
@@ -447,7 +462,7 @@ phys_size_t getenv_bootm_size(void)
 		tmp = 0;
 
 
-#if defined(CONFIG_ARM)
+#if defined(CONFIG_ARM) && defined(CONFIG_NR_DRAM_BANKS)
 	return gd->bd->bi_dram[0].size - tmp;
 #else
 	return gd->bd->bi_memsize - tmp;
@@ -476,12 +491,22 @@ void memmove_wd(void *to, void *from, size_t len, ulong chunksz)
 		return;
 
 #if defined(CONFIG_HW_WATCHDOG) || defined(CONFIG_WATCHDOG)
+	if (to > from) {
+		from += len;
+		to += len;
+	}
 	while (len > 0) {
 		size_t tail = (len > chunksz) ? chunksz : len;
 		WATCHDOG_RESET();
+		if (to > from) {
+			to -= tail;
+			from -= tail;
+		}
 		memmove(to, from, tail);
-		to += tail;
-		from += tail;
+		if (to < from) {
+			to += tail;
+			from += tail;
+		}
 		len -= tail;
 	}
 #else	/* !(CONFIG_HW_WATCHDOG || CONFIG_WATCHDOG) */
@@ -508,7 +533,7 @@ void genimg_print_time(time_t timestamp)
 #ifndef USE_HOSTCC
 	struct rtc_time tm;
 
-	to_tm(timestamp, &tm);
+	rtc_to_tm(timestamp, &tm);
 	printf("%4d-%02d-%02d  %2d:%02d:%02d UTC\n",
 			tm.tm_year, tm.tm_mon, tm.tm_mday,
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -637,6 +662,64 @@ int genimg_get_comp_id(const char *name)
 
 #ifndef USE_HOSTCC
 /**
+ * genimg_get_kernel_addr_fit - get the real kernel address and return 2
+ *                              FIT strings
+ * @img_addr: a string might contain real image address
+ * @fit_uname_config: double pointer to a char, will hold pointer to a
+ *                    configuration unit name
+ * @fit_uname_kernel: double pointer to a char, will hold pointer to a subimage
+ *                    name
+ *
+ * genimg_get_kernel_addr_fit get the real kernel start address from a string
+ * which is normally the first argv of bootm/bootz
+ *
+ * returns:
+ *     kernel start address
+ */
+ulong genimg_get_kernel_addr_fit(char * const img_addr,
+			     const char **fit_uname_config,
+			     const char **fit_uname_kernel)
+{
+	ulong kernel_addr;
+
+	/* find out kernel image address */
+	if (!img_addr) {
+		kernel_addr = load_addr;
+		debug("*  kernel: default image load address = 0x%08lx\n",
+		      load_addr);
+#if defined(CONFIG_FIT)
+	} else if (fit_parse_conf(img_addr, load_addr, &kernel_addr,
+				  fit_uname_config)) {
+		debug("*  kernel: config '%s' from image at 0x%08lx\n",
+		      *fit_uname_config, kernel_addr);
+	} else if (fit_parse_subimage(img_addr, load_addr, &kernel_addr,
+				     fit_uname_kernel)) {
+		debug("*  kernel: subimage '%s' from image at 0x%08lx\n",
+		      *fit_uname_kernel, kernel_addr);
+#endif
+	} else {
+		kernel_addr = simple_strtoul(img_addr, NULL, 16);
+		debug("*  kernel: cmdline image address = 0x%08lx\n",
+		      kernel_addr);
+	}
+
+	return kernel_addr;
+}
+
+/**
+ * genimg_get_kernel_addr() is the simple version of
+ * genimg_get_kernel_addr_fit(). It ignores those return FIT strings
+ */
+ulong genimg_get_kernel_addr(char * const img_addr)
+{
+	const char *fit_uname_config = NULL;
+	const char *fit_uname_kernel = NULL;
+
+	return genimg_get_kernel_addr_fit(img_addr, &fit_uname_config,
+					  &fit_uname_kernel);
+}
+
+/**
  * genimg_get_format - get image format type
  * @img_addr: image start address
  *
@@ -652,27 +735,30 @@ int genimg_get_comp_id(const char *name)
  */
 int genimg_get_format(const void *img_addr)
 {
-	ulong format = IMAGE_FORMAT_INVALID;
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 	const image_header_t *hdr;
 
 	hdr = (const image_header_t *)img_addr;
 	if (image_check_magic(hdr))
-		format = IMAGE_FORMAT_LEGACY;
+		return IMAGE_FORMAT_LEGACY;
+#endif
 #if defined(CONFIG_FIT) || defined(CONFIG_OF_LIBFDT)
-	else {
-		if (fdt_check_header(img_addr) == 0)
-			format = IMAGE_FORMAT_FIT;
-	}
+	if (fdt_check_header(img_addr) == 0)
+		return IMAGE_FORMAT_FIT;
+#endif
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+	if (android_image_check_header(img_addr) == 0)
+		return IMAGE_FORMAT_ANDROID;
 #endif
 
-	return format;
+	return IMAGE_FORMAT_INVALID;
 }
 
 /**
  * genimg_get_image - get image from special storage (if necessary)
  * @img_addr: image start address
  *
- * genimg_get_image() checks if provided image start adddress is located
+ * genimg_get_image() checks if provided image start address is located
  * in a dataflash storage. If so, image is moved to a system RAM memory.
  *
  * returns:
@@ -707,12 +793,14 @@ ulong genimg_get_image(ulong img_addr)
 
 		/* get data size */
 		switch (genimg_get_format(buf)) {
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 		case IMAGE_FORMAT_LEGACY:
 			d_size = image_get_data_size(buf);
 			debug("   Legacy format image found at 0x%08lx, "
 					"size 0x%08lx\n",
 					ram_addr, d_size);
 			break;
+#endif
 #if defined(CONFIG_FIT)
 		case IMAGE_FORMAT_FIT:
 			d_size = fit_get_size(buf) - h_size;
@@ -788,7 +876,9 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 {
 	ulong rd_addr, rd_load;
 	ulong rd_data, rd_len;
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 	const image_header_t *rd_hdr;
+#endif
 	void *buf;
 #ifdef CONFIG_SUPPORT_RAW_INITRD
 	char *end;
@@ -871,6 +961,7 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 		 */
 		buf = map_sysmem(rd_addr, 0);
 		switch (genimg_get_format(buf)) {
+#if defined(CONFIG_IMAGE_FORMAT_LEGACY)
 		case IMAGE_FORMAT_LEGACY:
 			printf("## Loading init Ramdisk from Legacy "
 					"Image at %08lx ...\n", rd_addr);
@@ -886,14 +977,16 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 			rd_len = image_get_data_size(rd_hdr);
 			rd_load = image_get_load(rd_hdr);
 			break;
+#endif
 #if defined(CONFIG_FIT)
 		case IMAGE_FORMAT_FIT:
-			rd_noffset = fit_image_load(images, FIT_RAMDISK_PROP,
+			rd_noffset = fit_image_load(images,
 					rd_addr, &fit_uname_ramdisk,
 					&fit_uname_config, arch,
 					IH_TYPE_RAMDISK,
 					BOOTSTAGE_ID_FIT_RD_START,
-					FIT_LOAD_IGNORED, &rd_data, &rd_len);
+					FIT_LOAD_OPTIONAL_NON_ZERO,
+					&rd_data, &rd_len);
 			if (rd_noffset < 0)
 				return 1;
 
@@ -932,7 +1025,16 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 				(ulong)images->legacy_hdr_os);
 
 		image_multi_getimg(images->legacy_hdr_os, 1, &rd_data, &rd_len);
-	} else {
+	}
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+	else if ((genimg_get_format((void *)images->os.start)
+			== IMAGE_FORMAT_ANDROID) &&
+		 (!android_image_get_ramdisk((void *)images->os.start,
+		 &rd_data, &rd_len))) {
+		/* empty */
+	}
+#endif
+	else {
 		/*
 		 * no initrd image
 		 */
@@ -1052,6 +1154,87 @@ error:
 	return -1;
 }
 #endif /* CONFIG_SYS_BOOT_RAMDISK_HIGH */
+
+int boot_get_setup(bootm_headers_t *images, uint8_t arch,
+		   ulong *setup_start, ulong *setup_len)
+{
+#if defined(CONFIG_FIT)
+	return boot_get_setup_fit(images, arch, setup_start, setup_len);
+#else
+	return -ENOENT;
+#endif
+}
+
+#if defined(CONFIG_FIT)
+int boot_get_loadable(int argc, char * const argv[], bootm_headers_t *images,
+		uint8_t arch, const ulong *ld_start, ulong * const ld_len)
+{
+	/*
+	 * These variables are used to hold the current image location
+	 * in system memory.
+	 */
+	ulong tmp_img_addr;
+	/*
+	 * These two variables are requirements for fit_image_load, but
+	 * their values are not used
+	 */
+	ulong img_data, img_len;
+	void *buf;
+	int loadables_index;
+	int conf_noffset;
+	int fit_img_result;
+	char *uname;
+
+	/* Check to see if the images struct has a FIT configuration */
+	if (!genimg_has_config(images)) {
+		debug("## FIT configuration was not specified\n");
+		return 0;
+	}
+
+	/*
+	 * Obtain the os FIT header from the images struct
+	 * copy from dataflash if needed
+	 */
+	tmp_img_addr = map_to_sysmem(images->fit_hdr_os);
+	tmp_img_addr = genimg_get_image(tmp_img_addr);
+	buf = map_sysmem(tmp_img_addr, 0);
+	/*
+	 * Check image type. For FIT images get FIT node
+	 * and attempt to locate a generic binary.
+	 */
+	switch (genimg_get_format(buf)) {
+	case IMAGE_FORMAT_FIT:
+		conf_noffset = fit_conf_get_node(buf, images->fit_uname_cfg);
+
+		for (loadables_index = 0;
+		     !fdt_get_string_index(buf, conf_noffset,
+				FIT_LOADABLE_PROP,
+				loadables_index,
+				(const char **)&uname) > 0;
+		     loadables_index++)
+		{
+			fit_img_result = fit_image_load(images,
+				tmp_img_addr,
+				(const char **)&uname,
+				&(images->fit_uname_cfg), arch,
+				IH_TYPE_LOADABLE,
+				BOOTSTAGE_ID_FIT_LOADABLE_START,
+				FIT_LOAD_OPTIONAL_NON_ZERO,
+				&img_data, &img_len);
+			if (fit_img_result < 0) {
+				/* Something went wrong! */
+				return fit_img_result;
+			}
+		}
+		break;
+	default:
+		printf("The given image format is not supported (corrupt?)\n");
+		return 1;
+	}
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_SYS_BOOT_GET_CMDLINE
 /**

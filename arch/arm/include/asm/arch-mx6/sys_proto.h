@@ -11,17 +11,28 @@
 #include <asm/imx-common/regs-common.h>
 #include "../arch-imx/cpu.h"
 
-#define is_soc_rev(rev)	((get_cpu_rev() & 0xFF) - rev)
+#define soc_rev() (get_cpu_rev() & 0xFF)
+#define is_soc_rev(rev) (soc_rev() == rev)
+
+u32 get_nr_cpus(void);
 u32 get_cpu_rev(void);
+u32 get_cpu_speed_grade_hz(void);
+u32 get_cpu_temp_grade(int *minc, int *maxc);
 
 /* returns MXC_CPU_ value */
-#define cpu_type(rev) (((rev) >> 12)&0xff)
+#define cpu_type(rev) (((rev) >> 12) & 0xff)
 
-/* use with MXC_CPU_ constants */
-#define is_cpu_type(cpu) (cpu_type(get_cpu_rev()) == cpu)
+/* both macros return/take MXC_CPU_ constants */
+#define get_cpu_type()	(cpu_type(get_cpu_rev()))
+#define is_cpu_type(cpu) (get_cpu_type() == cpu)
 
 const char *get_imx_type(u32 imxtype);
 unsigned imx_ddr_size(void);
+void set_chipselect_size(int const);
+
+#define is_mx6dqp() ((is_cpu_type(MXC_CPU_MX6Q) || \
+		     is_cpu_type(MXC_CPU_MX6D)) && \
+		     (soc_rev() >= CHIP_REV_2_0))
 
 /*
  * Initializes on-chip ethernet controllers.

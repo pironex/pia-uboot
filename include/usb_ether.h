@@ -18,7 +18,6 @@
 #define ETH_ZLEN	60		/* Min. octets in frame sans FCS */
 #define ETH_DATA_LEN	1500		/* Max. octets in payload	 */
 #define ETH_FRAME_LEN	PKTSIZE_ALIGN	/* Max. octets in frame sans FCS */
-#define ETH_FCS_LEN	4		/* Octets in the FCS		 */
 
 struct ueth_data {
 	/* eth info */
@@ -47,6 +46,12 @@ void asix_eth_before_probe(void);
 int asix_eth_probe(struct usb_device *dev, unsigned int ifnum,
 		      struct ueth_data *ss);
 int asix_eth_get_info(struct usb_device *dev, struct ueth_data *ss,
+		      struct eth_device *eth);
+
+void ax88179_eth_before_probe(void);
+int ax88179_eth_probe(struct usb_device *dev, unsigned int ifnum,
+		      struct ueth_data *ss);
+int ax88179_eth_get_info(struct usb_device *dev, struct ueth_data *ss,
 		      struct eth_device *eth);
 
 void mcs7830_eth_before_probe(void);

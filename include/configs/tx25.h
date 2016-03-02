@@ -21,7 +21,6 @@
 
 #define	CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 kB for U-Boot */
 
-#define CONFIG_SPL
 #define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
 #define CONFIG_SPL_LDSCRIPT		"arch/$(ARCH)/cpu/u-boot-spl.lds"
 #define CONFIG_SPL_MAX_SIZE		2048
@@ -123,7 +122,6 @@
 #define CONFIG_SYS_LONGHELP
 
 /* U-Boot commands */
-#include <config_cmd_default.h>
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_CACHE
 
@@ -133,7 +131,6 @@
 #define CONFIG_FEC_MXC
 #define CONFIG_FEC_MXC_PHYADDR		0x1f
 #define CONFIG_MII
-#define CONFIG_CMD_NET
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_ENV_OVERWRITE
 

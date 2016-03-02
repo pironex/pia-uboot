@@ -10,6 +10,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_DISPLAY_BOARDINFO
+
 #ifdef CONFIG_36BIT
 #define CONFIG_PHYS_64BIT
 #endif
@@ -38,7 +41,6 @@
 #define CONFIG_BOARDNAME "P1020RDB-PC"
 #define CONFIG_NAND_FSL_ELBC
 #define CONFIG_P1020
-#define CONFIG_SPI_FLASH
 #define CONFIG_VSC7385_ENET
 #define CONFIG_SLIC
 #define __SW_BOOT_MASK		0x03
@@ -67,7 +69,6 @@
 #define CONFIG_BOARDNAME "P1020RDB-PD"
 #define CONFIG_NAND_FSL_ELBC
 #define CONFIG_P1020
-#define CONFIG_SPI_FLASH
 #define CONFIG_VSC7385_ENET
 #define CONFIG_SLIC
 #define __SW_BOOT_MASK		0x03
@@ -77,6 +78,16 @@
 #define __SW_BOOT_NAND		0x44
 #define __SW_BOOT_PCIE		0x74
 #define CONFIG_SYS_L2_SIZE	(256 << 10)
+/*
+ * Dynamic MTD Partition support with mtdparts
+ */
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_FLASH_CFI_MTD
+#define MTDIDS_DEFAULT "nor0=ec000000.nor"
+#define MTDPARTS_DEFAULT "mtdparts=ec000000.nor:128k(dtb),6016k(kernel)," \
+			"57088k(fs),1m(vsc7385-firmware),1280k(u-boot)"
 #endif
 
 #if defined(CONFIG_P1021RDB)
@@ -84,7 +95,6 @@
 #define CONFIG_NAND_FSL_ELBC
 #define CONFIG_P1021
 #define CONFIG_QE
-#define CONFIG_SPI_FLASH
 #define CONFIG_VSC7385_ENET
 #define CONFIG_SYS_LBC_LBCR	0x00080000	/* Implement conversion of
 						addresses in the LBC */
@@ -95,6 +105,24 @@
 #define __SW_BOOT_NAND		0xec
 #define __SW_BOOT_PCIE		0x6c
 #define CONFIG_SYS_L2_SIZE	(256 << 10)
+/*
+ * Dynamic MTD Partition support with mtdparts
+ */
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_FLASH_CFI_MTD
+#ifdef CONFIG_PHYS_64BIT
+#define MTDIDS_DEFAULT "nor0=fef000000.nor"
+#define MTDPARTS_DEFAULT "mtdparts=fef000000.nor:256k(vsc7385-firmware)," \
+			"256k(dtb),4608k(kernel),9728k(fs)," \
+			"256k(qe-ucode-firmware),1280k(u-boot)"
+#else
+#define MTDIDS_DEFAULT "nor0=ef000000.nor"
+#define MTDPARTS_DEFAULT "mtdparts=ef000000.nor:256k(vsc7385-firmware)," \
+			"256k(dtb),4608k(kernel),9728k(fs)," \
+			"256k(qe-ucode-firmware),1280k(u-boot)"
+#endif
 #endif
 
 #if defined(CONFIG_P1024RDB)
@@ -102,7 +130,6 @@
 #define CONFIG_NAND_FSL_ELBC
 #define CONFIG_P1024
 #define CONFIG_SLIC
-#define CONFIG_SPI_FLASH
 #define __SW_BOOT_MASK		0xf3
 #define __SW_BOOT_NOR		0x00
 #define __SW_BOOT_SPI		0x08
@@ -117,7 +144,6 @@
 #define CONFIG_P1025
 #define CONFIG_QE
 #define CONFIG_SLIC
-#define CONFIG_SPI_FLASH
 
 #define CONFIG_SYS_LBC_LBCR	0x00080000	/* Implement conversion of
 						addresses in the LBC */
@@ -133,7 +159,6 @@
 #define CONFIG_BOARDNAME "P2020RDB-PCA"
 #define CONFIG_NAND_FSL_ELBC
 #define CONFIG_P2020
-#define CONFIG_SPI_FLASH
 #define CONFIG_VSC7385_ENET
 #define __SW_BOOT_MASK		0x03
 #define __SW_BOOT_NOR		0xc8
@@ -142,10 +167,25 @@
 #define __SW_BOOT_NAND		0xe8
 #define __SW_BOOT_PCIE		0xa8
 #define CONFIG_SYS_L2_SIZE	(512 << 10)
+/*
+ * Dynamic MTD Partition support with mtdparts
+ */
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_FLASH_CFI_MTD
+#ifdef CONFIG_PHYS_64BIT
+#define MTDIDS_DEFAULT "nor0=fef000000.nor"
+#define MTDPARTS_DEFAULT "mtdparts=fef000000.nor:256k(vsc7385-firmware)," \
+			"256k(dtb),4608k(kernel),9984k(fs),1280k(u-boot)"
+#else
+#define MTDIDS_DEFAULT "nor0=ef000000.nor"
+#define MTDPARTS_DEFAULT "mtdparts=ef000000.nor:256k(vsc7385-firmware)," \
+			"256k(dtb),4608k(kernel),9984k(fs),1280k(u-boot)"
+#endif
 #endif
 
 #ifdef CONFIG_SDCARD
-#define CONFIG_SPL
 #define CONFIG_SPL_MPC8XXX_INIT_DDR_SUPPORT
 #define CONFIG_SPL_ENV_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
@@ -174,7 +214,6 @@
 #endif
 
 #ifdef CONFIG_SPIFLASH
-#define CONFIG_SPL
 #define CONFIG_SPL_MPC8XXX_INIT_DDR_SUPPORT
 #define CONFIG_SPL_ENV_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
@@ -204,8 +243,6 @@
 #endif
 
 #ifdef CONFIG_NAND
-#define CONFIG_SPL
-#define CONFIG_TPL
 #ifdef CONFIG_TPL_BUILD
 #define CONFIG_SPL_NAND_BOOT
 #define CONFIG_SPL_FLUSH_IMAGE
@@ -451,7 +488,6 @@
 
 #define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND_BASE }
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define CONFIG_MTD_NAND_VERIFY_WRITE
 #define CONFIG_CMD_NAND
 #if defined(CONFIG_P1020RDB_PD)
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128 * 1024)
@@ -508,7 +544,7 @@
 					GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_LEN	(256 * 1024)/* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN	(768 * 1024)
 #define CONFIG_SYS_MALLOC_LEN	(1024 * 1024)/* Reserved for malloc */
 
 #define CONFIG_SYS_CPLD_BASE	0xffa00000
@@ -733,7 +769,6 @@
 #define CONFIG_PCI_PNP	/* do pci plug-and-play */
 #define CONFIG_E1000	/* Defind e1000 pci Ethernet card*/
 #define CONFIG_CMD_PCI
-#define CONFIG_CMD_NET
 
 #define CONFIG_PCI_SCAN_SHOW	/* show pci devices on startup */
 #define CONFIG_DOS_PARTITION
@@ -772,7 +807,7 @@
 #ifdef CONFIG_QE
 /* QE microcode/firmware address */
 #define CONFIG_SYS_QE_FMAN_FW_IN_NOR
-#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xefec0000
+#define CONFIG_SYS_QE_FW_ADDR	0xefec0000
 #define CONFIG_SYS_QE_FMAN_FW_LENGTH	0x10000
 #endif /* CONFIG_QE */
 
@@ -856,15 +891,12 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_ELF
-#define CONFIG_CMD_SETEXPR
 #define CONFIG_CMD_REGINFO
 
 /*
@@ -881,6 +913,10 @@
 #define CONFIG_USB_EHCI_FSL
 #define CONFIG_USB_STORAGE
 #endif
+#endif
+
+#if defined(CONFIG_P1020RDB_PD)
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	1
 #endif
 
 #define CONFIG_MMC

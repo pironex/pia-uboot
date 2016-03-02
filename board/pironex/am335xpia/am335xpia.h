@@ -35,20 +35,10 @@ struct am335x_baseboard_id {
 	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];
 };
 
-/* .bss is defined in SDRAM, so we don't have a global area to store
- * the EEPROM header data in SPL. Use Scratch space in SRAM instead.
- */
-#ifdef CONFIG_SPL_BUILD
-static struct am335x_baseboard_id *const header =
-	(struct am335x_baseboard_id *)(SRAM_SCRATCH_SPACE_ADDR + sizeof(struct omap_boot_parameters));
-#else
-static struct am335x_baseboard_id header_;
-static struct am335x_baseboard_id *header = &header_;
-#endif
-
-static inline int board_is_apc(struct am335x_baseboard_id *header)
+static inline int board_is_dr(struct am335x_baseboard_id *header)
 {
-	return (strncmp(header->name, "P335BAPC", 8) == 0);
+	return ((strncmp(header->name, "P335BAPC", 8) == 0) ||
+		(strncmp(header->name, "P335BDR", 7) == 0));
 }
 
 static inline int board_is_e2(struct am335x_baseboard_id *header)
@@ -76,11 +66,16 @@ static inline int board_is_sk(struct am335x_baseboard_id *header)
 	return (strncmp(header->name, "P335BSK", 7) == 0);
 }
 
+static inline int board_is_pia(struct am335x_baseboard_id *header)
+{
+	return (strncmp(header->name, "P335BPIA", 8) == 0);
+}
+
 static inline int board_is_pm(struct am335x_baseboard_id *header)
 {
 	return ((strncmp(header->name, "PIA335PM", 8) == 0) ||
-		board_is_sk(header) || board_is_apc(header) ||
-		board_is_ebtft(header));
+		board_is_sk(header) || board_is_dr(header) ||
+		board_is_ebtft(header) || board_is_pia(header));
 }
 
 void enable_uart0_pin_mux(void);

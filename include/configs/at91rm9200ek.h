@@ -61,6 +61,8 @@
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_OF_LIBFDT
 
+#define CONFIG_SYS_GENERIC_BOARD
+
 /*
  * Memory Configuration
  */
@@ -120,14 +122,11 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_USB
-#undef CONFIG_CMD_FPGA
 
 /*
  * Network Driver Setting

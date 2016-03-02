@@ -13,11 +13,6 @@
 static struct sandbox_state main_state;
 static struct sandbox_state *state;	/* Pointer to current state record */
 
-void state_record_exit(enum exit_type_id exit_type)
-{
-	state->exit_type = exit_type;
-}
-
 static int state_ensure_space(int extra_size)
 {
 	void *blob = state->state_fdt;
@@ -49,12 +44,12 @@ static int state_ensure_space(int extra_size)
 
 static int state_read_file(struct sandbox_state *state, const char *fname)
 {
-	int size;
+	loff_t size;
 	int ret;
 	int fd;
 
-	size = os_get_filesize(fname);
-	if (size < 0) {
+	ret = os_get_filesize(fname, &size);
+	if (ret < 0) {
 		printf("Cannot find sandbox state file '%s'\n", fname);
 		return -ENOENT;
 	}

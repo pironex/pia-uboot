@@ -27,35 +27,19 @@ DECLARE_GLOBAL_DATA_PTR;
 #define ZYNQ_UART_MR_PARITY_NONE	0x00000020  /* No parity mode */
 
 struct uart_zynq {
-	u32 control; /* Control Register [8:0] */
-	u32 mode; /* Mode Register [10:0] */
+	u32 control; /* 0x0 - Control Register [8:0] */
+	u32 mode; /* 0x4 - Mode Register [10:0] */
 	u32 reserved1[4];
-	u32 baud_rate_gen; /* Baud Rate Generator [15:0] */
+	u32 baud_rate_gen; /* 0x18 - Baud Rate Generator [15:0] */
 	u32 reserved2[4];
-	u32 channel_sts; /* Channel Status [11:0] */
-	u32 tx_rx_fifo; /* FIFO [15:0] or [7:0] */
-	u32 baud_rate_divider; /* Baud Rate Divider [7:0] */
+	u32 channel_sts; /* 0x2c - Channel Status [11:0] */
+	u32 tx_rx_fifo; /* 0x30 - FIFO [15:0] or [7:0] */
+	u32 baud_rate_divider; /* 0x34 - Baud Rate Divider [7:0] */
 };
 
 static struct uart_zynq *uart_zynq_ports[2] = {
 	[0] = (struct uart_zynq *)ZYNQ_SERIAL_BASEADDR0,
 	[1] = (struct uart_zynq *)ZYNQ_SERIAL_BASEADDR1,
-};
-
-#if !defined(CONFIG_ZYNQ_SERIAL_BAUDRATE0)
-# define CONFIG_ZYNQ_SERIAL_BAUDRATE0	CONFIG_BAUDRATE
-#endif
-#if !defined(CONFIG_ZYNQ_SERIAL_BAUDRATE1)
-# define CONFIG_ZYNQ_SERIAL_BAUDRATE1	CONFIG_BAUDRATE
-#endif
-
-struct uart_zynq_params {
-	u32 baudrate;
-};
-
-static struct uart_zynq_params uart_zynq_ports_param[2] = {
-	[0].baudrate = CONFIG_ZYNQ_SERIAL_BAUDRATE0,
-	[1].baudrate = CONFIG_ZYNQ_SERIAL_BAUDRATE1,
 };
 
 /* Set up the baud rate in gd struct */
@@ -64,9 +48,15 @@ static void uart_zynq_serial_setbrg(const int port)
 	/* Calculation results. */
 	unsigned int calc_bauderror, bdiv, bgen;
 	unsigned long calc_baud = 0;
-	unsigned long baud = uart_zynq_ports_param[port].baudrate;
+	unsigned long baud;
 	unsigned long clock = get_uart_clk(port);
 	struct uart_zynq *regs = uart_zynq_ports[port];
+
+	/* Covering case where input clock is so slow */
+	if (clock < 1000000 && gd->baudrate > 4800)
+		gd->baudrate = 4800;
+
+	baud = gd->baudrate;
 
 	/*                master clock
 	 * Baud rate = ------------------
@@ -153,17 +143,17 @@ static int uart_zynq_serial_getc(const int port)
 
 /* Multi serial device functions */
 #define DECLARE_PSSERIAL_FUNCTIONS(port) \
-	int uart_zynq##port##_init(void) \
+	static int uart_zynq##port##_init(void) \
 				{ return uart_zynq_serial_init(port); } \
-	void uart_zynq##port##_setbrg(void) \
+	static void uart_zynq##port##_setbrg(void) \
 				{ return uart_zynq_serial_setbrg(port); } \
-	int uart_zynq##port##_getc(void) \
+	static int uart_zynq##port##_getc(void) \
 				{ return uart_zynq_serial_getc(port); } \
-	int uart_zynq##port##_tstc(void) \
+	static int uart_zynq##port##_tstc(void) \
 				{ return uart_zynq_serial_tstc(port); } \
-	void uart_zynq##port##_putc(const char c) \
+	static void uart_zynq##port##_putc(const char c) \
 				{ uart_zynq_serial_putc(c, port); } \
-	void uart_zynq##port##_puts(const char *s) \
+	static void uart_zynq##port##_puts(const char *s) \
 				{ uart_zynq_serial_puts(s, port); }
 
 /* Serial device descriptor */
@@ -179,10 +169,10 @@ static int uart_zynq_serial_getc(const int port)
 }
 
 DECLARE_PSSERIAL_FUNCTIONS(0);
-struct serial_device uart_zynq_serial0_device =
+static struct serial_device uart_zynq_serial0_device =
 	INIT_PSSERIAL_STRUCTURE(0, "ttyPS0");
 DECLARE_PSSERIAL_FUNCTIONS(1);
-struct serial_device uart_zynq_serial1_device =
+static struct serial_device uart_zynq_serial1_device =
 	INIT_PSSERIAL_STRUCTURE(1, "ttyPS1");
 
 #ifdef CONFIG_OF_CONTROL
@@ -223,7 +213,7 @@ __weak struct serial_device *default_serial_console(void)
 }
 #endif
 
-void zynq_serial_initalize(void)
+void zynq_serial_initialize(void)
 {
 	serial_register(&uart_zynq_serial0_device);
 	serial_register(&uart_zynq_serial1_device);

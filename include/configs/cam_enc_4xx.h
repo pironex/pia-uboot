@@ -14,7 +14,6 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET
 
 /* SoC Configuration */
-#define CONFIG_ARM926EJS				/* arm926ejs CPU */
 #define CONFIG_SYS_TIMERBASE		0x01c21400	/* use timer 0 */
 #define CONFIG_SYS_HZ_CLOCK		24000000	/* timer0 freq */
 #define CONFIG_SOC_DM365
@@ -57,10 +56,10 @@
 #define CONFIG_RESET_PHY_R
 
 /* I2C */
-#define CONFIG_HARD_I2C
-#define CONFIG_DRIVER_DAVINCI_I2C
-#define CONFIG_SYS_I2C_SPEED		400000
-#define CONFIG_SYS_I2C_SLAVE		0x10	/* SMBus host address */
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_DAVINCI
+#define CONFIG_SYS_DAVINCI_I2C_SPEED		400000
+#define CONFIG_SYS_DAVINCI_I2C_SLAVE		0x10	/* SMBus host address */
 
 /* NAND: socketed, two chipselects, normally 2 GBytes */
 #define CONFIG_NAND_DAVINCI
@@ -76,7 +75,6 @@
 
 /* SPI support */
 #define CONFIG_SPI
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_DAVINCI_SPI
 #define CONFIG_SYS_SPI_BASE		DAVINCI_SPI1_BASE
@@ -92,12 +90,6 @@
 #define CONFIG_MMC_MBLOCK
 
 /* U-Boot command configuration */
-#include <config_cmd_default.h>
-
-#define CONFIG_CMD_BDI
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_SETGETDCR
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_DHCP
@@ -199,7 +191,6 @@
 #define CONFIG_SYS_NAND_BLOCK_SIZE	0x20000
 
 /* Defines for SPL */
-#define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT

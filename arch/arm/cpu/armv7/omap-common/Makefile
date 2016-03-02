@@ -22,13 +22,13 @@ obj-y	+= pipe3-phy.o
 obj-$(CONFIG_SCSI_AHCI_PLAT) += sata.o
 endif
 
-ifeq ($(CONFIG_OMAP34XX),)
-obj-y	+= boot-common.o
-obj-y	+= lowlevel_init.o
+ifeq ($(CONFIG_SYS_DCACHE_OFF),)
+obj-y	+= omap-cache.o
 endif
 
-ifndef CONFIG_SPL_BUILD
-ifneq ($(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
+ifeq ($(CONFIG_OMAP34XX),)
+obj-y	+= boot-common.o
+endif
+obj-y	+= lowlevel_init.o
+
 obj-y	+= mem-common.o
-endif
-endif

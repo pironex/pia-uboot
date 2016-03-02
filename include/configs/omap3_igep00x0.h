@@ -29,12 +29,23 @@
 
 #define CONFIG_REVISION_TAG		1
 
-#define CONFIG_SUPPORT_RAW_INITRD
-
-/* define to enable boot progress via leds */
-#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
-    (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0030)
-#define CONFIG_SHOW_BOOT_PROGRESS
+/* Status LED available for IGEP0020 and IGEP0030 but not IGEP0032 */
+#if (CONFIG_MACH_TYPE != MACH_TYPE_IGEP0032)
+#define CONFIG_STATUS_LED
+#define CONFIG_BOARD_SPECIFIC_LED
+#define CONFIG_GPIO_LED
+#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020)
+#define RED_LED_GPIO 27
+#elif (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0030)
+#define RED_LED_GPIO 16
+#else
+#error "status LED not defined for this machine."
+#endif
+#define RED_LED_DEV				0
+#define STATUS_LED_BIT			RED_LED_GPIO
+#define STATUS_LED_STATE		STATUS_LED_ON
+#define STATUS_LED_PERIOD		(CONFIG_SYS_HZ / 2)
+#define STATUS_LED_BOOT			RED_LED_DEV
 #endif
 
 /* GPIO banks */
@@ -64,11 +75,9 @@
 #endif
 #if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
     (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0032)
-#define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 #endif
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
-#define CONFIG_CMD_NFS		/* NFS support			*/
 
 /*#undef CONFIG_ENV_IS_NOWHERE*/
 
@@ -146,8 +155,6 @@
  */
 
 #ifdef CONFIG_BOOT_ONENAND
-#define PISMO1_ONEN_SIZE		GPMC_SIZE_128M /* Configure the PISMO */
-
 #define CONFIG_SYS_ONENAND_BASE		ONENAND_MAP
 
 #define ONENAND_ENV_OFFSET		0x260000 /* environment starts here */
@@ -158,7 +165,6 @@
 #endif
 
 #ifdef CONFIG_NAND
-#define PISMO1_NAND_SIZE		GPMC_SIZE_128M /* Configure the PISMO */
 #define CONFIG_ENV_OFFSET		0x260000 /* environment starts here */
 #define CONFIG_ENV_IS_IN_NAND	        1
 #define CONFIG_ENV_SIZE			(512 << 10) /* Total Size Environment */
@@ -187,6 +193,7 @@
 
 /* NAND boot config */
 #ifdef CONFIG_NAND
+#define CONFIG_SYS_NAND_BUSWIDTH_16BIT	16
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT	64
 #define CONFIG_SYS_NAND_PAGE_SIZE	2048
@@ -198,6 +205,13 @@
 #define CONFIG_SYS_NAND_ECCSIZE		512
 #define CONFIG_SYS_NAND_ECCBYTES	3
 #define CONFIG_NAND_OMAP_ECCSCHEME	OMAP_ECC_HAM1_CODE_HW
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x80000
+/* NAND: SPL falcon mode configs */
+#ifdef CONFIG_SPL_OS_BOOT
+#define CONFIG_CMD_SPL_NAND_OFS		0x240000
+#define CONFIG_SYS_NAND_SPL_KERNEL_OFFS	0x280000
+#define CONFIG_CMD_SPL_WRITE_SIZE	0x2000
+#endif
 #endif
 
 #endif /* __IGEP00X0_H */

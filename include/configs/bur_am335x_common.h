@@ -3,7 +3,7 @@
  *
  * common parts used by B&R AM335x based boards
  *
- * Copyright (C) 2013 Hannes Petermaier <oe5hpm@oevsv.at> -
+ * Copyright (C) 2013 Hannes Schmelzer <oe5hpm@oevsv.at> -
  * Bernecker & Rainer Industrieelektronik GmbH - http://www.br-automation.com
  *
  * SPDX-License-Identifier:        GPL-2.0+
@@ -12,6 +12,24 @@
 #ifndef __BUR_AM335X_COMMON_H__
 #define __BUR_AM335X_COMMON_H__
 /* ------------------------------------------------------------------------- */
+#define BUR_COMMON_ENV \
+"usbscript=usb start && fatload usb 0 0x80000000 usbscript.img && source\0" \
+"defaultip=192.168.60.253\0" \
+"defaultsip=192.168.60.254\0" \
+"netconsole=echo switching to network console ...; " \
+"if dhcp; then setenv ncip ${serverip}; " \
+"else " \
+"setenv ncip 192.168.60.254; setenv serverip 192.168.60.254; " \
+"setenv gatewayip 192.168.60.254; setenv ipaddr 192.168.60.1; " \
+"fi; " \
+"setcurs 1 9; lcdputs myip; setcurs 10 9; lcdputs ${ipaddr};" \
+"setcurs 1 10;lcdputs serverip; setcurs 10 10; lcdputs ${serverip};" \
+"setenv stdout nc;setenv stdin nc;setenv stderr nc\0"
+
+#define CONFIG_CMD_TIME
+
+#define CONFIG_SYS_GENERIC_BOARD
+
 #define CONFIG_AM33XX
 #define CONFIG_OMAP
 #define CONFIG_OMAP_COMMON
@@ -39,13 +57,12 @@
 #define CONFIG_BAUDRATE			115200
 
 /* Network defines */
-#define CONFIG_CMD_NET			/* 'bootp' and 'tftp' */
 #define CONFIG_CMD_DHCP
 #define CONFIG_BOOTP_DNS		/* Configurable parts of CMD_DHCP */
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_BOOTP_GATEWAY
 #define CONFIG_BOOTP_SUBNETMASK
-#define CONFIG_NET_RETRY_COUNT		4
+#define CONFIG_NET_RETRY_COUNT		2
 #define CONFIG_CMD_PING
 #define CONFIG_DRIVER_TI_CPSW		/* Driver for IP block */
 #define CONFIG_MII			/* Required in net/eth.c */
@@ -55,7 +72,9 @@
 #define CONFIG_SPL_NET_SUPPORT
 #define CONFIG_SPL_ENV_SUPPORT		/* used for a fetching MAC-Address */
 #define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"
-
+/* Network console */
+#define CONFIG_NETCONSOLE			1
+#define CONFIG_BOOTP_MAY_FAIL		/* if we don't have DHCP environment */
 /*
  * SPL related defines.  The Public RAM memory map the ROM defines the
  * area between 0x402F0400 and 0x4030B800 as a download area and
@@ -94,7 +113,7 @@
 #define CONFIG_SYS_OMAP24_I2C_SPEED	100000
 #define CONFIG_SYS_OMAP24_I2C_SLAVE	1
 #define CONFIG_SYS_I2C_OMAP24XX
-
+#define CONFIG_CMD_I2C
 /* GPIO */
 #define CONFIG_OMAP_GPIO
 #define CONFIG_CMD_GPIO
@@ -108,11 +127,13 @@
  * we are on so we do not need to rely on the command prompt.  We set a
  * console baudrate of 115200 and use the default baud rate table.
  */
-#define CONFIG_SYS_MALLOC_LEN		(1024 << 10)
+#define CONFIG_SYS_MALLOC_LEN		(5120 << 10)
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"U-Boot (BuR V2.0)# "
 #define CONFIG_SYS_CONSOLE_INFO_QUIET
 #define CONFIG_ENV_OVERWRITE		/* Overwrite ethaddr / serial# */
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
 
 /* As stated above, the following choices are optional. */
 #define CONFIG_SYS_LONGHELP
@@ -130,29 +151,6 @@
 					sizeof(CONFIG_SYS_PROMPT) + 16)
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
-/*
- * For commands to use, we take the default list and add a few other
- * useful commands.  Note that we must have set CONFIG_SYS_NO_FLASH
- * prior to this include, in order to skip a few commands.  When we do
- * have flash, if we expect these commands they must be enabled in that
- * config.  If desired, a specific list of desired commands can be used
- * instead.
- */
-#include <config_cmd_default.h>
-/* undefine commands, which we do not need */
-#undef CONFIG_CMD_EDITENV
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_IMI
-#undef CONFIG_CMD_ITEST
-#undef CONFIG_CMD_LOADS
-#undef CONFIG_CMD_LOADB
-#undef CONFIG_CMD_NFS
-#undef CONFIG_CMD_SETGETDCR
-#undef CONFIG_CMD_XIMG
-#undef CONFIG_CMD_CRC32
-/* define command we need always */
-#define CONFIG_CMD_ECHO
-#define CONFIG_CMD_SOURCE
 
 /*
  * Our platforms make use of SPL to initalize the hardware (primarily
@@ -162,7 +160,6 @@
  * under common/spl/.  Given our generally common memory map, we set a
  * number of related defaults and sizes here.
  */
-#define CONFIG_SPL
 #define CONFIG_SPL_FRAMEWORK
 /*
  * Place the image at the start of the ROM defined image space.
@@ -175,7 +172,6 @@
  *
  * ----------------------------------------------------------------------------
  */
-#define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR
 #undef  CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_TEXT_BASE		0x80800000
 #define CONFIG_SPL_BSS_START_ADDR	0x80A00000

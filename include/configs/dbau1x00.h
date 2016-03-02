@@ -15,6 +15,8 @@
 #define CONFIG_DBAU1X00		1
 #define CONFIG_SOC_AU1X00	1  /* alchemy series cpu */
 
+#define CONFIG_DISPLAY_BOARDINFO
+
 #ifdef CONFIG_DBAU1000
 /* Also known as Merlot */
 #define CONFIG_SOC_AU1000	1
@@ -34,8 +36,6 @@
 #endif
 #endif
 #endif
-
-#define CONFIG_ETHADDR		DE:AD:BE:EF:01:01    /* Ethernet address */
 
 #define CONFIG_BOOTDELAY	2	/* autoboot after 2 seconds	*/
 
@@ -74,37 +74,21 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
-#undef CONFIG_CMD_BDI
 #undef CONFIG_CMD_BEDBUG
 #undef CONFIG_CMD_ELF
-#undef CONFIG_CMD_SAVEENV
 #undef CONFIG_CMD_FAT
-#undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_MII
-#undef CONFIG_CMD_RUN
-
 
 #ifdef CONFIG_DBAU1550
 
-#define CONFIG_CMD_FLASH
-#define CONFIG_CMD_LOADB
-#define CONFIG_CMD_NET
-
 #undef CONFIG_CMD_I2C
 #undef CONFIG_CMD_IDE
-#undef CONFIG_CMD_NFS
 #undef CONFIG_CMD_PCMCIA
 
 #else
 
 #define CONFIG_CMD_IDE
 #define CONFIG_CMD_DHCP
-
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_LOADB
-#undef CONFIG_CMD_LOADS
 
 #endif
 

@@ -12,6 +12,8 @@
 #define __CONFIG_H
 
 #define CONFIG_PHYS_64BIT
+#define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_DISPLAY_BOARDINFO
 
 #ifdef CONFIG_C29XPCIE
 #define CONFIG_PPC_C29X
@@ -24,8 +26,6 @@
 #endif
 
 #ifdef CONFIG_NAND
-#define CONFIG_SPL
-#define CONFIG_TPL
 #ifdef CONFIG_TPL_BUILD
 #define CONFIG_SPL_NAND_BOOT
 #define CONFIG_SPL_FLUSH_IMAGE
@@ -88,6 +88,7 @@
 #define CONFIG_BOOKE			/* BOOKE */
 #define CONFIG_E500			/* BOOKE e500 family */
 #define CONFIG_FSL_IFC			/* Enable IFC Support */
+#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
 #define CONFIG_SYS_HAS_SERDES		/* common SERDES init code */
 
 #define CONFIG_PCI			/* Enable PCI/PCIE */
@@ -98,7 +99,6 @@
 #define CONFIG_FSL_PCIE_RESET		/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT		/* enable 64-bit PCI resources */
 
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PCI
 
 #define CONFIG_E1000
@@ -233,7 +233,6 @@
 #define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND_BASE }
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define CONFIG_MTD_NAND_VERIFY_WRITE
 #define CONFIG_CMD_NAND
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(1024 * 1024)
 
@@ -319,7 +318,7 @@
 #define CONFIG_SYS_CS2_FTIM1	(FTIM1_GPCM_TACO(0x0e) | \
 				FTIM1_GPCM_TRAD(0x1f))
 #define CONFIG_SYS_CS2_FTIM2	(FTIM2_GPCM_TCS(0x0e) | \
-				FTIM2_GPCM_TCH(0x0) | \
+				FTIM2_GPCM_TCH(0x8) | \
 				FTIM2_GPCM_TWP(0x1f))
 #define CONFIG_SYS_CS2_FTIM3	0x0
 
@@ -338,7 +337,7 @@
 						- GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
+#define CONFIG_SYS_MONITOR_LEN		(768 * 1024)
 #define CONFIG_SYS_MALLOC_LEN		(2 * 1024 * 1024)
 
 /*
@@ -433,7 +432,6 @@
 
 /* eSPI - Enhanced SPI */
 #define CONFIG_FSL_ESPI
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_SPANSION
 #define CONFIG_SPI_FLASH_EON
 #define CONFIG_CMD_SF
@@ -441,7 +439,6 @@
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 
 #ifdef CONFIG_TSEC_ENET
-#define CONFIG_NET_MULTI
 #define CONFIG_MII			/* MII PHY management */
 #define CONFIG_MII_DEFAULT_TSEC	1	/* Allow unregistered phys */
 #define CONFIG_TSEC1		1
@@ -498,15 +495,18 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_ERRATA
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
-#define CONFIG_CMD_SETEXPR
 #define CONFIG_CMD_REGINFO
+
+/* Hash command with SHA acceleration supported in hardware */
+#ifdef CONFIG_FSL_CAAM
+#define CONFIG_CMD_HASH
+#define CONFIG_SHA_HW_ACCEL
+#endif
 
 /*
  * Miscellaneous configurable options
@@ -573,5 +573,7 @@
 	"bootm $loadaddr $ramdiskaddr $fdtaddr"
 
 #define CONFIG_BOOTCOMMAND CONFIG_RAMBOOTCOMMAND
+
+#include <asm/fsl_secure_boot.h>
 
 #endif	/* __CONFIG_H */

@@ -9,6 +9,8 @@
 
 #define ARCH_MXC
 
+#define CONFIG_SYS_CACHELINE_SIZE 64
+
 #if defined(CONFIG_MX51)
 #define IRAM_BASE_ADDR		0x1FFE0000	/* internal ram */
 #define IPU_SOC_BASE_ADDR	0x40000000
@@ -201,11 +203,6 @@
  * WEIM CSnWCR2
  */
 #define WBED		1
-
-#define CS0_128					0
-#define CS0_64M_CS1_64M				1
-#define CS0_64M_CS1_32M_CS2_32M			2
-#define CS0_32M_CS1_32M_CS2_32M_CS3_32M		3
 
 /*
  * CSPI register definitions
@@ -414,8 +411,7 @@ struct weim {
 
 #if defined(CONFIG_MX51)
 struct iomuxc {
-	u32	gpr0;
-	u32	gpr1;
+	u32	gpr[2];
 	u32	omux0;
 	u32	omux1;
 	u32	omux2;
@@ -424,9 +420,7 @@ struct iomuxc {
 };
 #elif defined(CONFIG_MX53)
 struct iomuxc {
-	u32	gpr0;
-	u32	gpr1;
-	u32	gpr2;
+	u32	gpr[3];
 	u32	omux0;
 	u32	omux1;
 	u32	omux2;

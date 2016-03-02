@@ -20,6 +20,8 @@
 #ifndef _CONFIG_KM_ARM_H
 #define _CONFIG_KM_ARM_H
 
+#define CONFIG_SYS_GENERIC_BOARD
+
 /* We got removed from Linux mach-types.h */
 #define MACH_TYPE_KM_KIRKWOOD          2255
 
@@ -28,7 +30,6 @@
  */
 #define CONFIG_MARVELL
 #define CONFIG_FEROCEON_88FR131		/* CPU Core subversion */
-#define CONFIG_KIRKWOOD			/* SOC Family Name */
 #define CONFIG_KW88F6281		/* SOC Name */
 #define CONFIG_MACH_KM_KIRKWOOD		/* Machine type */
 
@@ -123,14 +124,11 @@
  */
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_MTDPARTS
-#define CONFIG_CMD_NFS
 
 /*
  * Without NOR FLASH we need this
  */
 #define CONFIG_SYS_NO_FLASH
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_IMLS
 
 /*
  * NAND Flash configuration
@@ -194,7 +192,7 @@
 				}
 
 #ifndef __ASSEMBLY__
-#include <asm/arch-kirkwood/gpio.h>
+#include <asm/arch/gpio.h>
 extern void __set_direction(unsigned pin, int high);
 void set_sda(int state);
 void set_scl(int state);
@@ -252,7 +250,6 @@ int get_scl(void);
 
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 
-#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_STMICRO
 
 /* SPI bus claim MPP configuration */

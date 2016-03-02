@@ -48,11 +48,25 @@ static inline int check_read_ecc(uchar *buf, u32 *eccstat,
 	return 0;
 }
 
+static inline struct fsl_ifc_runtime *runtime_regs_address(void)
+{
+	struct fsl_ifc regs = {(void *)CONFIG_SYS_IFC_ADDR, NULL};
+	int ver = 0;
+
+	ver = ifc_in32(&regs.gregs->ifc_rev);
+	if (ver >= FSL_IFC_V2_0_0)
+		regs.rregs = (void *)CONFIG_SYS_IFC_ADDR + IFC_RREGS_64KOFFSET;
+	else
+		regs.rregs = (void *)CONFIG_SYS_IFC_ADDR + IFC_RREGS_4KOFFSET;
+
+	return regs.rregs;
+}
+
 static inline void nand_wait(uchar *buf, int bufnum, int page_size)
 {
-	struct fsl_ifc *ifc = IFC_BASE_ADDR;
+	struct fsl_ifc_runtime *ifc = runtime_regs_address();
 	u32 status;
-	u32 eccstat[4];
+	u32 eccstat[8];
 	int bufperpage = page_size / 512;
 	int bufnum_end, i;
 
@@ -88,20 +102,17 @@ static inline int bad_block(uchar *marker, int port_size)
 		return __raw_readw((u16 *)marker) != 0xffff;
 }
 
-#ifdef CONFIG_TPL_BUILD
 int nand_spl_load_image(uint32_t offs, unsigned int uboot_size, void *vdst)
-#else
-static int nand_load(uint32_t offs, unsigned int uboot_size, void *vdst)
-#endif
 {
-	struct fsl_ifc *ifc = IFC_BASE_ADDR;
+	struct fsl_ifc_fcm *gregs = (void *)CONFIG_SYS_IFC_ADDR;
+	struct fsl_ifc_runtime *ifc = NULL;
 	uchar *buf = (uchar *)CONFIG_SYS_NAND_BASE;
 	int page_size;
 	int port_size;
 	int pages_per_blk;
 	int blk_size;
 	int bad_marker = 0;
-	int bufnum_mask, bufnum;
+	int bufnum_mask, bufnum, ver = 0;
 
 	int csor, cspr;
 	int pos = 0;
@@ -110,6 +121,8 @@ static int nand_load(uint32_t offs, unsigned int uboot_size, void *vdst)
 	int sram_addr;
 	int pg_no;
 	uchar *dst = vdst;
+
+	ifc = runtime_regs_address();
 
 	/* Get NAND Flash configuration */
 	csor = CONFIG_SYS_NAND_CSOR;
@@ -133,6 +146,10 @@ static int nand_load(uint32_t offs, unsigned int uboot_size, void *vdst)
 		if (port_size == 8)
 			bad_marker = 5;
 	}
+
+	ver = ifc_in32(&gregs->ifc_rev);
+	if (ver >= FSL_IFC_V2_0_0)
+		bufnum_mask = (bufnum_mask * 2) + 1;
 
 	pages_per_blk =
 		32 << ((csor & CSOR_NAND_PB_MASK) >> CSOR_NAND_PB_SHIFT);
@@ -218,15 +235,6 @@ static int nand_load(uint32_t offs, unsigned int uboot_size, void *vdst)
 }
 
 /*
- * Defines a static function nand_load_image() here, because non-static makes
- * the code too large for certain SPLs(minimal SPL, maximum size <= 4Kbytes)
- */
-#ifndef CONFIG_TPL_BUILD
-#define nand_spl_load_image(offs, uboot_size, vdst) \
-	nand_load(offs, uboot_size, vdst)
-#endif
-
-/*
  * Main entrypoint for NAND Boot. It's necessary that SDRAM is already
  * configured and available since this code loads the main U-boot image
  * from NAND into SDRAM and starts from there.
@@ -263,3 +271,13 @@ void nand_boot(void)
 	uboot = (void *)CONFIG_SYS_NAND_U_BOOT_START;
 	uboot();
 }
+
+#ifndef CONFIG_SPL_NAND_INIT
+void nand_init(void)
+{
+}
+
+void nand_deselect(void)
+{
+}
+#endif

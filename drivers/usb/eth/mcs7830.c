@@ -600,7 +600,7 @@ static int mcs7830_recv(struct eth_device *eth)
 
 	if (sts == STAT_RX_FRAME_CORRECT) {
 		debug("%s() got a frame, len=%d\n", __func__, gotlen);
-		NetReceive(buf, gotlen);
+		net_process_received_packet(buf, gotlen);
 		return 0;
 	}
 
@@ -666,7 +666,7 @@ struct mcs7830_dongle {
 /*
  * mcs7830_dongles - the list of supported Moschip based USB ethernet dongles
  */
-static const struct mcs7830_dongle const mcs7830_dongles[] = {
+static const struct mcs7830_dongle mcs7830_dongles[] = {
 	{ 0x9710, 0x7832, },	/* Moschip 7832 */
 	{ 0x9710, 0x7830, },	/* Moschip 7830 */
 	{ 0x9710, 0x7730, },	/* Moschip 7730 */

@@ -8,7 +8,7 @@
 #ifndef _IMXIMAGE_H_
 #define _IMXIMAGE_H_
 
-#define MAX_HW_CFG_SIZE_V2 121 /* Max number of registers imx can set for v2 */
+#define MAX_HW_CFG_SIZE_V2 220 /* Max number of registers imx can set for v2 */
 #define MAX_HW_CFG_SIZE_V1 60  /* Max number of registers imx can set for v1 */
 #define APP_CODE_BARKER	0xB1
 #define DCD_BARKER	0xB17219E9
@@ -29,6 +29,7 @@
 #define FLASH_OFFSET_ONENAND	0x100
 #define FLASH_OFFSET_NOR	0x1000
 #define FLASH_OFFSET_SATA	FLASH_OFFSET_STANDARD
+#define FLASH_OFFSET_QSPI	0x1000
 
 /* Initial Load Region Size */
 #define FLASH_LOADSIZE_UNDEFINED	0xFFFFFFFF
@@ -39,6 +40,7 @@
 #define FLASH_LOADSIZE_ONENAND		0x400
 #define FLASH_LOADSIZE_NOR		0x0 /* entire image */
 #define FLASH_LOADSIZE_SATA		FLASH_LOADSIZE_STANDARD
+#define FLASH_LOADSIZE_QSPI		0x0 /* entire image */
 
 #define IVT_HEADER_TAG 0xD1
 #define IVT_VERSION 0x40

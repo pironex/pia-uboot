@@ -18,10 +18,14 @@
 #include <spl.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/omap.h>
 #include <asm/arch/ddr_defs.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/mmc_host_def.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/io.h>
+#include <asm/emif.h>
 #include <asm/gpio.h>
 #include <i2c.h>
 #include <miiphy.h>
@@ -63,48 +67,14 @@ static inline int board_is_800mhz(void)
 }
 
 
-#if defined(CONFIG_PIA_FIRSTSTART)
-static int init_rtc_rx8801(void)
-{
-	u8 regval;
-
-	/* RTC EX-8801 */
-	puts("Initializing RTC (clearing error flags)\n");
-	i2c_set_bus_num(PIA_RX8801_BUS);
-	if (i2c_probe(PIA_RX8801_ADDRESS)) {
-		puts(" FAIL: Could not probe RTC device\n");
-		return -ENODEV;
-	}
-
-	/* clear RESET */
-	regval = 0x40; /* 2s temp compensation, reset off */
-	if (i2c_write(PIA_RX8801_ADDRESS, 0x0f, 1, &regval, 1)) {
-		puts(" Couldn't write RTC control register\n");
-		return -EIO;
-	}
-
-	/* clear error flags, they are undefined on first start */
-	regval = 0x00; /* clear all interrupt + error flags */
-	if (i2c_write(PIA_RX8801_ADDRESS, 0x0e, 1, &regval, 1)) {
-		puts(" Couldn't clear RTC flag register\n");
-		return -EIO;
-	}
-
-	return 0;
-}
-#else
-static inline int init_rtc_rx8801(void) { return 0; }
-#endif
-
 void enable_i2c1_pin_mux(void);
-
-
 
 #define EEPROM_POS_CONFIG_VARIANT	(0)
 #define EEPROM_POS_CONFIG_NAND		(1)
 #define EEPROM_POS_CONFIG_TOUCH		(2)
 #define EEPROM_POS_CONFIG_MEMORY	(3)
 #define EEPROM_POS_CONFIG_EMMC		(4)
+#define EEPROM_POS_CONFIG_ETHMIRROR	(5)
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
@@ -116,22 +86,25 @@ static int init_eeprom(int expansion, int rewrite)
 	int addr = CONFIG_SYS_I2C_EEPROM_ADDR;
 
 	struct am335x_baseboard_id config;
+	size = sizeof(struct am335x_baseboard_id);
+	memset(&config, 0, size);
 
 	if (!rewrite && config.magic == 0xEE3355AA) {
-		printf("EEPROM already initialized\n");
+		puts("EEPROM already initialized!\n");
 		return 0;
 	}
 
 
 	config.magic = 0xEE3355AA;
 	strncpy((char *)&config.serial, "000000000000", 12);
-	memset(&config.config, 0, 32);
 	if (expansion) {
 #if defined (CONFIG_EXP_NAME)
-		printf("(Re)Writing Expansion EEPROM content\n");
+		puts("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config.name, CONFIG_EXP_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_EXP_REV, 4);
+		strncpy((char *)&config.name, CONFIG_EXP_NAME,
+			strnlen(CONFIG_EXP_NAME, 8));
+		strncpy((char *)&config.version, CONFIG_EXP_REVISION,
+			strnlen(CONFIG_EXP_REVISION, 4));
 		bus = 1;
 #ifdef CONFIG_PIA_MMI
 		addr = 0x51; /* LCD-EEPROM on 0x51 */
@@ -140,28 +113,29 @@ static int init_eeprom(int expansion, int rewrite)
 #endif /* CONFIG_EXP_NAME */
 	} else {
 #if defined (CONFIG_BOARD_NAME)
-		printf("(Re)Writing EEPROM content\n");
+		puts("(Re)Writing main EEPROM content\n");
 		/* init with default magic number, generic name and version info */
-		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
-		strncpy((char *)&config.version, CONFIG_BOARD_REVISION, 4);
+		strncpy((char *)&config.name, CONFIG_BOARD_NAME,
+			strnlen(CONFIG_BOARD_NAME, 8));
+		strncpy((char *)&config.version, CONFIG_BOARD_REVISION,
+			strnlen(CONFIG_BOARD_REVISION, 4));
 		/* set board dependent config options */
 #if (defined CONFIG_MMI_EXTENDED)
 #if (CONFIG_MMI_EXTENDED == 0)
-		config.config[0] = 'B';
+		config.config[EEPROM_POS_CONFIG_VARIANT] = 'B';
 #else
-		config.config[0] = 'X';
+		config.config[EEPROM_POS_CONFIG_VARIANT] = 'X';
 #endif
 #endif /* CONFIG_MMI_EXTENDED */
 #if (defined CONFIG_PIA_E2)
-		config.config[1] = 'N'; // NAND present
+		config.config[EEPROM_POS_CONFIG_NAND] = 'N'; // NAND present
 #endif
-#if (defined CONFIG_PIA_PM)
-		config.config[EEPROM_POS_CONFIG_MEMORY] = CONFIG_BOARD_MEMTYPE;
-#endif
+#ifdef CONFIG_PIA_MEM_512
+		config.config[EEPROM_POS_CONFIG_MEMORY] = 'K';
+#endif /* CONFIG_PIA_MEM_512 */
 #endif /* CONFIG_BOARD_NAME */
 	}
 
-	size = sizeof(struct am335x_baseboard_id);
 	pos = 0;
 
 	i2c_set_bus_num(bus);
@@ -187,25 +161,27 @@ static int init_eeprom(int expansion, int rewrite)
 		udelay(10000);
 	} while ((pos = pos + 8) < size);
 
-	memcpy(header, &config, sizeof(struct am335x_baseboard_id));
-
 	return 0;
 }
 
-int am33xx_first_start(void)
+static void am33xx_first_start(void)
 {
 #ifdef CONFIG_EXP_NAME
 	enable_i2c1_pin_mux();
 	init_eeprom(1, 1);
 #endif
+#ifdef CONFIG_BOARD_NAME
 	init_eeprom(0, 1);
+#endif
 
-	if (board_is_e2(header))
-		init_rtc_rx8801();
+#ifdef CONFIG_PIA_E2
+	init_rtc_rx8801();
+#endif
 
 	puts("Board initialized, turn off the device and reboot "
 		"with a real system.\n");
-	return 0;
+	for (;;)
+		; // endless loop
 }
 #endif
 
@@ -213,9 +189,9 @@ int am33xx_first_start(void)
  * Read header information from EEPROM into global structure.
  * in special FIRSTSTART build we write a new EEPROM configuration
  */
-static int read_eeprom_on_bus(int i2cbus)
+static int read_eeprom_on_bus(int i2cbus, struct am335x_baseboard_id *header)
 {
-	debug(">>pia:read_eeprom(%d)\n", i2cbus);
+	debug(">>pia:read_eeprom_on_bus(%d)\n", i2cbus);
 	i2c_set_bus_num(i2cbus);
 
 	/* Check if baseboard eeprom is available */
@@ -232,7 +208,7 @@ static int read_eeprom_on_bus(int i2cbus)
 	}
 
 
-	if (header->magic != 0xEE3355AA || header->config[31] != 0) {
+	if (header->magic != 0xEE3355AA) {
 		printf("Incorrect magic number (0x%x) in EEPROM\n",
 				header->magic);
 		return -EIO;
@@ -240,25 +216,23 @@ static int read_eeprom_on_bus(int i2cbus)
 
 	return 0;
 }
-static int read_eeprom(void)
+static int read_eeprom(struct am335x_baseboard_id *header)
 {
-	int i, err = 0;
+	int err0 = 0, err1 = 0;
+	int bus = 0;
 
 	debug(">>pia:read_eeprom()\n");
-	err = read_eeprom_on_bus(0);
+	err0 = read_eeprom_on_bus(bus, header);
 
 	/* TODO we don't care about PM for now, this could change
 	 * use temp variable in reading function instead of 2 copies on error */
-	if (err == -ENODEV || board_is_pm(header)) {
+	if (err0 == -ENODEV || board_is_pm(header)) {
 #ifdef CONFIG_SPL_BUILD
 		enable_i2c1_pin_mux();
 #endif
 		struct am335x_baseboard_id oldheader;
 		memcpy(&oldheader, header, sizeof(struct am335x_baseboard_id));
-		if (read_eeprom_on_bus(1) < 0) {
-			puts("Could not read baseboard EEPROM; only PM module"
-				"will be configured! Check baseboards EEPROM"
-				"content!\n");
+		if ((err1 = read_eeprom_on_bus(1, header)) < 0) {
 			memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
 		}
 		// keep memory configuration byte, essential for DDR setup
@@ -268,54 +242,17 @@ static int read_eeprom(void)
 		}
 	}
 
-#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
-	puts("Special FIRSTSTART version\n");
-	/* force reinitialization, normally the ID EEPROM is written here */
-	am33xx_first_start();
-#endif
-	if (err < 0)
-		return err;
-
-	puts("Detecting board... ");
-	i = 1;
-	if (board_is_e2(header)) {
-		puts("  PIA335E2 found\n");
-	} else if (board_is_mmi(header)) {
-		puts("  PIA335MI found\n");
-	} else if (board_is_pm(header)) {
-		puts("  PIA335PM found\n");
-	} else if (board_is_em(header)) {
-		puts("  Lokisa EM found\n");
-	} else if (board_is_sk(header)) {
-		puts("  SK with undetectable PM found\n");
-	} else  if (board_is_ebtft(header)) {
-		puts("  EB_TFT wih undetectable PM found\n");
-	} else  if (board_is_apc(header)) {
-		puts("  APC wih undetectable PM found\n");
-	} else {
-		i = 0;
+	if (err1 < 0) {
+		puts("ERROR: Could not read baseboard EEPROM!\n");
 	}
-
-	if (i == 0) {
-		puts("Board not specified or unknown! "
-			"Check ID EEPROM content!\n");
-		hang();
+	if (err0 < 0 && err1 < 0) {
+		return err0;
 	}
-
-	puts("  Options: ");
-	for (i = 0; i < 32; ++i) {
-		if (header->config[i]) {
-			putc(header->config[i]);
-		}
-	}
-	putc('\n');
-	printf("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
-			header->magic, header->name, header->version, header->serial);
 
 	return 0;
 }
 
-#ifndef CONFIG_SPL_BUILD
+#if !defined(CONFIG_SPL_BUILD)
 #ifdef PIA_TESTING
 
 static int test_rtc_tps(void)
@@ -479,13 +416,22 @@ static inline int test_pia(void) {
 }
 #endif /* PIA_TESTING */
 
+
 int board_phy_config(struct phy_device *phydev)
 {
-#if 0
-	int reg;
-	if (board_is_e2(header)) {
+	__maybe_unused struct am335x_baseboard_id header;
+
+#ifdef CONFIG_DRIVER_TI_CPSW
+	unsigned short reg;
+	int res = 0;
+
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
+	if (board_is_e2(&header)) {
 		int i, eth_cnt = 5;
 
+		/* initialize IP175L device */
 		puts("Initializing ethernet switch\n");
 		phy_write(phydev, 30, 0, 0x175c);
 		mdelay(5); /* min 2 ms */
@@ -497,6 +443,30 @@ int board_phy_config(struct phy_device *phydev)
 			debug(" P%d status: 0x%04x\n", i, reg);
 		}
 		mdelay(2);
+	}
+
+	if (board_is_dr(&header)) {
+		const char *devname;
+
+		/* initialize IP175L device */
+		devname = miiphy_get_current_dev();
+		puts("Initializing ethernet switch\n");
+		res = miiphy_write(devname, 20, 2, 0x175d);
+		mdelay(5); /* min 2 ms */
+
+		if (header.config[EEPROM_POS_CONFIG_ETHMIRROR] == 1) {
+			printf("DR: enabling Ethernet switch Mirror Mode on second port %d\n", res);
+			miiphy_read(devname, 20, 21, &reg);
+			printf("PHY 20:21 - %04x\n", reg);
+			reg = 0x5002; // mirror second port to, cpu port
+			res = miiphy_write(devname, 20, 21, reg);
+			printf("res: %d\n", res);
+			miiphy_read(devname, 20, 20, &reg);
+			printf("PHY 20:20 - %04x\n", reg);
+			reg = 0xe002;
+			res = miiphy_write(devname, 20, 20, reg);
+			printf("res: %d\n", res);
+		}
 	}
 #endif
 
@@ -516,12 +486,12 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x208,
 		.sliver_reg_ofs	= 0xd80,
-		.phy_addr	= 0,
+		.phy_addr	= 15,
 	},
 	{
 		.slave_reg_ofs	= 0x308,
 		.sliver_reg_ofs	= 0xdc0,
-		.phy_addr	= 1,
+		.phy_addr	= 5,
 	},
 };
 
@@ -531,7 +501,7 @@ static struct cpsw_platform_data cpsw_data = {
 	.mdio_div		= 0xff,
 	.channels		= 8,
 	.cpdma_reg_ofs		= 0x800,
-	.slaves			= 1,
+	.slaves			= 2,
 	.slave_data		= cpsw_slaves,
 	.ale_reg_ofs		= 0xd00,
 	.ale_entries		= 1024,
@@ -549,25 +519,10 @@ int board_eth_init(bd_t *bis)
 	int rv, n = 0;
 	uint8_t mac_addr[6];
 	uint32_t mac_hi, mac_lo;
+	__maybe_unused struct am335x_baseboard_id header;
 
-	/* try reading mac address from efuse */
-	mac_lo = readl(&cdev->macid0l);
-	mac_hi = readl(&cdev->macid0h);
-	mac_addr[0] = mac_hi & 0xFF;
-	mac_addr[1] = (mac_hi & 0xFF00) >> 8;
-	mac_addr[2] = (mac_hi & 0xFF0000) >> 16;
-	mac_addr[3] = (mac_hi & 0xFF000000) >> 24;
-	mac_addr[4] = mac_lo & 0xFF;
-	mac_addr[5] = (mac_lo & 0xFF00) >> 8;
-
-#if (defined(CONFIG_DRIVER_TI_CPSW) && !defined(CONFIG_SPL_BUILD)) || \
-	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
-	if (!getenv("ethaddr")) {
-		printf("<ethaddr> not set. Validating first E-fuse MAC\n");
-
-		if (is_valid_ether_addr(mac_addr))
-			eth_setenv_enetaddr("ethaddr", mac_addr);
-	}
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
 
 #ifdef CONFIG_DRIVER_TI_CPSW
 
@@ -580,7 +535,16 @@ int board_eth_init(bd_t *bis)
 	mac_addr[4] = mac_lo & 0xFF;
 	mac_addr[5] = (mac_lo & 0xFF00) >> 8;
 
-	if (board_is_em(header)) {
+	/* only for "real" ETH in SPL or CPSW driver,
+	 * disable when using USB ETH */
+	if (!getenv("ethaddr")) {
+		printf("<ethaddr> not set. Validating first E-fuse MAC\n");
+
+		if (is_valid_ethaddr(mac_addr))
+			eth_setenv_enetaddr("ethaddr", mac_addr);
+	}
+
+	if (board_is_em(&header) || board_is_pm(&header)) {
 		writel(MII_MODE_ENABLE, &cdev->miisel);
 		cpsw_slaves[0].phy_if = cpsw_slaves[1].phy_if =
 				PHY_INTERFACE_MODE_MII;
@@ -591,112 +555,58 @@ int board_eth_init(bd_t *bis)
 		printf("Error %d registering CPSW switch\n", rv);
 	else
 		n += rv;
-#endif
-	if (board_is_apc(header)) {
-		int res;
-		unsigned short reg;
-		const char *devname;
-
-		devname = miiphy_get_current_dev();
-		puts("Initializing ethernet switch\n");
-		res = miiphy_write(devname, 20, 2, 0x175d);
-		//phy_write(phydev, 20, 2, 0x175d);
-		mdelay(5); /* min 2 ms */
-		printf("APC: enabling Ethernet switch Mirror Mode on second port %d\n", res);
-		miiphy_read(devname, 20, 21, &reg);
-		printf("PHY 20:21 - %04x\n", reg);
-		reg = 0x5002; // mirror second port to, cpu port
-		res = miiphy_write(devname, 20, 21, reg);
-		printf("res: %d\n", res);
-		miiphy_read(devname, 20, 20, &reg);
-		printf("PHY 20:20 - %04x\n", reg);
-		reg = 0xe002;
-		res = miiphy_write(devname, 20, 20, reg);
-		printf("res: %d\n", res);
-	}
-#endif
+#endif /* CONFIG_DRIVER_TI_CPSW */
 
 	return n;
 }
-#endif
-
-static int init_tps65910(void)
-{
-	u8 regval;
-
-	/* RTC on TPS65910 */
-	puts("Initializing TPS\n");
-	i2c_set_bus_num(0);
-	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
-		puts(" FAIL: Could not probe RTC device\n");
-		return -ENODEV;
-	}
-
-	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1); /* dummy */
-	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1);
-	printf(" TPS status: 0x%x\n", regval);
-	/* clear powerup and alarm flags */
-	regval = 0xC0;
-	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
-		puts(" FAIL: Couldn't write RTC STATUS register\n");
-		return -EIO;
-	}
-	udelay(10000);
-	if (board_is_pm(header) || board_is_mmi(header) ||
-		board_is_em(header)) {
-		/* start clock, safe to set again */
-		regval = 0x01; /* 24 hour, direct reg access, rtc running */
-		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
-			puts(" Couldn't write RTC CONTROL register\n");
-			return -EIO;
-		}
-		udelay(10000);
-		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
-				((regval & 0x02) == 0)) {
-			puts(" WARN: RTC not running!");
-		}
-	}
-	/* only enable battery charger for devices utilizing the TPS VBACKUP */
-	if (board_is_mmi(header) || board_is_em(header) ||
-		board_is_ebtft(header) || board_is_sk(header) ||
-		board_is_apc(header)) {
-		puts("Initializing TPS Battery Charger... 3.15V\n");
-		// BBCHG 3.15V enable charge
-		regval = ((0x02 << 1) | 0x01);
-		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
-			puts(" FAIL: Couldn't enable battery charger!\n");
-			return -EIO;
-		}
-	}
-
-	return 0;
-}
-
-int board_late_init()
-{
-	/* use this as testing function, ETH is not initialized here */
-	debug("+pia:board_late_init()\n");
-	init_tps65910();
-
-	if (board_is_e2(header))
-		init_rtc_rx8801();
-
-#ifdef PIA_TESTING
-	test_pia();
-#endif
-	return 0;
-}
+#endif /* SPL_ETH || TI_CPSW */
 #endif /* !SPL_BUILD */
 
-#define MPU     0
-#define CORE    1
 
-int voltage_update(unsigned int module, unsigned char vddx_op_vol_sel);
+static void print_board_info(struct am335x_baseboard_id *header)
+{
+	int i = 1;
+	puts("Detecting board... \n");
+	printf("EEPROM: 0x%08x - Name:%.8s, - Rev: %.4s\n",
+		header->magic, header->name, header->version);
+	if (board_is_e2(header)) {
+		puts("  PIA335E2 found\n");
+	} else if (board_is_mmi(header)) {
+		puts("  PIA335MI found\n");
+	} else if (board_is_em(header)) {
+		puts("  Lokisa EM found\n");
+	} else if (board_is_sk(header)) {
+		puts("  SK found\n");
+	} else  if (board_is_ebtft(header)) {
+		puts("  EB_TFT found\n");
+	} else  if (board_is_dr(header)) {
+		puts("  DataRecorder/APC found\n");
+	} else if (board_is_pia(header)) {
+		puts("  piA-AM3352 found\n");
+	} else if (board_is_pm(header)) {
+		puts("  PIA335PM found - unable to detect Baseboard!\n");
+	} else {
+		puts("Board not specified or unknown! "
+			"Check ID EEPROM content!\n");
+		i = 0;
+	}
 
+	if (i != 0) {
+		puts("  Options: ");
+		for (i = 0; i < 32; ++i) {
+			if (header->config[i]) {
+				putc(header->config[i]);
+			}
+		}
+	}
+	putc('\n');
+}
+
+#if !defined(CONFIG_SKIP_LOWLEVEL_INIT)
 /* override from cpu/armv7/am33xx/board.c */
-#ifdef CONFIG_SPL_BUILD
-
 #define OSC	(V_OSCK/1000000)
+/* DDR speed is the same for all piA boards
+ * 1000 MHz variant of AM335x would require 400 MHz, see ti bone black config */
 const struct dpll_params dpll_ddr_params = {
 		303, OSC-1, 1, -1, -1, -1, -1};
 
@@ -704,9 +614,19 @@ void am33xx_spl_board_init(void)
 {
 	uchar buf[4];
 	int mpu_vdd, sil_rev;
-	debug(">>pia:am33xx_spl_board_init()\n");
+	struct am335x_baseboard_id header;
 
-	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
+
+#if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
+	puts("Special FIRSTSTART version\n");
+	/* force reinitialization, normally the ID EEPROM is written here */
+	am33xx_first_start();
+#endif
+
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
+	print_board_info(&header);
 
 	/* MPU voltage 1.2625V, CORE voltage 1.1375V.
 	 * Correct for 720 and 800 MHz variants
@@ -734,16 +654,7 @@ void am33xx_spl_board_init(void)
 	i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_DEVCTRL2_REG, 1, buf, 1);
 
 	/* disable VDIG1, it's not used on PM module */
-	if (board_is_pm(header)) {
-#if 0
-	/* FIXME use gd->arch.omap_boot_params.omap_bootdevice */
-		/* use BCK1 register to store the boot device */
-		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
-		if (buf[0] != boot_params.omap_bootdevice) {
-			buf[0] = boot_params.omap_bootdevice;
-			i2c_write(TPS65910_CTRL_I2C_ADDR, TPS65910_BCK1_REG, 1, buf, 1);
-		}
-#endif
+	if (board_is_pm(&header)) {
 		i2c_read(TPS65910_CTRL_I2C_ADDR, TPS65910_VDIG1_REG, 1, buf, 1);
 		debug("PMIC_VDIG1_REG %02x\n", buf[0]);
 		buf[0] = 0;
@@ -768,7 +679,6 @@ void am33xx_spl_board_init(void)
 
 const struct dpll_params *get_dpll_ddr_params(void)
 {
-	debug(__FUNCTION__);
 	/* this is called very early in the boot process
 	 * init i2c here */
 	enable_i2c0_pin_mux();
@@ -781,17 +691,17 @@ const struct dpll_params *get_dpll_ddr_params(void)
 /* called at the beginning of s_init */
 void set_uart_mux_conf(void)
 {
-	debug(__FUNCTION__);
 	enable_uart0_pin_mux();
 }
 
 void set_mux_conf_regs(void)
 {
-	debug(__FUNCTION__);
-	if (read_eeprom() < 0)
+	__maybe_unused struct am335x_baseboard_id header;
+
+	if (read_eeprom(&header) < 0)
 		puts("Could not get board ID.\n");
 
-	enable_board_pin_mux(header);
+	enable_board_pin_mux(&header);
 }
 
 const struct ctrl_ioregs ioregs_pia = {
@@ -895,7 +805,7 @@ static const struct ddr_data ddr3_e2_data = {
 #define KINGSTON256_PM_WR_DQS		0x03a
 #define KINGSTON256_PM_PHY_FIFO_WE	0x09b
 #define KINGSTON256_PM_PHY_WR_DATA	0x073
-static const struct ddr_data ddr3_kingstron_data = {
+static const struct ddr_data ddr3_kingston_data = {
 	.datardsratio0 = KINGSTON256_PM_RD_DQS,
 	.datawdsratio0 = KINGSTON256_PM_WR_DQS,
 	.datafwsratio0 = KINGSTON256_PM_PHY_FIFO_WE,
@@ -916,21 +826,26 @@ static struct emif_regs ddr3_pia_256m16_emif_reg_data = {
 
 void sdram_init(void)
 {
+	__maybe_unused struct am335x_baseboard_id header;
+
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
 	/* safe config for all boards */
-	if (board_is_e2(header)) {
+	if (board_is_e2(&header)) {
 		puts("Setup DDR3 MT41K256M16HA-125:IT\n");
 		config_ddr(303, &ioregs_pia, &ddr3_e2_data,
 			   &ddr3_pia_cmd_ctrl_data,
 			   &ddr3_pia_256m16_emif_reg_data, 0);
-	} else if (board_is_mmi(header)) {
+	} else if (board_is_mmi(&header)) {
 		puts("Setup DDR3 MT41J128M16JT-125 memory\n");
 		config_ddr(303, &ioregs_pia, &ddr3_mmi_data,
 			   &ddr3_pia_cmd_ctrl_data,
 			   &ddr3_128m16_emif_reg_data, 0);
-	} else if (board_is_pm(header)) {
-		if (header->config[EEPROM_POS_CONFIG_MEMORY] == 'K') {
+	} else if (board_is_pm(&header)) {
+		if (header.config[EEPROM_POS_CONFIG_MEMORY] == 'K') {
 			puts("Setup PM DDR3 Kingston 256M16\n");
-			config_ddr(303, &ioregs_pia, &ddr3_kingstron_data,
+			config_ddr(303, &ioregs_pia, &ddr3_kingston_data,
 				&ddr3_pia_cmd_ctrl_data,
 				&ddr3_pia_256m16_emif_reg_data, 0);
 		} else {
@@ -946,11 +861,89 @@ void sdram_init(void)
 			   &ddr3_cmd_ctrl_data, &ddr3_emif_reg_data, 0);
 	}
 }
-#endif /* SPL_BUILD */
+#endif /* CONFIG_SKIP_LOWLEVEL_INIT */
 
-int board_mmc_getcd(struct mmc* mmc)
+#if !defined(CONFIG_SPL_BUILD)
+static int init_rtc_rx8801(void)
 {
-	return 1; // ignore CD only present on prototype board
+	u8 regval;
+
+	/* RTC EX-8801 */
+	puts("Initializing RTC (clearing error flags)\n");
+	i2c_set_bus_num(PIA_RX8801_BUS);
+	if (i2c_probe(PIA_RX8801_ADDRESS)) {
+		puts(" FAIL: Could not probe RTC device\n");
+		return -ENODEV;
+	}
+
+	/* clear RESET */
+	regval = 0x40; /* 2s temp compensation, reset off */
+	if (i2c_write(PIA_RX8801_ADDRESS, 0x0f, 1, &regval, 1)) {
+		puts(" Couldn't write RTC control register\n");
+		return -EIO;
+	}
+
+	/* clear error flags, they are undefined on first start */
+	regval = 0x00; /* clear all interrupt + error flags */
+	if (i2c_write(PIA_RX8801_ADDRESS, 0x0e, 1, &regval, 1)) {
+		puts(" Couldn't clear RTC flag register\n");
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int init_tps65910(struct am335x_baseboard_id *header)
+{
+	u8 regval;
+
+	/* RTC on TPS65910 */
+	puts("Initializing TPS\n");
+	i2c_set_bus_num(0);
+	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
+		puts(" FAIL: Could not probe RTC device\n");
+		return -ENODEV;
+	}
+
+	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1); /* dummy */
+	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1);
+	printf(" TPS status: 0x%x\n", regval);
+	/* clear powerup and alarm flags */
+	regval = 0xC0;
+	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
+		puts(" FAIL: Couldn't write RTC STATUS register\n");
+		return -EIO;
+	}
+	udelay(10000);
+	if (board_is_pm(header) || board_is_mmi(header) ||
+			board_is_em(header)) {
+		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
+				((regval & 0x02) == 0)) {
+			puts(" INFO: RTC not running, turning on...");
+		}
+		/* start clock, safe to set again */
+		regval = 0x01; /* 24 hour, direct reg access, rtc running */
+		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
+			puts(" Couldn't write RTC CONTROL register\n");
+			return -EIO;
+		}
+		udelay(10000);
+		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
+				((regval & 0x02) == 0)) {
+			puts(" WARN: RTC still not running!");
+		}
+
+		/* only enable battery charger for devices utilizing the TPS VBACKUP */
+		puts("Initializing TPS Battery Charger... 3.15V\n");
+		// BBCHG 3.15V enable charge
+		regval = ((0x02 << 1) | 0x01);
+		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
+			puts(" FAIL: Couldn't enable battery charger!\n");
+			return -EIO;
+		}
+	}
+
+	return 0;
 }
 
 /*
@@ -961,16 +954,53 @@ int board_init(void)
 	debug(">>pia:board_init()\n");
 
 #if defined(CONFIG_HW_WATCHDOG)
+	// TODO OMAP watchdog support is currently disabled
 	hw_watchdog_init();
 #endif
 
-	if (read_eeprom() < 0)
-		puts("Could not get board ID\n");
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
-
-	if (board_is_e2(header))
-		gpmc_init();
+#if defined(CONFIG_NAND)
+	gpmc_init();
+#endif
 
 	return 0;
 }
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init()
+{
+	struct am335x_baseboard_id header;
+
+	if (read_eeprom(&header) < 0)
+		puts("Could not get board ID.\n");
+
+	print_board_info(&header);
+
+	/* use this as testing function, ETH is not initialized here */
+	debug("+pia:board_late_init()\n");
+	init_tps65910(&header);
+
+	if (board_is_e2(&header))
+		init_rtc_rx8801();
+
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	char safe_string[HDR_NAME_LEN + 1];
+	/* Now set variables based on the header. */
+	strncpy(safe_string, (char *)header.name, sizeof(header.name));
+	safe_string[sizeof(header.name)] = 0;
+	setenv("board_name", safe_string);
+
+	strncpy(safe_string, (char *)header.version, sizeof(header.version));
+	safe_string[sizeof(header.version)] = 0;
+	setenv("board_rev", safe_string);
+#endif
+
+#ifdef PIA_TESTING
+	test_pia();
+#endif
+	return 0;
+}
+#endif
+#endif /* !CONFIG_SPL_BUILD */
+

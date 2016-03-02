@@ -13,8 +13,6 @@
 
 /*--------------------------------------------------------------------------*/
 
-#define CONFIG_ARM926EJS		/* This is an ARM926EJS Core	*/
-#define CONFIG_AT91FAMILY
 #define CONFIG_AT91SAM9263		/* It's an Atmel AT91SAM9263 SoC*/
 #define CONFIG_VL_MA2SC			/* on an VL_MA2SC Board	*/
 #define CONFIG_ARCH_CPU_INIT
@@ -85,12 +83,6 @@
 /*
  * Command line configuration.
  */
-#include <config_cmd_default.h>
-#undef CONFIG_CMD_BDI
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_IMI
-#undef CONFIG_CMD_LOADS
-
 #define CONFIG_CMD_BMP
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP
@@ -327,7 +319,6 @@
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT		5
 #define CONFIG_AT91_WANTS_COMMON_PHY
 
