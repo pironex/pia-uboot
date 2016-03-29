@@ -583,10 +583,10 @@ static struct module_pin_mux pia335x_dr[] = {
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_RI GPIO3_17 */
 	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_PWRKEY GPIO3_18 */
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLUP) }, /* GSM_DTR GPIO3_19 */
-	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLDOWN) }, /* GPS_WAKEUP (5360 Flightmode disable) GPIO3_20 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT) }, /* GPS_WAKEUP (5360 Flightmode disable) GPIO3_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0.DRVVBUS */
 	/* rev 00.02 */
-	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* charging_f GPIO0_31 */
+	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* PowerGood GPIO0_31 */
 	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* charging GPIO0_28 */
 	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT) }, /* CHR_EN GPIO2_24 */
 	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1.DRVVBUS */
