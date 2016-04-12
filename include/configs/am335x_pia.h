@@ -189,6 +189,8 @@
 			"setenv fdtfile am335x-pia-sk.dtb; fi; " \
 		"if test $board_name = P335BPIA; then " \
 			"setenv fdtfile am335x-pia-base.dtb; fi; " \
+		"if test $board_name = P335BEBT; then " \
+			"setenv fdtfile am335x-pia-cantft.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi; \0" \
 	NANDARGS \
