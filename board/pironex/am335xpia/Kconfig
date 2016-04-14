@@ -85,7 +85,7 @@ config EXP_REVISION
 	default "0.02" if PIA_SK
 	default "0.03" if PIA_DR
 	default "0.03" if PIA_EBTFT
-	default "0.01" if PIA_BASE
+	default "0.02" if PIA_BASE
 	prompt "Board rev. for I2C1 EEPROM (baseboard). Format: x.yz" if PIA_UNKNOWN
 
 endif
