@@ -222,6 +222,14 @@
 #define CONFIG_BOOTCOUNT_AM33XX
 #define CONFIG_SYS_BOOTCOUNT_BE
 
+/* Bootdelay settings not yet in Kconfig
+ * allow stopping the boot process with 's' key, but don't wait for it */
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#ifdef CONFIG_BOOTDELAY
+#undef CONFIG_BOOTDELAY
+#endif
+#define CONFIG_BOOTDELAY 0
+
 /* Ethernet PHY */
 /* allow detection of GigabitEthernet */
 #if 0
