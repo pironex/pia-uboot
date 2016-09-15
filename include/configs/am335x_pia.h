@@ -26,10 +26,13 @@
 #define DEBUG
 #endif /* PIA_DEBUG */
 
+#define CONFIG_SUPPORT_EMMC_BOOT
+/*#define CONFIG_MMC_TRACE*/
 /* defined in ti_armv7_common
  * we don't allow booting from SPL to Linux directly for now */
 #undef CONFIG_SPL_OS_BOOT
 #define CONFIG_ENV_IS_NOWHERE
+
 
 #if defined(CONFIG_PIA_DR) || defined(CONFIG_PIA_EBTFT) || defined(CONFIG_PIA_SK)
 /*#define CONFIG_PIA_PM 2*/ /* number is current PM revision */
@@ -41,7 +44,8 @@
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_DISPLAY_CPUINFO
 
-#if !defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_SPL_BUILD)
+#else
 /* print timestamp for loaded images */
 #define CONFIG_TIMESTAMP
 #define CONFIG_LZO
@@ -118,7 +122,7 @@
 /* TODO check partitions */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
-	"boot_fdt=try\0" \
+	"boot_fdt=yes\0" \
 	"bootpart=1\0" \
 	"bootdir=\0" \
 	"bootfile=zImage\0" \
@@ -181,18 +185,12 @@
 		"run ramargs; " \
 		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"findfdt="\
-		"if test $board_name = P335BAPC; then " \
-			"setenv fdtfile am335x-pia-dr.dtb; fi; " \
-		"if test $board_name = P335BDR; then " \
-			"setenv fdtfile am335x-pia-dr.dtb; fi; " \
-		"if test $board_name = P335BSK; then " \
-			"setenv fdtfile am335x-pia-sk.dtb; fi; " \
 		"if test $board_name = P335BPIA; then " \
 			"setenv fdtfile am335x-pia-base.dtb; fi; " \
 		"if test $board_name = P335BEBT; then " \
 			"setenv fdtfile am335x-pia-cantft.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
-			"echo WARNING: Could not determine device tree to use; fi; \0" \
+			"echo WARNING: Could not determine device tree to use; fi;\0" \
 	NANDARGS \
 	SPIARGS
 #endif /* !SPL_BUILD */
