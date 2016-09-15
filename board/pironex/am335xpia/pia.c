@@ -574,6 +574,8 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  PIA335MI found\n");
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
+	} else if (board_is_sf(header)) {
+		puts("  SF found\n");
 	} else if (board_is_sk(header)) {
 		puts("  SK found\n");
 	} else  if (board_is_ebtft(header)) {
