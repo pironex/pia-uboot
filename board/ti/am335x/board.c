@@ -177,6 +177,7 @@ static struct emif_regs ddr3_beagleblack_emif_reg_data = {
 	.sdram_tim1 = MT41K256M16HA125E_EMIF_TIM1,
 	.sdram_tim2 = MT41K256M16HA125E_EMIF_TIM2,
 	.sdram_tim3 = MT41K256M16HA125E_EMIF_TIM3,
+	.ocp_config = EMIF_OCP_CONFIG_BEAGLEBONE_BLACK,
 	.zq_config = MT41K256M16HA125E_ZQ_CFG,
 	.emif_ddr_phy_ctlr_1 = MT41K256M16HA125E_EMIF_READ_LATENCY,
 };
@@ -187,6 +188,7 @@ static struct emif_regs ddr3_evm_emif_reg_data = {
 	.sdram_tim1 = MT41J512M8RH125_EMIF_TIM1,
 	.sdram_tim2 = MT41J512M8RH125_EMIF_TIM2,
 	.sdram_tim3 = MT41J512M8RH125_EMIF_TIM3,
+	.ocp_config = EMIF_OCP_CONFIG_AM335X_EVM,
 	.zq_config = MT41J512M8RH125_ZQ_CFG,
 	.emif_ddr_phy_ctlr_1 = MT41J512M8RH125_EMIF_READ_LATENCY |
 				PHY_EN_DYN_PWRDN,
