@@ -221,7 +221,6 @@ static int read_eeprom(struct am335x_baseboard_id *header)
 	int err0 = 0, err1 = 0;
 	int bus = 0;
 
-	debug(">>pia:read_eeprom()\n");
 	err0 = read_eeprom_on_bus(bus, header);
 
 	/* TODO we don't care about PM for now, this could change
@@ -575,6 +574,8 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  PIA335MI found\n");
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
+	} else if (board_is_sf(header)) {
+		puts("  SF found\n");
 	} else if (board_is_sk(header)) {
 		puts("  SK found\n");
 	} else  if (board_is_ebtft(header)) {
@@ -994,6 +995,15 @@ int board_late_init()
 	strncpy(safe_string, (char *)header.version, sizeof(header.version));
 	safe_string[sizeof(header.version)] = 0;
 	setenv("board_rev", safe_string);
+
+	/* make sure the findfdt script doesn't get too long in ENV */
+	if (board_is_dr(&header)) {
+		setenv("fdtfile", "am335x-pia-dr.dtb");
+	} else if (board_is_sk(&header)) {
+		setenv("fdtfile", "am335x-pia-sk.dtb");
+	} else if (board_is_sf(&header)) {
+		setenv("fdtfile", "am335x-pia-sf.dtb");
+	}
 #endif
 
 #ifdef PIA_TESTING

@@ -397,34 +397,6 @@ static struct module_pin_mux pia335x_pm[] = {
 static struct module_pin_mux pia335x_eb_tft[] = {
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT_PULLDOWN) }, /* LCD BACKLIGHT EN */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLDOWN) }, /* LCD ON/OFF */
-	{ OFFSET(gpmc_ad8),         (M1 | PIN_OUTPUT) }, /* LCD D23 */
-	{ OFFSET(gpmc_ad9),         (M1 | PIN_OUTPUT) }, /* LCD D22 */
-	{ OFFSET(gpmc_ad10),        (M1 | PIN_OUTPUT) }, /* LCD D21 */
-	{ OFFSET(gpmc_ad11),        (M1 | PIN_OUTPUT) }, /* LCD D20 */
-	{ OFFSET(gpmc_ad12),        (M1 | PIN_OUTPUT) }, /* LCD D19 */
-	{ OFFSET(gpmc_ad13),        (M1 | PIN_OUTPUT) }, /* LCD D18 */
-	{ OFFSET(gpmc_ad14),        (M1 | PIN_OUTPUT) }, /* LCD D17 */
-	{ OFFSET(gpmc_ad15),        (M1 | PIN_OUTPUT) }, /* LCD D16 */
-	{ OFFSET(lcd_data0),        (M0 | PIN_OUTPUT) }, /* LCD D0 */
-	{ OFFSET(lcd_data1),        (M0 | PIN_OUTPUT) }, /* LCD D1 */
-	{ OFFSET(lcd_data2),        (M0 | PIN_OUTPUT) }, /* LCD D2 */
-	{ OFFSET(lcd_data3),        (M0 | PIN_OUTPUT) }, /* LCD D3 */
-	{ OFFSET(lcd_data4),        (M0 | PIN_OUTPUT) }, /* LCD D4 */
-	{ OFFSET(lcd_data5),        (M0 | PIN_OUTPUT) }, /* LCD D5 */
-	{ OFFSET(lcd_data6),        (M0 | PIN_OUTPUT) }, /* LCD D6 */
-	{ OFFSET(lcd_data7),        (M0 | PIN_OUTPUT) }, /* LCD D7 */
-	{ OFFSET(lcd_data8),        (M0 | PIN_OUTPUT) }, /* LCD D8 */
-	{ OFFSET(lcd_data9),        (M0 | PIN_OUTPUT) }, /* LCD D9 */
-	{ OFFSET(lcd_data10),       (M0 | PIN_OUTPUT) }, /* LCD D10 */
-	{ OFFSET(lcd_data11),       (M0 | PIN_OUTPUT) }, /* LCD D11 */
-	{ OFFSET(lcd_data12),       (M0 | PIN_OUTPUT) }, /* LCD D12 */
-	{ OFFSET(lcd_data13),       (M0 | PIN_OUTPUT) }, /* LCD D13 */
-	{ OFFSET(lcd_data14),       (M0 | PIN_OUTPUT) }, /* LCD D14 */
-	{ OFFSET(lcd_data15),       (M0 | PIN_OUTPUT) }, /* LCD D15 */
-	{ OFFSET(lcd_vsync),        (M0 | PIN_OUTPUT) }, /* LCD VSYNC */
-	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
-	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
-	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
 	{ OFFSET(mmc0_dat3),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D3 */
 	{ OFFSET(mmc0_dat2),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D2 */
 	{ OFFSET(mmc0_dat1),        (M0 | PIN_INPUT_PULLUP) }, /* MMC0 D1 */
@@ -517,6 +489,53 @@ static struct module_pin_mux pia3352_pin_mux[] = {
 	{ -1 },
 };
 
+static void init_sf_gpios(void)
+{
+	gpio_direction_output(GPIO_PIA_GSM_PWRKEY, 1);
+}
+
+/* piA-SF */
+static struct module_pin_mux pia335x_sf[] = {
+	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) },        /* Taster_2 GPIO 2_0 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) },        /* Taster_1 GPIO_2_1 */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_OUTPUT) },       /* OUTPUT_2 GPIO 2_2 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) },        /* LCD_PWRDWN GPIO 2_3 */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_OUTPUT) },       /* OUTPUT_1 GPIO 2_4 */
+	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_reset GPIO 2_5 */
+	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) }, /* UART5.RX */
+	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT_PULLUP) }, /* GSM_STATUS GPIO 3_3 */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0.CD GPIO 3_4 */
+	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) },       /* CAN0.TX */
+	{ OFFSET(mii1_txd2),        (M1 | PIN_INPUT) },        /* CAN0.RX */
+	{ OFFSET(mii1_txd0),        (M7 | PIN_OUTPUT) },       /* RS485_RES GPIO 0_28 */
+	{ OFFSET(mii1_txclk),       (M1 | PIN_INPUT) },        /* UART2.RX */
+	{ OFFSET(mii1_rxclk),       (M1 | PIN_OUTPUT) },       /* UART2.TX */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_OUTPUT) },       /* RFID_POW_EN2 GPIO 2_18 */
+	{ OFFSET(mii1_rxd2),        (M7 | PIN_INPUT) },        /* Power_Good GPIO 2_19 */
+	{ OFFSET(rmii1_refclk),     (M3 | PIN_OUTPUT) },       /* UART5.TX */
+	{ OFFSET(spi0_cs1),         (M0 | PIN_INPUT_PULLUP) }, /* RFID_CS SPI0_CS1 */
+	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT_PULLUP) }, /* RFID_IRQ GPIO 0_7 */
+	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) },       /* CAN1.TX */
+	{ OFFSET(uart0_rtsn),       (M2 | PIN_INPUT) },        /* CAN1.RX */
+	{ OFFSET(uart1_ctsn),       (M7 | PIN_OUTPUT) },       /* WDI GPIO 0_12 */
+	{ OFFSET(uart1_rtsn),       (M0 | PIN_OUTPUT) },       /* UART1.RTSn */
+	{ OFFSET(uart1_rxd),        (M0 | PIN_INPUT_PULLUP) }, /* UART1.RX */
+	{ OFFSET(uart1_txd),        (M0 | PIN_OUTPUT) },       /* UART1.TX */
+	{ OFFSET(mcasp0_aclkx),     (M0 | PIN_INPUT) },        /* I2S.SCK */
+	{ OFFSET(mcasp0_fsx),       (M0 | PIN_INPUT) },        /* I2S.LRCLK */
+	{ OFFSET(mcasp0_axr0),      (M0 | PIN_INPUT) },        /* I2S.SD */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* UART2.RI GPIO 3_17 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) },       /* GSM_PWRKEY GPIO 3_18 */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) },       /* UART2.DTR GPIO 3_19 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLUP) }, /* AUDIO-NRESET GPIO 3_20 */
+	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_OUTPUT) },       /* RFID_POW_EN GPIO 3_21 */
+	{ OFFSET(xdma_event_intr0), (M3 | PIN_OUTPUT) },       /* I2S.MCLK */
+	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT_PULLUP) }, /* SP1ML-RESET GPIO 0_20 */
+	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) },       /* USB0.DRVVBUS */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) },       /* USB1.DRVVBUS */
+	{ -1 },
+};
+
 /* piA-AM335x-SK */
 static struct module_pin_mux pia335x_sk[] = {
 	{ OFFSET(mii1_txd3),        (M3 | PIN_INPUT_PULLUP) }, /* UART4.RX GPIO 0_16 */
@@ -583,10 +602,10 @@ static struct module_pin_mux pia335x_dr[] = {
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_RI GPIO3_17 */
 	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_PWRKEY GPIO3_18 */
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLUP) }, /* GSM_DTR GPIO3_19 */
-	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLDOWN) }, /* GPS_WAKEUP (5360 Flightmode disable) GPIO3_20 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT) }, /* GPS_WAKEUP (5360 Flightmode disable) GPIO3_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0.DRVVBUS */
 	/* rev 00.02 */
-	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* charging_f GPIO0_31 */
+	{ OFFSET(gpmc_wpn),         (M7 | PIN_INPUT) }, /* PowerGood GPIO0_31 */
 	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* charging GPIO0_28 */
 	{ OFFSET(lcd_pclk),         (M7 | PIN_INPUT) }, /* CHR_EN GPIO2_24 */
 	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1.DRVVBUS */
@@ -717,31 +736,38 @@ static struct module_pin_mux lokisa_em[] = {
 };
 
 /* Module pin mux for LCDC */
-static struct module_pin_mux lcdc_pin_mux[] = {
-	{OFFSET(lcd_data0),		(M0 | PIN_OUTPUT)},	/* LCD.DATA0 */
-	{OFFSET(lcd_data1),		(M0 | PIN_OUTPUT)}, /* LCD.DATA1 */
-	{OFFSET(lcd_data2),		(M0 | PIN_OUTPUT)}, /* LCD.DATA2 */
-	{OFFSET(lcd_data3),		(M0 | PIN_OUTPUT)}, /* LCD.DATA3 */
-	{OFFSET(lcd_data4),		(M0 | PIN_OUTPUT)}, /* LCD.DATA4 */
-	{OFFSET(lcd_data5),		(M0 | PIN_OUTPUT)}, /* LCD.DATA5 */
-	{OFFSET(lcd_data6),		(M0 | PIN_OUTPUT)}, /* LCD.DATA6 */
-	{OFFSET(lcd_data7),		(M0 | PIN_OUTPUT)}, /* LCD.DATA7 */
-	{OFFSET(lcd_data8),		(M0 | PIN_OUTPUT)}, /* LCD.DATA8 */
-	{OFFSET(lcd_data9),		(M0 | PIN_OUTPUT)}, /* LCD.DATA9 */
-	{OFFSET(lcd_data10),	(M0 | PIN_OUTPUT)}, /* LCD.DATA10 */
-	{OFFSET(lcd_data11),	(M0 | PIN_OUTPUT)}, /* LCD.DATA11 */
-	{OFFSET(lcd_data12),	(M0 | PIN_OUTPUT)}, /* LCD.DATA12 */
-	{OFFSET(lcd_data13),	(M0 | PIN_OUTPUT)}, /* LCD.DATA13 */
-	{OFFSET(lcd_data14),	(M0 | PIN_OUTPUT)}, /* LCD.DATA14 */
-	{OFFSET(lcd_data15),	(M0 | PIN_OUTPUT)}, /* LCD.DATA15 */
-	{OFFSET(gpmc_ad8),		(M1 | PIN_OUTPUT)}, /* LCD.DATA23 */
-	{OFFSET(gpmc_ad9),		(M1 | PIN_OUTPUT)}, /* LCD.DATA22 */
-	{OFFSET(gpmc_ad10),		(M1 | PIN_OUTPUT)}, /* LCD.DATA21 */
-	{OFFSET(gpmc_ad11),		(M1 | PIN_OUTPUT)}, /* LCD.DATA20 */
-	{OFFSET(gpmc_ad12),		(M1 | PIN_OUTPUT)}, /* LCD.DATA19 */
-	{OFFSET(gpmc_ad13),		(M1 | PIN_OUTPUT)}, /* LCD.DATA18 */
-	{OFFSET(gpmc_ad14),		(M1 | PIN_OUTPUT)}, /* LCD.DATA17 */
-	{OFFSET(gpmc_ad15),		(M1 | PIN_OUTPUT)}, /* LCD.DATA16 */
+static struct module_pin_mux lcdc_base_pin_mux[] = {
+	{ OFFSET(gpmc_ad8),         (M1 | PIN_OUTPUT) }, /* LCD D23 */
+	{ OFFSET(gpmc_ad9),         (M1 | PIN_OUTPUT) }, /* LCD D22 */
+	{ OFFSET(gpmc_ad10),        (M1 | PIN_OUTPUT) }, /* LCD D21 */
+	{ OFFSET(gpmc_ad11),        (M1 | PIN_OUTPUT) }, /* LCD D20 */
+	{ OFFSET(gpmc_ad12),        (M1 | PIN_OUTPUT) }, /* LCD D19 */
+	{ OFFSET(gpmc_ad13),        (M1 | PIN_OUTPUT) }, /* LCD D18 */
+	{ OFFSET(gpmc_ad14),        (M1 | PIN_OUTPUT) }, /* LCD D17 */
+	{ OFFSET(gpmc_ad15),        (M1 | PIN_OUTPUT) }, /* LCD D16 */
+	{ OFFSET(lcd_data0),        (M0 | PIN_OUTPUT) }, /* LCD D0 */
+	{ OFFSET(lcd_data1),        (M0 | PIN_OUTPUT) }, /* LCD D1 */
+	{ OFFSET(lcd_data2),        (M0 | PIN_OUTPUT) }, /* LCD D2 */
+	{ OFFSET(lcd_data3),        (M0 | PIN_OUTPUT) }, /* LCD D3 */
+	{ OFFSET(lcd_data4),        (M0 | PIN_OUTPUT) }, /* LCD D4 */
+	{ OFFSET(lcd_data5),        (M0 | PIN_OUTPUT) }, /* LCD D5 */
+	{ OFFSET(lcd_data6),        (M0 | PIN_OUTPUT) }, /* LCD D6 */
+	{ OFFSET(lcd_data7),        (M0 | PIN_OUTPUT) }, /* LCD D7 */
+	{ OFFSET(lcd_data8),        (M0 | PIN_OUTPUT) }, /* LCD D8 */
+	{ OFFSET(lcd_data9),        (M0 | PIN_OUTPUT) }, /* LCD D9 */
+	{ OFFSET(lcd_data10),       (M0 | PIN_OUTPUT) }, /* LCD D10 */
+	{ OFFSET(lcd_data11),       (M0 | PIN_OUTPUT) }, /* LCD D11 */
+	{ OFFSET(lcd_data12),       (M0 | PIN_OUTPUT) }, /* LCD D12 */
+	{ OFFSET(lcd_data13),       (M0 | PIN_OUTPUT) }, /* LCD D13 */
+	{ OFFSET(lcd_data14),       (M0 | PIN_OUTPUT) }, /* LCD D14 */
+	{ OFFSET(lcd_data15),       (M0 | PIN_OUTPUT) }, /* LCD D15 */
+	{ OFFSET(lcd_vsync),        (M0 | PIN_OUTPUT) }, /* LCD VSYNC */
+	{ OFFSET(lcd_hsync),        (M0 | PIN_OUTPUT) }, /* LCD HSYNC */
+	{ OFFSET(lcd_pclk),         (M0 | PIN_OUTPUT) }, /* LCD PCLK */
+	{ OFFSET(lcd_ac_bias_en),   (M0 | PIN_OUTPUT) }, /* LCD DATA EN */
+	{-1},
+};
+static struct module_pin_mux lcdc_mmi_extra_mux[] = {
 	{OFFSET(lcd_vsync),		(M0 | PIN_OUTPUT)}, /* LCD.VSYNC */
 	{OFFSET(lcd_hsync),		(M0 | PIN_OUTPUT)}, /* LCD.HSYNC */
 	{OFFSET(lcd_pclk),		(M0 | PIN_OUTPUT)}, /* LCD.PCLK */
@@ -750,7 +776,6 @@ static struct module_pin_mux lcdc_pin_mux[] = {
 	{OFFSET(mcasp0_ahclkr), (M7 | PIN_OUTPUT)},	/* LCD.BACKLIGHTEN */
 	{-1},
 };
-
 
 static struct module_pin_mux uart0_pin_mux[] = {
 	{OFFSET(uart0_rxd), (M0 | PIN_INPUT_PULLUP)},  /* UART0_RXD */
@@ -1131,15 +1156,23 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(mmi_pmic_pin_mux);
 		configure_module_pin_mux(mmi_accl_pin_mux);
 		configure_module_pin_mux(mmi_audio_pin_mux);
-		configure_module_pin_mux(lcdc_pin_mux);
+		configure_module_pin_mux(lcdc_base_pin_mux);
+		configure_module_pin_mux(lcdc_mmi_extra_mux);
 		init_pia_mmi_gpios();
 	} else if (board_is_ebtft(header)) {
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(pia335x_eb_tft);
+		configure_module_pin_mux(lcdc_base_pin_mux);
 		init_pia_ebtft_gpios();
 	} else if (board_is_em(header)) {
 		configure_module_pin_mux(lokisa_em);
 		init_lokisa_em_gpios();
+	} else if (board_is_sf(header)) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(mmc0_pin_mux);
+		configure_module_pin_mux(pia335x_sf);
+		configure_module_pin_mux(lcdc_base_pin_mux);
+		init_sf_gpios();
 	} else if (board_is_sk(header)) {
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
