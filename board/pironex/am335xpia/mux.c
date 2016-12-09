@@ -491,6 +491,7 @@ static struct module_pin_mux pia3352_pin_mux[] = {
 
 static void init_sf_gpios(void)
 {
+	// CHECK
 	gpio_direction_output(GPIO_PIA_GSM_PWRKEY, 1);
 }
 
@@ -499,22 +500,19 @@ static struct module_pin_mux pia335x_sf[] = {
 	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) },        /* Taster_2 GPIO 2_0 */
 	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT) },        /* Taster_1 GPIO_2_1 */
 	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_OUTPUT) },       /* OUTPUT_2 GPIO 2_2 */
-	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) },        /* LCD_PWRDWN GPIO 2_3 */
 	{ OFFSET(gpmc_wen),         (M7 | PIN_OUTPUT) },       /* OUTPUT_1 GPIO 2_4 */
-	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_reset GPIO 2_5 */
 	{ OFFSET(mii1_col),         (M3 | PIN_INPUT_PULLUP) }, /* UART5.RX */
 	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT_PULLUP) }, /* GSM_STATUS GPIO 3_3 */
-	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0.CD GPIO 3_4 */
 	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) },       /* CAN0.TX */
 	{ OFFSET(mii1_txd2),        (M1 | PIN_INPUT) },        /* CAN0.RX */
 	{ OFFSET(mii1_txd0),        (M7 | PIN_OUTPUT) },       /* RS485_RES GPIO 0_28 */
 	{ OFFSET(mii1_txclk),       (M1 | PIN_INPUT) },        /* UART2.RX */
 	{ OFFSET(mii1_rxclk),       (M1 | PIN_OUTPUT) },       /* UART2.TX */
-	{ OFFSET(mii1_rxd3),        (M7 | PIN_OUTPUT) },       /* RFID_POW_EN2 GPIO 2_18 */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT_PULLDOWN) }, /* RFID_POW_EN2 GPIO 2_18 */
 	{ OFFSET(mii1_rxd2),        (M7 | PIN_INPUT) },        /* Power_Good GPIO 2_19 */
 	{ OFFSET(rmii1_refclk),     (M3 | PIN_OUTPUT) },       /* UART5.TX */
 	{ OFFSET(spi0_cs1),         (M0 | PIN_INPUT_PULLUP) }, /* RFID_CS SPI0_CS1 */
-	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT_PULLUP) }, /* RFID_IRQ GPIO 0_7 */
+	{ OFFSET(ecap0_in_pwm0_out),(M7 | PIN_INPUT_PULLDOWN) }, /* RFID_IRQ GPIO 0_7 */
 	{ OFFSET(uart0_ctsn),       (M2 | PIN_OUTPUT) },       /* CAN1.TX */
 	{ OFFSET(uart0_rtsn),       (M2 | PIN_INPUT) },        /* CAN1.RX */
 	{ OFFSET(uart1_ctsn),       (M7 | PIN_OUTPUT) },       /* WDI GPIO 0_12 */
@@ -526,13 +524,29 @@ static struct module_pin_mux pia335x_sf[] = {
 	{ OFFSET(mcasp0_axr0),      (M0 | PIN_INPUT) },        /* I2S.SD */
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* UART2.RI GPIO 3_17 */
 	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) },       /* GSM_PWRKEY GPIO 3_18 */
-	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) },       /* UART2.DTR GPIO 3_19 */
 	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLUP) }, /* AUDIO-NRESET GPIO 3_20 */
-	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_OUTPUT) },       /* RFID_POW_EN GPIO 3_21 */
-	{ OFFSET(xdma_event_intr0), (M3 | PIN_OUTPUT) },       /* I2S.MCLK */
 	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT_PULLUP) }, /* SP1ML-RESET GPIO 0_20 */
 	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) },       /* USB0.DRVVBUS */
 	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) },       /* USB1.DRVVBUS */
+	{ -1 },
+};
+static struct module_pin_mux pia335x_sf_rev0_1[] = {
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) },        /* LCD_PWRDWN GPIO 2_3 */
+	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_reset GPIO 2_5 */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* MMC0.CD GPIO 3_4 */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) },       /* UART2.DTR GPIO 3_19 */
+	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT_PULLDOWN) }, /* RFID_POW_EN GPIO 3_21 */
+	{ OFFSET(xdma_event_intr0), (M3 | PIN_OUTPUT) },       /* I2S.MCLK */
+	{ -1 },
+};
+static struct module_pin_mux pia335x_sf_rev0_2[] = {
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_OUTPUT) },       /* LCD_PWRDWN GPIO 2_3 */
+	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLDOWN)},/* GSM_reset GPIO 2_5 */
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLDOWN)},/* SP1ML-BOOT.CD GPIO 3_4 */
+	{ OFFSET(mcasp0_fsr),       (M7 | PIN_INPUT_PULLDOWN)},/* UART2.DTR GPIO 3_19 */
+	{ OFFSET(mcasp0_ahclkx),    (M0 | PIN_INPUT_PULLUP) }, /* I2S.MCLK */
+	{ OFFSET(xdma_event_intr0), (M7 | PIN_INPUT_PULLDOWN) }, /* RFID_POW_EN GPIO0_19 */
+	{ OFFSET(emu1),             (M7 | PIN_INPUT_PULLUP ) },/* SP1ML_SHDN GPIO 3_8 */
 	{ -1 },
 };
 
@@ -1171,6 +1185,11 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
 		configure_module_pin_mux(pia335x_sf);
+		if (0 == strncmp(header->version, "0.01", 4)) {
+			configure_module_pin_mux(pia335x_sf_rev0_1);
+		} else {
+			configure_module_pin_mux(pia335x_sf_rev0_2);
+		}
 		configure_module_pin_mux(lcdc_base_pin_mux);
 		init_sf_gpios();
 	} else if (board_is_sk(header)) {
