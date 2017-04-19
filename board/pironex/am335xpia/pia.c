@@ -39,12 +39,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UART_CLK_RUNNING_MASK	0x1
 #define UART_SMART_IDLE_EN	(0x1 << 0x3)
 
-#ifdef CONFIG_SPL_BUILD
-#ifdef PIA_TESTING
-#undef PIA_TESTING
-#endif
-#endif
-
 #define PIA_RX8801_BUS 		1
 #define PIA_RX8801_ADDRESS	0x32
 #define PIA_TPS65910_CTRL_BUS 0
@@ -56,18 +50,13 @@ DECLARE_GLOBAL_DATA_PTR;
 
 
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
-#define DEVICE_ID_REVSHIFT 28
-static inline int board_is_800mhz(void)
-{
-	/* Silicon Revisions 2.x (rev 1+) support 800 MHz */
-	int rev = (readl(&cdev->deviceid) >> DEVICE_ID_REVSHIFT) & 0x3;
-	printf("Device Revision: %d\n", rev);
-
-	return (rev > 0);
-}
-
 
 void enable_i2c1_pin_mux(void);
+#ifdef CONFIG_SPL_BUILD
+#ifdef PIA_TESTING
+#undef PIA_TESTING
+#endif
+#endif /* CONFIG_SPL_BUILD */
 
 #define EEPROM_POS_CONFIG_VARIANT	(0)
 #define EEPROM_POS_CONFIG_NAND		(1)
