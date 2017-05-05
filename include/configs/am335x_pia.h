@@ -247,6 +247,13 @@
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_CMD_EEPROM
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
+/* enable support for PCA9539 IO expander */
+#define CONFIG_PCA953X
+#define CONFIG_SYS_I2C_PCA953X_WIDTH { \
+	{ 0x74, 16 }, \
+}
+#define CONFIG_CMD_PCA953X
+#define CONFIG_CMD_PCA953X_INFO
 
 /* Memory
  * memtest works on 8 MB in DRAM after skipping 64MB from
