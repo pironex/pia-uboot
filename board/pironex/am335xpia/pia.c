@@ -732,8 +732,10 @@ void set_mux_conf_regs(void)
 {
 	__maybe_unused struct am335x_baseboard_id header;
 
-	if (read_eeprom(&header) < 0)
+	if (read_eeprom(&header) < 0) {
 		puts("Could not get board ID.\n");
+		return;
+	}
 
 	enable_board_pin_mux(&header);
 }
