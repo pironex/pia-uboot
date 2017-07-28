@@ -48,14 +48,14 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TC(t) \
 	t = ((t & 0x0f) + (10 *(t >> 4 && 0xf)))
 
-
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 
-void enable_i2c1_pin_mux(void);
 #ifdef CONFIG_SPL_BUILD
 #ifdef PIA_TESTING
 #undef PIA_TESTING
 #endif
+/* I2C1 is used in SPL for base board EEPROM access */
+void enable_i2c1_pin_mux(int mux);
 #endif /* CONFIG_SPL_BUILD */
 
 #define EEPROM_POS_CONFIG_VARIANT	(0)
@@ -64,6 +64,7 @@ void enable_i2c1_pin_mux(void);
 #define EEPROM_POS_CONFIG_MEMORY	(3)
 #define EEPROM_POS_CONFIG_EMMC		(4)
 #define EEPROM_POS_CONFIG_ETHMIRROR	(5)
+#define EEPROM_POS_CONFIG_I2C1MUX	(6)
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 /* TODO ugly */
@@ -156,9 +157,15 @@ static int init_eeprom(int expansion, int rewrite)
 static void am33xx_first_start(void)
 {
 #ifdef CONFIG_EXP_NAME
-	enable_i2c1_pin_mux();
-	init_eeprom(1, 1);
+#if defined(CONFIG_PIA_E2)
+	enable_i2c1_pin_mux(PIA_I2C1_MUX_ALT2);
+#elif defined(CONFIG_PIA_MMI)
+	enable_i2c1_pin_mux(PIA_I2C1_MUX_ALT1);
+#else
+	enable_i2c1_pin_mux(PIA_I2C1_MUX_DEFAULT);
 #endif
+	init_eeprom(1, 1);
+#endif /* CONFIG_EXP_NAME */
 #ifdef CONFIG_BOARD_NAME
 	init_eeprom(0, 1);
 #endif
@@ -208,26 +215,63 @@ static int read_eeprom_on_bus(int i2cbus, struct am335x_baseboard_id *header)
 static int read_eeprom(struct am335x_baseboard_id *header)
 {
 	int err0 = 0, err1 = 0;
-	int bus = 0;
+	int hasPM = 0;
 
-	err0 = read_eeprom_on_bus(bus, header);
+	/* the default eeprom is always on I2C Bus 0, address 0x50 */
+	err0 = read_eeprom_on_bus(0, header);
 
-	/* TODO we don't care about PM for now, this could change
-	 * use temp variable in reading function instead of 2 copies on error */
-	if (err0 == -ENODEV || board_is_pm(header)) {
+	if (err0 == 0) {
+		hasPM = board_is_pm(header);
+		if (!hasPM) // we are done here: a board, that is not a PM
+			return 0;
+	}
+
+	/* If there was a PM detected on 0:0x50 we try to detect the
+	 * attached baseboard and overwrite the PM information in case there
+	 * is also an ID EEPROM on 1:0x50
+	 *
+	 * If the EEPROM on bus 0 could not be read, we try to get the board
+	 * info from the second I2C bus as well.
+	 *
+	 * In SPL mode board we need to enable the correct pinmux for I2C1,
+	 * the configuration is stored in PM EEPROM. We double check with the
+	 * default pinmux configuration if any of the steps fail. */
+	struct am335x_baseboard_id oldheader;
 #ifdef CONFIG_SPL_BUILD
-		enable_i2c1_pin_mux();
+	int8_t muxConfig = PIA_I2C1_MUX_DEFAULT;
+	if (hasPM && (header->config[EEPROM_POS_CONFIG_I2C1MUX] != 0)) {
+		muxConfig = header->config[EEPROM_POS_CONFIG_I2C1MUX];
+	}
+	enable_i2c1_pin_mux(muxConfig);
 #endif
-		struct am335x_baseboard_id oldheader;
+
+	if (hasPM) {
+		/* backup the PM header in case the baseboard detection fails */
 		memcpy(&oldheader, header, sizeof(struct am335x_baseboard_id));
-		if ((err1 = read_eeprom_on_bus(1, header)) < 0) {
-			memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
-		}
-		// keep memory configuration byte, essential for DDR setup
-		if (board_is_pm(&oldheader)) {
-			header->config[EEPROM_POS_CONFIG_MEMORY]
-			               = oldheader.config[EEPROM_POS_CONFIG_MEMORY];
-		}
+	}
+
+	err1 = read_eeprom_on_bus(1, header);
+#ifdef CONFIG_SPL_BUILD
+	/* try multiple pinmuxes in SPL mode for PM */
+	if (err1 < 0 && hasPM) {
+		/* check default I2C1 mux mode as well */
+		muxConfig = PIA_I2C1_MUX_DEFAULT;
+		enable_i2c1_pin_mux(muxConfig);
+		err1 = read_eeprom_on_bus(1, header);
+	}
+#endif
+	if (err1 < 0 && hasPM) {
+		/* no eeprom found in board specific and default
+		 * mux config => use PM data */
+		memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
+	}
+
+	// copy essential bits from PM configuration to the main header,
+	// as we don't store both eeprom contents.
+	// keep memory configuration byte, essential for DDR setup
+	if (hasPM) {
+		header->config[EEPROM_POS_CONFIG_MEMORY]
+		               = oldheader.config[EEPROM_POS_CONFIG_MEMORY];
 	}
 
 	if (err1 < 0) {

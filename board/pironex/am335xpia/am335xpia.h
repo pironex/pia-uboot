@@ -26,13 +26,17 @@
 #define HDR_ETH_ALEN		6
 #define HDR_NAME_LEN		8
 
+#define PIA_I2C1_MUX_DEFAULT	0
+#define PIA_I2C1_MUX_ALT1	1
+#define PIA_I2C1_MUX_ALT2	2
+
 struct am335x_baseboard_id {
-	unsigned int  magic;
-	char name[HDR_NAME_LEN];
-	char version[4];
-	char serial[12];
-	char config[32];
-	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];
+	unsigned int  magic;		// 0..3
+	char name[HDR_NAME_LEN];	// 4..11
+	char version[4];		// 12..15
+	char serial[12];		// 16..27
+	char config[32];		// 28..59
+	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];	// 60..78
 };
 
 static inline int board_is_dr(struct am335x_baseboard_id *header)
