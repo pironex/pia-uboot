@@ -1006,17 +1006,6 @@ void enable_i2c0_pin_mux(void)
 void enable_i2c1_pin_mux(int mux)
 {
 	debug(">>pia:enable_i2c1_pin_mux()\n");
-	/* for first start config, we need the second i2c bus in MLO */
-#ifdef CONFIG_PIA_FIRSSTART
-#if defined(CONFIG_PIA_E2)
-	configure_module_pin_mux(i2c1_pin_mux);
-#elif defined(CONFIG_PIA_MMI)
-	configure_module_pin_mux(mmi_i2c1_pin_mux);
-#else
-	configure_module_pin_mux(pm_i2c1_pin_mux);
-#endif
-#else
-	/* for now, we only need second eeprom with PM */
 	switch (mux) {
 	case PIA_I2C1_MUX_ALT1:
 		configure_module_pin_mux(mmi_i2c1_pin_mux);
@@ -1029,7 +1018,6 @@ void enable_i2c1_pin_mux(int mux)
 		configure_module_pin_mux(pm_i2c1_pin_mux);
 		break;
 	}
-#endif
 }
 
 static void init_pia_e2_gpios(struct am335x_baseboard_id *header)
