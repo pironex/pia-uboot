@@ -343,8 +343,8 @@ static struct module_pin_mux pia335x_pm[] = {
 	{ OFFSET(mmc0_clk),         (M7 | PIN_INPUT) }, /* GPIO 2_30 */
 	{ OFFSET(mmc0_cmd),         (M7 | PIN_INPUT) }, /* GPIO 2_31 */
 	{ OFFSET(mii1_col),         (M7 | PIN_INPUT) }, /* GPIO 3_0 */
-	{ OFFSET(mii1_crs),         (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SDA */
-	{ OFFSET(mii1_rxerr),       (M3 | PIN_INPUT_PULLUP) }, /* I2C1 SCL */
+	{ OFFSET(mii1_crs),         (M7 | PIN_INPUT) }, /* I2C1 SDA configured elsewhere*/
+	{ OFFSET(mii1_rxerr),       (M7 | PIN_INPUT) }, /* I2C1 SCL configured elsewhere*/
 	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* GPIO 3_3 */
 	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT) }, /* GPIO 3_4 */
 	{ OFFSET(mii1_txd3),        (M7 | PIN_INPUT) }, /* GPIO 0_16 */
@@ -877,6 +877,10 @@ static struct module_pin_mux i2c0_pin_mux[] = {
 
 /* I2C1 - piA-AM335x-KM-E2 */
 static struct module_pin_mux i2c1_pin_mux[] = {
+	{OFFSET(mii1_crs), M7 | PIN_INPUT},	/* disable default mode */
+	{OFFSET(mii1_rxerr), M7 | PIN_INPUT},	/* disable default mode */
+	{OFFSET(uart1_rxd), M7 | PIN_INPUT},	/* disable alt1 */
+	{OFFSET(uart1_txd), M7 | PIN_INPUT},	/* disable alt1 */
 	{OFFSET(uart0_ctsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
 	{OFFSET(uart0_rtsn), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
 	{-1},
@@ -884,6 +888,10 @@ static struct module_pin_mux i2c1_pin_mux[] = {
 
 /* I2C1 - piA-AM335x-KM-MMI */
 static struct module_pin_mux mmi_i2c1_pin_mux[] = {
+	{OFFSET(mii1_crs), M7 | PIN_INPUT},	/* disable default mode */
+	{OFFSET(mii1_rxerr), M7 | PIN_INPUT},	/* disable default mode */
+	{OFFSET(uart0_ctsn), M7 | PIN_INPUT},	/* disable alt2 */
+	{OFFSET(uart0_rtsn), M7 | PIN_INPUT},	/* disable alt2 */
 	{OFFSET(uart1_rxd), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
 	{OFFSET(uart1_txd), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
 	{-1},
@@ -891,6 +899,10 @@ static struct module_pin_mux mmi_i2c1_pin_mux[] = {
 
 /* I2C1 - piA-AM335x-PM with baseboard */
 static struct module_pin_mux pm_i2c1_pin_mux[] = {
+	{OFFSET(uart0_ctsn), M7 | PIN_INPUT},	/* disable alt2 */
+	{OFFSET(uart0_rtsn), M7 | PIN_INPUT},	/* disable alt2 */
+	{OFFSET(uart1_rxd), M7 | PIN_INPUT},	/* disable alt1 */
+	{OFFSET(uart1_txd), M7 | PIN_INPUT},	/* disable alt1 */
 	{OFFSET(mii1_crs), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_DATA */
 	{OFFSET(mii1_rxerr), M3 | PIN_INPUT_PULLUP | SLEWCTRL},	/* I2C_SCLK */
 	{-1},
@@ -1005,7 +1017,7 @@ void enable_i2c0_pin_mux(void)
 
 void enable_i2c1_pin_mux(int mux)
 {
-	debug(">>pia:enable_i2c1_pin_mux()\n");
+	debug("Using I2C1 mux configuration: %d\n", mux);
 	switch (mux) {
 	case PIA_I2C1_MUX_ALT1:
 		configure_module_pin_mux(mmi_i2c1_pin_mux);
