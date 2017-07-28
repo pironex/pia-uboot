@@ -821,6 +821,7 @@ static struct emif_regs ddr3_128m16_emif_reg_data = {
 	.sdram_tim1 = MT41J128MJT125_EMIF_TIM1,
 	.sdram_tim2 = MT41J128MJT125_EMIF_TIM2,
 	.sdram_tim3 = MT41J128MJT125_EMIF_TIM3,
+	.ocp_config = EMIF_OCP_CONFIG_PIA_HDMI,
 	.zq_config = MT41J128MJT125_ZQ_CFG, // OK
 	.emif_ddr_phy_ctlr_1 = MT41J128MJT125_EMIF_READ_LATENCY, // PWRDN included
 };
@@ -855,6 +856,7 @@ static struct emif_regs ddr3_pia_256m16_emif_reg_data = {
 	.sdram_tim1	= MT41K256M16HA125IT_EMIF_TIM1,
 	.sdram_tim2	= MT41K256M16HA125IT_EMIF_TIM2,
 	.sdram_tim3	= MT41K256M16HA125IT_EMIF_TIM3,
+	.ocp_config = EMIF_OCP_CONFIG_PIA_HDMI,
 	.zq_config	= MT41K256M16HA125IT_ZQ_CFG,
 	.emif_ddr_phy_ctlr_1 = MT41K256M16HA125IT_EMIF_READ_LATENCY |
 				PHY_EN_DYN_PWRDN,
