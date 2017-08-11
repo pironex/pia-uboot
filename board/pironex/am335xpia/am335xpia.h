@@ -84,7 +84,9 @@ static inline int board_is_pm(struct am335x_baseboard_id *header)
 {
 	return ((strncmp(header->name, "PIA335PM", 8) == 0) ||
 		board_is_sk(header) || board_is_dr(header) ||
-		board_is_ebtft(header) || board_is_pia(header));
+		board_is_ebtft(header) || board_is_pia(header) ||
+		board_is_sf(header)
+		);
 }
 
 void enable_uart0_pin_mux(void);
