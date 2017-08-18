@@ -123,33 +123,23 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
 	"boot_fdt=yes\0" \
-	"bootpart=1\0" \
-	"bootdir=\0" \
+	"bootpart=2\0" \
+	"bootdir=/boot\0" \
 	"bootfile=zImage\0" \
 	"bootenv=uEnv.txt\0" \
 	"fdtfile=undefined\0" \
 	"console=ttyO0,115200n8\0" \
 	"optargs=\0" \
 	"debug=early_printk debug\0" \
-	"partitions=" \
-		"uuid_disk=${uuid_gpt_disk};" \
-		"name=rootfs,start=2MiB,size=-,uuid=${uuid_gpt_rootfs}\0" \
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
 	"mmcrootfstype=ext4 rootwait\0" \
 	"mmcargs=setenv bootargs console=${console} ${debug} ${optargs} " \
-		"root=${mmcroot} " \
+		"root=PARTUUID=${uuid} ro " \
 		"rootfstype=${mmcrootfstype}\0" \
 	"loadbootenv=load mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
 		"env import -t -r $loadaddr $filesize\0" \
-	"ramroot=/dev/ram0 rw\0" \
-	"ramrootfstype=ext2\0" \
-	"ramargs=setenv bootargs console=${console} " \
-		"${optargs} " \
-		"root=${ramroot} " \
-		"rootfstype=${ramrootfstype}\0" \
-	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
 	"loadimage=load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
 	"loadfdt=load mmc ${mmcdev}:${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
 	"mmcloados=run mmcargs; " \
@@ -178,12 +168,10 @@
 				"run uenvcmd;" \
 			"fi;" \
 			"if run loadimage; then " \
+				"setenv mmcroot /dev/mmcblk${mmcdev}p${bootpart} ro; " \
 				"run mmcloados;" \
 			"fi;" \
 		"fi;\0" \
-	"ramboot=echo Booting from ramdisk ...; " \
-		"run ramargs; " \
-		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"findfdt="\
 		"if test $board_name = P335BPIA; then " \
 			"setenv fdtfile am335x-pia-base.dtb; fi; " \
@@ -191,19 +179,28 @@
 			"setenv fdtfile am335x-pia-cantft.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi;\0" \
+	"finduuid="\
+		"part uuid mmc ${mmcdev}:${bootpart} uuid;" \
+		"echo Booting from MMC ${mmcdev}:${bootpart}, rootfs=${uuid}\0" \
 	NANDARGS \
 	SPIARGS
 #endif /* !SPL_BUILD */
 
+/* try mmc0:2 or mmc1:3 (rescue image) -> mmc1:2 -> mmc0:1 */
 #define CONFIG_BOOTCOMMAND \
-	"run findfdt;" \
-	"run mmcboot;" \
-	"setenv bootpart 2;" \
-	"setenv bootdir /boot;" \
-	"run mmcboot;" \
+	"run findfdt; " \
+	"run finduuid; " \
+	"run mmcboot; " \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 2; " \
-	"run mmcboot;" \
+	"setenv bootdir /boot; " \
+	"run finduuid; " \
+	"run mmcboot; " \
+	"setenv mmcdev 0; " \
+	"setenv bootdir; " \
+	"run finduuid; " \
+	"setenv bootpart 1; " \
+	"run mmcboot; " \
 	NANDBOOT
 
 /* allow extra environment variable to be set in board_late_init */
