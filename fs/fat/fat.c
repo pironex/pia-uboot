@@ -1289,7 +1289,7 @@ int fat_size(const char *filename, loff_t *size)
 int file_fat_read_at(const char *filename, loff_t pos, void *buffer,
 		     loff_t maxsize, loff_t *actread)
 {
-	printf("reading %s\n", filename);
+	debug("reading %s\n", filename);
 	return do_fat_read_at(filename, pos, buffer, maxsize, LS_NO, 0,
 			      actread);
 }
