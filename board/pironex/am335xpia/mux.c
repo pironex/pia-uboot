@@ -423,6 +423,52 @@ static struct module_pin_mux pia335x_eb_tft[] = {
 	{ -1 },
 };
 
+/* CAN_TFT_v2_Baseboard: only changes based on pia335x_pm */
+static struct module_pin_mux pia335x_can_tft_v2[] = {
+	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT_PULLUP) }, /* MMC0 CD GPIO 3_21 */
+	{ OFFSET(mii1_txd3),        (M1 | PIN_OUTPUT) }, /* CAN0 TX */
+	{ OFFSET(mii1_txd2),        (M1 | PIN_INPUT) },  /* CAN0 RX */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT_PULLUP) }, /* CAN0 TERM GPIO  2_18 */
+	{ OFFSET(usb0_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB0 DRVVBUS */
+	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) }, /* USB1 DRVVBUS */
+	{ OFFSET(gpmc_wen),         (M7 | PIN_INPUT_PULLDOWN) }, /* LCD ON/OFF GPIO 2_4 */
+	{ OFFSET(gpmc_clk),         (M7 | PIN_INPUT_PULLUP) }, /* Cap Touch Int GPIO 2_1*/
+	{ OFFSET(rmii1_refclk),     (M2 | PIN_INPUT_PULLUP) }, /* SPI1 CS0 (RFID) */
+	{ OFFSET(mcasp0_aclkx),     (M3 | PIN_INPUT_PULLUP) }, /* SPI1 CLK */
+	{ OFFSET(mcasp0_fsx),       (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MOSI */
+	{ OFFSET(mcasp0_axr0),      (M3 | PIN_INPUT_PULLUP) }, /* SPI1 MISO */
+	{ OFFSET(mii1_col),         (M7 | PIN_INPUT_PULLDOWN) }, /* RFID.POW_EN GPIO 3_0*/
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* RFID.IRQ GPIO 3_4 */
+	{ OFFSET(spi0_cs1),         (M2 | PIN_OUTPUT) }, /* Buzzer O */
+
+	/* new/changed signals */
+	{ OFFSET(ecap0_in_pwm0_out),(M0 | PIN_OUTPUT) }, /* LCD BACKLIGHT EN alt: GPIO 0_7 */
+	{ OFFSET(gpmc_advn_ale),    (M7 | PIN_INPUT) }, /* IN1 GPIO 2_2 */
+	{ OFFSET(mii1_txd0),        (M7 | PIN_INPUT) }, /* IN2 GPIO 0_28 */
+	{ OFFSET(mii1_rxclk),       (M7 | PIN_INPUT) }, /* IN3 GPIO 3_10 */
+	{ OFFSET(xdma_event_intr0), (M7 | PIN_INPUT) }, /* IN4 GPIO 0_19 */
+	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT) }, /* IN5 GPIO 0_20 */
+	{ OFFSET(gpmc_csn3),        (M7 | PIN_INPUT) }, /* IN6 GPIO 2_0 */
+	{ OFFSET(mcasp0_axr1),      (M7 | PIN_INPUT_PULLDOWN)}, /* CTL-I (OUT6) GPIO 3_20 */
+	{ OFFSET(emu0),             (M7 | PIN_INPUT_PULLDOWN) }, /* GSM_WLAN GPIO 3_7 */
+	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT_PULLDOWN) }, /* LED_OUT1 GPIO 2_3 */
+	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) }, /* RS485_RES GPIO 3_17 */
+	{ OFFSET(uart1_rxd),        (M0 | PIN_INPUT) }, /* UART1.RX */
+	{ OFFSET(uart1_txd),        (M0 | PIN_OUTPUT) }, /* UART1.TX */
+	{ OFFSET(uart1_rtsn),       (M0 | PIN_OUTPUT) }, /* UART1.RTSN */
+	{ OFFSET(uart0_ctsn),       (M1 | PIN_INPUT) }, /* UART4.RX */
+	{ OFFSET(uart0_rtsn),       (M1 | PIN_OUTPUT) }, /* UART4.TX */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) }, /* GSM_PWRKEY GPIO 3_18 */
+	{ OFFSET(mii1_txen),        (M7 | PIN_INPUT) }, /* GSM_STATUS GPIO 3_3 */
+	{ OFFSET(mii1_txclk),       (M7 | PIN_OUTPUT) }, /* GSM_RESET GPIO 3_9 */
+	{ OFFSET(spi0_sclk),        (M1 | PIN_INPUT) }, /* UART2.RX */
+	{ OFFSET(spi0_d0),          (M1 | PIN_OUTPUT) }, /* UART2.TX */
+	{ OFFSET(spi0_d1),          (M7 | PIN_OUTPUT) }, /* UART2.DTR GPIO 0_4 */
+	{ OFFSET(spi0_cs0),         (M1 | PIN_INPUT_PULLUP) }, /* UART2.RI GPIO 0_5 */
+	/* unchecked */
+	{ -1 },
+};
+
 #define GPIO_PIA_CAN0_STB	((0 * 32) + 22)
 #define GPIO_PIA_PM_OUTPUT	((0 * 32) + 26)
 #define GPIO_PIA_RS485_RES	((0 * 32) + 27)
@@ -480,7 +526,7 @@ static struct module_pin_mux pia3352_pin_mux[] = {
 	{ OFFSET(uart1_rxd),        (M2 | PIN_OUTPUT) },        /* DCAN1.TX */
 	{ OFFSET(uart1_txd),        (M2 | PIN_INPUT) },         /* DCAN1.RX */
 	{ OFFSET(mcasp0_ahclkr),    (M7 | PIN_INPUT_PULLUP) },  /* UART2.RI GPIO 3_17 */
-	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_INPUT_PULLUP) },  /* GSM_PWRKEY GPIO 3_18 */
+	{ OFFSET(mcasp0_aclkr),     (M7 | PIN_OUTPUT) },        /* GSM_PWRKEY GPIO 3_18 */
 	{ OFFSET(mcasp0_fsr),       (M7 | PIN_OUTPUT) },        /* UART2.DTR GPIO 3_19 */
 	{ OFFSET(mcasp0_ahclkx),    (M7 | PIN_INPUT) },         /* OC1 GPIO 3_21 */
 	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT_PULLUP) },  /* 3G_INT GPIO 0_20 */
@@ -1122,6 +1168,28 @@ static void init_pia_ebtft_gpios(void)
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
 }
 
+#define CONFIG_CANTFT_OUTPUT6_GPIO		((3 * 32) + 20)
+#define CONFIG_CANTFT_LCD_BL_GPIO		((0 * 32) + 7)
+#define CONFIG_CANTFT_GSM_WLAN_GPIO		((3 * 32) + 7)
+#define CONFIG_CANTFT_BT_MODE_GPIO		((0 * 32) + 12)
+#define CONFIG_CANTFT_BT_RESET_GPIO		((3 * 32) + 19)
+#define CONFIG_CANTFT_GSM_RESET_GPIO	((3 * 32) + 9)
+#define CONFIG_CANTFT_GSM_DTR_GPIO		((0 * 32) + 4)
+static void init_pia_cantft_v2_gpios(void)
+{
+	gpio_direction_output(CONFIG_CANTFT_OUTPUT6_GPIO, 0);
+	//gpio_direction_output(CONFIG_CANTFT_LCD_BL_GPIO, 0);
+	gpio_direction_output(CONFIG_CANTFT_GSM_WLAN_GPIO, 0);
+	// enable application mode for BM71
+	gpio_direction_output(CONFIG_CANTFT_BT_MODE_GPIO, 1);
+	gpio_direction_output(CONFIG_CANTFT_BT_RESET_GPIO, 0);
+	mdelay(1); // 1ms reset pulse
+	gpio_direction_output(CONFIG_CANTFT_BT_RESET_GPIO, 1);
+	gpio_direction_output(GPIO_PIA_GSM_PWRKEY, 0);
+	gpio_direction_output(CONFIG_CANTFT_GSM_RESET_GPIO, 0);
+	gpio_direction_output(CONFIG_CANTFT_GSM_DTR_GPIO, 0);
+}
+
 static void init_sk_gpios(void)
 {
 	gpio_direction_output(CONFIG_PM_EMMC_RESET_GPIO, 1);
@@ -1189,6 +1257,12 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_eb_tft);
 		configure_module_pin_mux(lcdc_base_pin_mux);
 		init_pia_ebtft_gpios();
+	} else if (board_is_cantft2(header)) {
+		configure_module_pin_mux(pia335x_pm);
+		configure_module_pin_mux(mmc0_pin_mux);
+		configure_module_pin_mux(pia335x_can_tft_v2);
+		configure_module_pin_mux(lcdc_base_pin_mux);
+		init_pia_cantft_v2_gpios();
 	} else if (board_is_em(header)) {
 		configure_module_pin_mux(lokisa_em);
 		init_lokisa_em_gpios();

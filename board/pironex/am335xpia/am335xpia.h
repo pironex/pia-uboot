@@ -39,6 +39,11 @@ struct am335x_baseboard_id {
 	char mac_addr[HDR_NO_OF_MAC_ADDR][HDR_ETH_ALEN];	// 60..78
 };
 
+static inline int board_is_cantft2(struct am335x_baseboard_id *header)
+{
+	return (strncmp(header->name, "P335BCT2", 8) == 0);
+}
+
 static inline int board_is_dr(struct am335x_baseboard_id *header)
 {
 	return ((strncmp(header->name, "P335BAPC", 8) == 0) ||

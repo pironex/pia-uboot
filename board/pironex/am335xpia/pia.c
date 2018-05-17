@@ -611,8 +611,10 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  SF found\n");
 	} else if (board_is_sk(header)) {
 		puts("  SK found\n");
-	} else  if (board_is_ebtft(header)) {
-		puts("  EB_TFT found\n");
+	} else if (board_is_cantft2(header)) {
+		puts("  CAN_TFT v2 found\n");
+	} else if (board_is_ebtft(header)) {
+		puts("  CAN_TFT found\n");
 	} else  if (board_is_dr(header)) {
 		puts("  DataRecorder/APC found\n");
 	} else if (board_is_pia(header)) {
@@ -1040,6 +1042,8 @@ int board_late_init()
 		setenv("fdtfile", "am335x-pia-sk.dtb");
 	} else if (board_is_sf(&header)) {
 		setenv("fdtfile", "am335x-pia-sf.dtb");
+	} else if (board_is_cantft2(&header)) {
+		setenv("fdtfile", "am335x-pia-cantft2.dtb");
 	}
 #endif
 
