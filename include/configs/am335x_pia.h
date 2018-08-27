@@ -135,12 +135,13 @@
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
 	"mmcrootfstype=ext4 rootwait\0" \
 	"mmcargs=setenv bootargs console=${console} ${debug} ${optargs} " \
-		"root=PARTUUID=${uuid} ro " \
+		"root=${mmcroot} " \
 		"rootfstype=${mmcrootfstype}\0" \
 	"loadbootenv=load mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
 		"env import -t -r $loadaddr $filesize\0" \
-	"loadimage=load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"loadimage=echo Trying to load ${bootdir}/${bootfile} from MMC ${mmcdev}:${bootpart}; " \
+		"load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile};\0" \
 	"loadfdt=load mmc ${mmcdev}:${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
 	"mmcloados=run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
@@ -156,19 +157,24 @@
 		"else " \
 			"bootz; " \
 		"fi;\0" \
-	"mmcboot=mmc dev ${mmcdev}; " \
+	"mmcloadbootenv=mmc dev ${mmcdev}; " \
 		"if mmc rescan; then " \
-			"echo SD/MMC found on device ${mmcdev};" \
 			"if run loadbootenv; then " \
-				"echo Loaded environment from ${bootenv};" \
+				"echo Loaded environment from ${mmcdev} ${bootenv}; " \
 				"run importbootenv;" \
 			"fi;" \
-			"if test -n $uenvcmd; then " \
+			"if test -n \"${uenvcmd}\"; then " \
 				"echo Running uenvcmd ...;" \
 				"run uenvcmd;" \
 			"fi;" \
+		"fi;\0" \
+	"mmcboot=mmc dev ${mmcdev}; " \
+		"if mmc rescan; then " \
 			"if run loadimage; then " \
-				"setenv mmcroot /dev/mmcblk${mmcdev}p${bootpart} ro; " \
+				"echo ${bootfile} loaded.; " \
+				"if test -z \"${mmcroot}\"; then " \
+					"setenv mmcroot /dev/mmcblk${mmcdev}p${bootpart} ro; " \
+				"fi; " \
 				"run mmcloados;" \
 			"fi;" \
 		"fi;\0" \
@@ -179,25 +185,30 @@
 			"setenv fdtfile am335x-pia-cantft.dtb; fi; " \
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine device tree to use; fi;\0" \
-	"finduuid="\
-		"part uuid mmc ${mmcdev}:${bootpart} uuid;" \
-		"echo Booting from MMC ${mmcdev}:${bootpart}, rootfs=${uuid}\0" \
+	"finduuid=part uuid mmc ${mmcdev}:${bootpart} uuid;" \
+		"if test -n \"${uuid}\"; then " \
+			"setenv mmcroot PARTUUID=${uuid} ro; fi; " \
+		"echo Booting from MMC ${mmcdev}:${bootpart}, rootfs=${uuid};\0" \
 	NANDARGS \
 	SPIARGS
 #endif /* !SPL_BUILD */
 
-/* try mmc0:2 or mmc1:3 (rescue image) -> mmc1:2 -> mmc0:1 */
+/* try mmc0:2 or mmc1:3 (rescue image) -> mmc1:2 -> mmc0:1
+ * uEnv files are only allowed on *:1 for now */
 #define CONFIG_BOOTCOMMAND \
 	"run findfdt; " \
+	"run mmcloadbootenv; " \
 	"run finduuid; " \
 	"run mmcboot; " \
 	"setenv mmcdev 1; " \
 	"setenv bootpart 2; " \
 	"setenv bootdir /boot; " \
+	"run mmcloadbootenv; " \
 	"run finduuid; " \
 	"run mmcboot; " \
 	"setenv mmcdev 0; " \
 	"setenv bootdir; " \
+	"run mmcloadbootenv; " \
 	"run finduuid; " \
 	"setenv bootpart 1; " \
 	"run mmcboot; " \
