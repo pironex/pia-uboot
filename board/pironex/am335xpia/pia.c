@@ -1008,6 +1008,30 @@ int board_init(void)
 }
 
 #ifdef CONFIG_BOARD_LATE_INIT
+#define PIA_BOOT_OK		(0x55)
+#define PIA_BOOT_TRY	(0xAA)
+void pia_check_recovery_boot(void)
+{
+	u8 regval = 0;
+	i2c_set_bus_num(0);
+	i2c_read(PIA_TPS65910_CTRL_ADDRESS, TPS65910_BCK1_REG, 1, &regval, 1);
+	if (regval == PIA_BOOT_OK) {
+		puts("REC: Previous boot OK! Starting default boot...\n");
+		regval = PIA_BOOT_TRY;
+		// write boot try flag, which should be reset by the system
+		i2c_write(PIA_TPS65910_CTRL_ADDRESS, TPS65910_BCK1_REG, 1, &regval, 1);
+		return;
+	} else if (regval != PIA_BOOT_TRY) {
+		printf("REC: Recovery flag unknown, : %02x\n", regval);
+		return;
+	}
+
+	puts("REC: Previous boot failed! Starting recovery...\n");
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	setenv("bootenv", "uEnvREC.txt");
+#endif
+}
+
 int board_late_init()
 {
 	struct am335x_baseboard_id header;
@@ -1042,6 +1066,7 @@ int board_late_init()
 		setenv("fdtfile", "am335x-pia-sk.dtb");
 	} else if (board_is_sf(&header)) {
 		setenv("fdtfile", "am335x-pia-sf.dtb");
+		pia_check_recovery_boot();
 	} else if (board_is_cantft2(&header)) {
 		setenv("fdtfile", "am335x-pia-cantft2.dtb");
 	}
