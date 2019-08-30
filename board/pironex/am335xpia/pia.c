@@ -607,6 +607,8 @@ static void print_board_info(struct am335x_baseboard_id *header)
 		puts("  PIA335MI found\n");
 	} else if (board_is_em(header)) {
 		puts("  Lokisa EM found\n");
+	} else if (board_is_sf2(header)) {
+		puts("  SF v2 found\n");
 	} else if (board_is_sf(header)) {
 		puts("  SF found\n");
 	} else if (board_is_sk(header)) {
@@ -1064,6 +1066,10 @@ int board_late_init()
 		setenv("fdtfile", "am335x-pia-dr.dtb");
 	} else if (board_is_sk(&header)) {
 		setenv("fdtfile", "am335x-pia-sk.dtb");
+	} else if (board_is_sf2(&header)) {
+		// check sf2 first, same start of name
+		setenv("fdtfile", "am335x-pia-sf2.dtb");
+		pia_check_recovery_boot();
 	} else if (board_is_sf(&header)) {
 		setenv("fdtfile", "am335x-pia-sf.dtb");
 		pia_check_recovery_boot();

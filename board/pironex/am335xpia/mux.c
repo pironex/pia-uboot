@@ -576,6 +576,17 @@ static struct module_pin_mux pia335x_sf[] = {
 	{ OFFSET(usb1_drvvbus),     (M0 | PIN_OUTPUT) },       /* USB1.DRVVBUS */
 	{ -1 },
 };
+static struct module_pin_mux pia335x_sf2[] = {
+	{ OFFSET(mii1_rxdv),        (M7 | PIN_INPUT_PULLUP) }, /* BT-MODE GPIO 3_4 */
+	{ OFFSET(mii1_txd0),        (M0 | PIN_INPUT) },        /* not connected GPIO 0_28 */
+	{ OFFSET(mii1_rxd3),        (M7 | PIN_INPUT_PULLUP) }, /* WD_EN GPIO 2_18 */
+	{ OFFSET(spi0_cs1),         (M2 | PIN_OUTPUT) },       /* SPI0_CS1.ECAP1_IN_PWM1_OUT Buzzer */
+	{ OFFSET(xdma_event_intr1), (M7 | PIN_INPUT_PULLUP) }, /* BT-RTS_N GPIO 0_20 */
+	{ OFFSET(emu1),             (M7 | PIN_INPUT) },        /* BT-STATUS GPIO 3_8 */
+	/* SPI0 disabled */
+	{ -1 },
+};
+
 static struct module_pin_mux pia335x_sf_rev0_1[] = {
 	{ OFFSET(gpmc_oen_ren),     (M7 | PIN_INPUT) },        /* LCD_PWRDWN GPIO 2_3 */
 	{ OFFSET(gpmc_be0n_cle),    (M7 | PIN_INPUT_PULLUP) }, /* GSM_reset GPIO 2_5 */
@@ -1270,7 +1281,9 @@ void enable_board_pin_mux(struct am335x_baseboard_id *header)
 		configure_module_pin_mux(pia335x_pm);
 		configure_module_pin_mux(mmc0_pin_mux);
 		configure_module_pin_mux(pia335x_sf);
-		if (0 == strncmp(header->version, "0.01", 4)) {
+		if (board_is_sf2(header)) {
+			configure_module_pin_mux(pia335x_sf2);
+		} else if (0 == strncmp(header->version, "0.01", 4)) {
 			configure_module_pin_mux(pia335x_sf_rev0_1);
 		} else {
 			configure_module_pin_mux(pia335x_sf_rev0_2);
