@@ -653,7 +653,14 @@ void am33xx_spl_board_init(void)
 	uchar buf[4];
 	int mpu_vdd, sil_rev;
 	struct am335x_baseboard_id header;
+	u32 bootdev;
 
+	/* show boot device */
+	bootdev = spl_boot_device();
+	printf("Boot device: %s\n",
+		bootdev == BOOT_DEVICE_MMC2 ? "eMMC" :
+		bootdev == BOOT_DEVICE_MMC1 ? "SD card" :
+		"unknown");
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
 	puts("Special FIRSTSTART version\n");
